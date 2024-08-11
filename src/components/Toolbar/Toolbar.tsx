@@ -1,7 +1,7 @@
 // Lib
 import UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
-import { COLORS } from '../../state/store';
+import { MODES } from '../../state/store';
 
 // Types
 import type { FC } from 'react';
@@ -9,31 +9,51 @@ import type { FC } from 'react';
 // Styles
 import './Toolbar.styles.css';
 
-const Toolbar: FC = () => {
-  const color = useAppSelector(state => state.canvas.color);
+// Components
+import DrawingToolbar from '../DrawingToolbar/DrawingToolbar';
+
+type ToolbarButtonProps = {
+  icon: string;
+  name: string;
+}
+
+const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name }) => {
+  const mode = useAppSelector(state => state.canvas.mode);
   const dispatch = useAppDispatch();
 
-  const handleColorChange = (color: string) => {
-    dispatch({ type: 'SET_COLOR', payload: color });
+  const isActive = mode === name;
+
+  const onClick = () => {
+    dispatch({ type: 'SET_MODE', payload: name });
   }
 
-  const renderedColors = COLORS.map((c) => {
-    const { name, value } = c;
-    const isActive = color === value;
+  return (
+    <div
+      className={`toolbar-option ${isActive ? 'active' : ''}`}
+      onClick={onClick}
+      title={UTILS.capitalize(name)}
+    >
+      <i className={`fa ${icon}`} />
+    </div>
+  );
+}
 
-    return (
-      <div
-        key={name}
-        className={`color-option ${name} ${isActive ? 'active' : ''}`}
-        onClick={() => handleColorChange(name)}
-        title={UTILS.capitalize(name)}
-      ></div>
-    );
+
+const Toolbar: FC = () => {
+  const mode = useAppSelector(state => state.canvas.mode);
+
+  const renderedModes = MODES.map((m) => {
+    const { name, icon } = m;
+
+    return <ToolbarButton key={name} icon={icon} name={name} />;
   });
 
   return (
-    <div id="toolbar-container">
-      {renderedColors}
+    <div id='toolbar-container'>
+      { mode === 'draw' && <DrawingToolbar />}
+      <div id="modes">
+        {renderedModes}
+      </div>
     </div>
   );
 }

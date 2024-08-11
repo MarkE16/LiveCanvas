@@ -1,6 +1,23 @@
-#ideadrawn-canvas {
+
+
+.ideadrawn-canvas {
+  position: absolute;
   background-color: #f5f5f5;
   cursor: crosshair;
   border-radius: 3px;
   border: 1px solid gray;
+}
+
+.ideadrawn-canvas.selectionMode {
+  background-color: transparent;
+  cursor: default;
+  z-index: 99;
+}
+
+.ideadrawn-canvas.select {
+  cursor: default;
+}
+
+.ideadrawn-canvas.draw {
+  cursor: crosshair;
 }

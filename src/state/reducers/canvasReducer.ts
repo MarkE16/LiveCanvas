@@ -7,6 +7,7 @@ import { COLORS } from '../../state/store';
 type CanvasState = {
   width: number;
   height: number;
+  mode: 'select' | 'draw' | 'erase';
   color: string;
   blob?: Blob;
 }
@@ -21,6 +22,7 @@ type ResolutionAction = {
 const initState: CanvasState = {
   width: 400,
   height: 400,
+  mode: 'select',
   color: '#000000',
   blob: undefined
 }
@@ -41,6 +43,9 @@ export const canvasReducer = (
 
       return { ...state, [resolution]: value };
     }
+
+    case 'SET_MODE':
+      return { ...state, mode: action.payload as 'select' | 'draw' | 'erase' };
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

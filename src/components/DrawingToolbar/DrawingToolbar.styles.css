@@ -1,0 +1,12 @@
+#drawing-toolbar {
+  display: flex;
+  flex-direction: column;
+}
+
+#colors {
+  display: inline-flex;
+}
+
+hr {
+  width: 100%;
+}

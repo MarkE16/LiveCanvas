@@ -19,5 +19,11 @@ export const COLORS: Color[] = [
   { name: 'white', value: '#FFFFFF' },
 ]
 
+export const MODES = [
+  { name: 'select', icon: 'fa-mouse-pointer' },
+  { name: 'draw', icon: 'fa-pen' },
+  { name: 'erase', icon: 'fa-eraser' }
+]
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
