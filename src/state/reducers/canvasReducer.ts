@@ -2,15 +2,16 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 
 // Constants
-import { COLORS } from '../../state/store';
+import { COLORS, SHAPES } from '../../state/store';
 
 type CanvasState = {
   width: number;
   height: number;
-  mode: 'select' | 'draw' | 'erase';
+  mode: 'select' | 'draw' | 'erase' | 'shapes';
   color: string;
   drawStrength: number;
   eraserStrength: number;
+  shape: 'rectangle' | 'circle' | 'triangle';
   blob?: string;
   ws?: WebSocket;
 }
@@ -29,6 +30,7 @@ const initState: CanvasState = {
   color: '#000000',
   drawStrength: 5,
   eraserStrength: 3,
+  shape: 'rectangle',
   blob: undefined,
   ws: undefined
 }
@@ -51,13 +53,16 @@ export const canvasReducer = (
     }
 
     case 'SET_MODE':
-      return { ...state, mode: action.payload as 'select' | 'draw' | 'erase' };
+      return { ...state, mode: action.payload as 'select' | 'draw' | 'erase' | 'shapes' };
     
     case 'SET_DRAW_STRENGTH':
       return { ...state, drawStrength: action.payload as number };
     
     case 'SET_ERASE_STRENGTH':
       return { ...state, eraserStrength: action.payload as number };
+    
+    case 'SET_SHAPE':
+      return { ...state, shape: action.payload as 'rectangle' | 'circle' | 'triangle' };
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

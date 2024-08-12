@@ -12,11 +12,7 @@
   margin: 0.5em;
 }
 
-#modes {
-  display: inline-flex;
-}
-
-.color-option, .toolbar-option {
+.toolbar-option {
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -24,40 +20,12 @@
   cursor: pointer;
 }
 
-.color-option.active, .toolbar-option.active {
+.toolbar-option.active {
   outline: 2px solid #7e83da;
   outline-offset: 2px;
-  outline-width: 3px;
+  /* outline-width: 3px; */
 }
 
-.color-option.red {
-  background-color: red;
-}
-
-.color-option.green {
-  background-color: green;
-}
-
-.color-option.blue {
-  background-color: blue;
-}
-
-.color-option.black {
-  background-color: black;
-}
-
-.color-option.white {
-  background-color: white;
-}
-
-.color-option.yellow {
-  background-color: yellow;
-}
-
-.color-option.cyan {
-  background-color: cyan;
-}
-
-.color-option.magenta {
-  background-color: magenta;
+#modes {
+  display: inline-flex;
 }

@@ -1,7 +1,7 @@
 // Lib
 import UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
-import { COLORS } from '../../state/store';
+import { COLORS, SHAPES } from '../../state/store';
 
 
 // Type
@@ -11,7 +11,7 @@ import type { FC } from 'react';
 import './DrawingToolbar.styles.css';
 
 const DrawingToolbar: FC = () => {
-  const { color, drawStrength, eraserStrength, mode } = useAppSelector(state => state.canvas);
+  const { color, drawStrength, eraserStrength, mode, shape } = useAppSelector(state => state.canvas);
   const dispatch = useAppDispatch();
 
   const strengthSettings = mode === "draw" ? {
@@ -34,17 +34,40 @@ const DrawingToolbar: FC = () => {
     dispatch({ type: `SET_${e.target.name}`, payload: strength });
   }
 
+  const handleShapeChange = (shape: string) => {
+    dispatch({ type: 'SET_SHAPE', payload: shape });
+  }
+
   const renderedColors = COLORS.map((c) => {
     const { name, value } = c;
     const isActive = color === value;
 
     return (
-      <div
+      <button
         key={name}
         className={`color-option ${name} ${isActive ? 'active' : ''}`}
         onClick={() => handleColorChange(name)}
         title={UTILS.capitalize(name)}
-      ></div>
+      ></button>
+    );
+  });
+
+  const renderedShapes = SHAPES.map((s) => {
+    const { icon, name } = s;
+
+    const isActive = shape === name;
+
+    console.log(isActive);
+
+    return (
+      <button
+        key={name}
+        className={`shape-option ${isActive ? 'active' : ''}`}
+        onClick={() => handleShapeChange(name)}
+        title={UTILS.capitalize(name)}
+      >
+        <i className={`fa ${icon}`} />
+      </button>
     );
   });
 
@@ -56,22 +79,24 @@ const DrawingToolbar: FC = () => {
             <div id="colors">
               {renderedColors}
             </div>
-            <hr />
           </>
         )
       }
-      <div id="additional-settings">
-        Strength: <input 
-        name={`${mode}_strength`.toUpperCase()}
-        type="range"
-        min={strengthSettings.min}
-        max={strengthSettings.max}
-        step="1"
-        value={strengthSettings.value}
-        onChange={handleStrengthChange}
-         />
-         <label>{strengthSettings.value}</label>
-      </div>
+      { mode === "shapes" && <div id="shapes">{renderedShapes}</div> }
+      { (mode === "draw" || mode === "erase") && (
+        <div id="additional-settings">
+          Strength: <input 
+          name={`${mode}_strength`.toUpperCase()}
+          type="range"
+          min={strengthSettings.min}
+          max={strengthSettings.max}
+          step="1"
+          value={strengthSettings.value}
+          onChange={handleStrengthChange}
+          />
+          <label>{strengthSettings.value}</label>
+        </div>
+      )}
     </div>
   );
 }

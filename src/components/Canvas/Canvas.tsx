@@ -1,5 +1,5 @@
 // Lib
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 
 // Types
@@ -11,7 +11,16 @@ import './Canvas.styles.css';
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
   const dispatch = useAppDispatch();
-  const { width, height, color, mode, drawStrength, eraserStrength, blob } = state;
+  const { 
+    width,
+    height,
+    color,
+    mode,
+    drawStrength,
+    eraserStrength,
+    shape,
+    blob
+  } = state;
 
   const ref = useRef<HTMLCanvasElement>(null);
   const selectionRef = useRef<HTMLCanvasElement>(null);
@@ -22,131 +31,182 @@ const Canvas: FC = () => {
     y: ref.current?.offsetTop ?? 0
   });
   const selectionRect = useRef(null);
+  const movingSelection = useRef<boolean>(false);
   const [lastPointerPosition, setLastPointerPosition] = useState({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
 
-  const getContext = useCallback(() => {
-    if (mode === 'select') {
-      return { ctx: selectionRef.current!.getContext('2d'), canvas: selectionRef };
-    }
+  const isPointerInsideRect = (
+    x: number,
+    y: number
+  ): boolean => {
+    if (!selectionRect.current) return false;
 
-    return { ctx: ref.current!.getContext('2d'), canvas: ref };
-  }, [mode]);
+    const { x: rectX, y: rectY, rectWidth, rectHeight } = selectionRect.current;
+
+    
+    return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
+  }
 
   const onMouseDown = (e: MouseEvent) => {
     // Start drawing.
   
-    const { ctx, canvas } = getContext();
-    const { offsetLeft, offsetTop } = canvas.current!;
+    const mainCanvas = ref.current!.getContext('2d');
+    const { offsetLeft, offsetTop } = ref.current!;
 
     const pointerX = e.clientX - offsetLeft;
     const pointerY = e.clientY - offsetTop;
 
+    // if (isPointerInsideRect(pointerX, pointerY)) {
+      // Move the selection.
+      // movingSelection.current = true;
+      // return;
+      // const mainCanvas = ref.current!.getContext('2d');
+      // const selectionCanvas = selectionRef.current!.getContext('2d');
+      // const { x, y, rectWidth, rectHeight } = selectionRect.current!;
+
+      // const dx = pointerX - x;
+      // const dy = pointerY - y;
+
+      // // mainCanvas!.drawImage(selectionRef.current!, x, y, rectWidth, rectHeight, pointerX - dx, pointerY - dy, rectWidth, rectHeight);
+      
+    // }
     isDrawing.current = true;
 
 
     if (mode === "draw") {
-      ctx!.beginPath();
-      ctx!.moveTo(pointerX, pointerY);
-    } else if (mode === "select") {
+      mainCanvas!.beginPath();
+      mainCanvas!.moveTo(pointerX, pointerY);
+    } else if (mode === "select" ||  mode == "shapes") {
       selectPosition.current = { x: pointerX, y: pointerY };
       // ctx?.strokeRect(pointerX, pointerY, 0, 0);
     }
   }
 
   const onMouseMove = (e: MouseEvent) => {
-    const { ctx, canvas } = getContext();
-    const { offsetLeft, offsetTop } = canvas.current!;
+    const mainCanvas = ref.current!.getContext('2d');
+    const { offsetLeft, offsetTop } = ref.current!;
     
-    const pointerX = e.clientX - offsetLeft;
-    const pointerY = e.clientY - offsetTop;
+    const canvasPointerX = e.clientX - offsetLeft;
+    const canvasPointerY = e.clientY - offsetTop;
 
     setLastPointerPosition({
       x: e.clientX,
       y: e.clientY
     });
 
+    // if (selectionRect.current) {
+    //   if (isPointerInsideRect(pointerX, pointerY)) {
+    //     canvas.current!.style.cursor = 'move';
+    //   } else {
+    //     canvas.current!.style.cursor = 'crosshair';
+    //   }
+    // }
+
     
-    // Draw.
-    if (isDrawing.current) {
+    // Draw. `e.buttons` is 1 when the left mouse button is pressed.
+    if (isDrawing.current && e.buttons === 1) {
       
       switch (mode) {
         case 'draw': {
-          ctx!.lineWidth = drawStrength;
-          ctx!.lineCap = 'round';
-          ctx!.lineJoin = 'round';
-          ctx!.strokeStyle = color;
+          mainCanvas!.lineWidth = drawStrength;
+          mainCanvas!.lineCap = 'round';
+          mainCanvas!.lineJoin = 'round';
+          mainCanvas!.strokeStyle = color;
           
-          ctx!.lineTo(pointerX, pointerY);
-          ctx!.stroke();
+          mainCanvas!.lineTo(canvasPointerX, canvasPointerY);
+          mainCanvas!.stroke();
+          break;
+        }
+
+        case 'shapes': {
+          const selectionCanvas = selectionRef.current!.getContext('2d');
+          const { x, y } = selectPosition.current;
+          
+          selectionCanvas!.beginPath();
+          selectionCanvas!.clearRect(0, 0, width, height);
+          selectionCanvas!.lineWidth = 2;
+          
+          switch (shape) {
+            case "circle": {
+              // Recall: x^2 + y^2 = r^2
+              const radius = Math.sqrt((canvasPointerX - x) ** 2 + (canvasPointerY - y) ** 2);
+              selectionCanvas!.arc(x, y, radius, 0, 2 * Math.PI);
+              break;
+            }
+
+            case "rectangle": {
+              if (e.shiftKey) {
+                // Make it a square with equal sides.
+
+                selectionCanvas!.strokeRect(x, y, canvasPointerX - x, canvasPointerX - x);
+              } else {
+                selectionCanvas!.strokeRect(x, y, canvasPointerX - x, canvasPointerY - y);
+              }
+              break;
+            }
+
+            case "triangle": {
+              selectionCanvas!.moveTo(x, y);
+              selectionCanvas!.lineTo(x + (canvasPointerX - x) / 2, canvasPointerY);
+              selectionCanvas!.lineTo(canvasPointerX, y);
+              selectionCanvas!.lineTo(x, y);
+              break;
+            }
+          }
+          
+          selectionCanvas!.stroke();
+          selectionCanvas!.closePath();
           break;
         }
         
         case 'erase': {
-          ctx!.clearRect(
-            pointerX - eraserStrength * ERASER_RADIUS / 2,
-            pointerY - eraserStrength * ERASER_RADIUS / 2,
-            eraserStrength * ERASER_RADIUS,
-            eraserStrength * ERASER_RADIUS
+          mainCanvas!.clearRect(
+            canvasPointerX - eraserStrength * ERASER_RADIUS / 2, // x
+            canvasPointerY - eraserStrength * ERASER_RADIUS / 2, // y
+            eraserStrength * ERASER_RADIUS, // width
+            eraserStrength * ERASER_RADIUS // height
           );
           break;
         }
         
         case 'select': {
+
+          // Draw the selection rectangle.
           const { x, y } = selectPosition.current;
+          const selectionCanvas = selectionRef.current!.getContext('2d');
 
-          ctx!.clearRect(0, 0, width, height);
+          selectionCanvas!.clearRect(0, 0, width, height);
 
-          ctx!.strokeStyle = 'rgba(0, 0, 255)';
-          ctx!.lineWidth = 2;
-          ctx!.fillStyle = 'rgba(0, 0, 255, 0.1)';
-          ctx!.fillRect(x, y, pointerX - x, pointerY - y);
-          ctx!.strokeRect(x, y, pointerX - x, pointerY - y);
+          selectionCanvas!.strokeStyle = 'rgba(43, 184, 227)';
+          selectionCanvas!.lineWidth = 2;
+          selectionCanvas!.fillStyle = 'rgba(43, 184, 227, 0.1)';
+
+          // if (movingSelection.current) {
+          //   const { rectX, rectY, rectWidth, rectHeight } = selectionRect.current;
+          //   const dx = pointerX - rectX;
+          //   const dy = pointerY - rectY;
+
+          //   ctx!.fillRect(pointerX + dx, pointerY + dy, rectWidth, rectHeight);
+          //   ctx!.strokeRect(pointerX + dx, pointerY + dy, rectWidth, rectHeight);
+          //   selectionRect.current = {
+          //     x: pointerX + dx,
+          //     y: pointerY + dy,
+          //     rectWidth,
+          //     rectHeight
+          //   }
+          //   return;
+          // }
+
+          selectionCanvas!.fillRect(x, y, canvasPointerX - x, canvasPointerY - y);
+          selectionCanvas!.strokeRect(x, y, canvasPointerX - x, canvasPointerY - y);
 
           selectionRect.current = {
-            x, y,
-            rectWidth: pointerX - x,
-            rectHeight: pointerY - y
+            x,
+            y,
+            rectWidth: canvasPointerX - x,
+            rectHeight: canvasPointerY - y
           }
-          // if (movingSelection.current) {
-            //   const { x, y, rectWidth, rectHeight } = selectionRect.current;
-            //   const dx = pointerX - x;
-            //   const dy = pointerY - y;
-
-            //   ctx!.clearRect(0, 0, width, height);
-
-            //   ctx!.strokeStyle = 'rgba(0, 0, 255)';
-            //   ctx!.lineWidth = 2;
-            //   ctx!.fillStyle = 'rgba(0, 0, 255, 0.1)';
-
-            //   // Follow the pointer.
-            //   ctx!.fillRect(pointerX - dx, pointerY - dy, rectWidth, rectHeight);
-            //   ctx!.strokeRect(pointerX - dx, pointerY - dy, rectWidth, rectHeight);
-              
-
-            //   selectionRect.current = {
-            //     x: pointerX - dx,
-            //     y: pointerY - dy,
-            //     rectWidth,
-            //     rectHeight
-            //   }
-
-              // ctx!.clearRect(x, y, rectWidth, rectHeight);
-
-              // selectionRect.current = {
-              //   x: pointerX,
-              //   y: pointerY,
-              //   rectWidth,
-              //   rectHeight
-              // }
-
-              // ctx!.strokeStyle = 'rgba(0, 0, 255)';
-              // ctx!.lineWidth = 2;
-              // ctx!.fillStyle = 'rgba(0, 0, 255, 0.1)';
-              // ctx!.fillRect(x, y, rectWidth, rectHeight);
-              // ctx!.strokeRect(x, y, rectWidth, rectHeight);
-          // }
         break;
       }
         default:
@@ -158,25 +218,25 @@ const Canvas: FC = () => {
   const onMouseUp = () => {
     // Stop drawing.
     isDrawing.current = false;
+    // movingSelection.current = false;
 
-    const { ctx } = getContext();
+    const mainCanvas = ref.current!.getContext('2d');
 
-    // Select Mode was on.
-    if (mode == "select") {
-      // movingSelection.current = true;
-      // const { offsetLeft, offsetTop } = canvas.current;
+    mainCanvas!.closePath();
 
-      // ctx?.clearRect(0, 0, width, height);
+    if (mode === "shapes") {
+      const selectionCanvas = selectionRef.current!.getContext('2d');
+
+      mainCanvas!.drawImage(selectionRef.current!, 0, 0);
+      selectionCanvas!.clearRect(0, 0, width, height);
     }
 
-    ctx!.closePath();
-
     // Save the canvas state.
-    ref.current!.toBlob(b => {
-      b?.text().then(txt => {
-        dispatch({ type: 'SET_BLOB', payload: txt });
-      });
-    })
+    // ref.current!.toBlob(b => {
+    //   b?.text().then(txt => {
+    //     dispatch({ type: 'SET_BLOB', payload: txt });
+    //   });
+    // })
   }
 
   const onMouseLeave = () => {
@@ -196,24 +256,26 @@ const Canvas: FC = () => {
 
     // We're only concerned with the main canvas.
     // The selection canvas is cleared when the selection is done.
-    const ctx = ref.current!.getContext('2d');
+    const mainCanvas = ref.current!.getContext('2d');
 
-    ctx!.clearRect(0, 0, width, height);
+    mainCanvas!.clearRect(0, 0, width, height);
   }
 
-  useEffect(() =>{
-    const { ctx } = getContext();
+  // useEffect(() =>{
+  //   const { ctx } = getContext(mode);
 
-    // blob is a string from Blob.text()
+  //   // blob is a string from Blob.text()
 
-    if (blob) {
-      const img = new Image();
-      img.src = blob;
-      img.onload = () => {
-        ctx!.drawImage(img, 0, 0);
-      }
-    }
-  }, [blob, getContext, width, height]);
+  //   if (blob) {
+  //     const img = new Image();
+  //     img.src = blob;
+  //     img.onload = () => {
+  //       ctx!.drawImage(img, 0, 0);
+  //     }
+  //   }
+
+  //   selectionRect.current = null;
+  // }, [blob, getContext, mode]);
 
   // Handle keyboard shortcuts for selection mode.
   useEffect(() => {
@@ -229,9 +291,9 @@ const Canvas: FC = () => {
 
           mainCanvas!.clearRect(x, y, rectWidth, rectHeight);
           
-          selectionRect.current = null;
-
+          
           selectionCanvas!.clearRect(0, 0, width, height);
+          selectionRect.current = null;
           break;
         }
 
@@ -246,12 +308,23 @@ const Canvas: FC = () => {
       }
     }
 
+    function canvasContextMenu(e: Event) {
+      e.preventDefault();
+    }
+
+    const mainCanvasRef = ref.current!;
+    const selectionCanvasRef = selectionRef.current!;
+    
     window.addEventListener('keydown', handleKeyDown);
+    mainCanvasRef.addEventListener('contextmenu', canvasContextMenu);
+    selectionCanvasRef.addEventListener('contextmenu', canvasContextMenu);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      mainCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
+      selectionCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
     }
-  }, [getContext, width, height]);
+  }, [width, height]);
 
   return (
     <>
@@ -272,7 +345,7 @@ const Canvas: FC = () => {
           }}></div>
         )}
         { /* Add an extra layer for selection mode. */ }
-        { mode === "select" && (
+        { (mode === "select" || mode === "shapes") && (
           <canvas
             className="ideadrawn-canvas selectionMode"
             width={width}

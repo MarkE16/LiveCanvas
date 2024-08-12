@@ -61,7 +61,8 @@ const Toolbar: FC = () => {
 
   return (
     <div id='toolbar-container'>
-      { mode !== "select" && <DrawingToolbar />}
+      <DrawingToolbar />
+      { mode !== "select" && <hr /> }
       <div id="modes">
         {renderedModes}
       </div>

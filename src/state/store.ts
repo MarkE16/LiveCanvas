@@ -23,6 +23,13 @@ export const MODES = [
   { name: 'select', icon: 'fa-mouse-pointer', shortcut: 's' },
   { name: 'draw', icon: 'fa-pen-nib', shortcut: 'd' },
   { name: 'erase', icon: 'fa-eraser', shortcut: 'e' },
+  { name: 'shapes', icon: 'fa-shapes', shortcut: 'a' },
+]
+
+export const SHAPES = [
+  { name: 'rectangle', icon: 'fa-square' },
+  { name: 'circle', icon: 'fa-circle' },
+  { name: 'triangle', icon: 'fa-play' },
 ]
 
 export type RootState = ReturnType<typeof store.getState>;
