@@ -2,7 +2,12 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 
 // Constants
-import { COLORS, SHAPES } from '../../state/store';
+import { COLORS } from '../../state/store';
+
+type Layer = {
+  id: number;
+  active: boolean;
+}
 
 type CanvasState = {
   width: number;
@@ -12,6 +17,7 @@ type CanvasState = {
   drawStrength: number;
   eraserStrength: number;
   shape: 'rectangle' | 'circle' | 'triangle';
+  layers: Layer[];
   blob?: string;
   ws?: WebSocket;
 }
@@ -31,6 +37,9 @@ const initState: CanvasState = {
   drawStrength: 5,
   eraserStrength: 3,
   shape: 'rectangle',
+  layers: [
+    { id: 0, active: true }
+  ],
   blob: undefined,
   ws: undefined
 }
@@ -63,6 +72,50 @@ export const canvasReducer = (
     
     case 'SET_SHAPE':
       return { ...state, shape: action.payload as 'rectangle' | 'circle' | 'triangle' };
+    
+    case 'ADD_LAYER': {
+      const currentActiveIndex = state.layers.findIndex(l => l.active);
+      const newLayer = { id: state.layers.length, active: true };
+      
+      const newLayers = state.layers.map(l => {
+        if (l.id === currentActiveIndex) {
+          return { ...l, active: false };
+        }
+        return l;
+      })
+
+      return { ...state, layers: [...newLayers, newLayer] };
+    }
+
+    case 'REMOVE_LAYER': {
+      if (state.layers.length === 1) return state;
+
+       const pendingLayer = state.layers.find(l => l.id === action.payload);
+
+        const newLayers = state.layers.filter(l => l.id !== pendingLayer?.id);
+
+        if (pendingLayer?.active) {
+          newLayers[newLayers.length - 1].active = true;
+        }
+
+
+      return { ...state, layers: newLayers };
+    }
+
+    case 'TOGGLE_LAYER': {
+      const currentActiveIndex = state.layers.findIndex(l => l.active);
+      const newLayers = state.layers.map(l => {
+        
+        // Update the new active layer, and deactivate the previous active layer
+        if (l.id === action.payload || l.id === currentActiveIndex) {
+          return { ...l, active: !l.active };
+        }
+
+        return l;
+      });
+
+      return { ...state, layers: newLayers };
+    }
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

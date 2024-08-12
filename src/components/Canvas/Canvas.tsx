@@ -19,7 +19,8 @@ const Canvas: FC = () => {
     drawStrength,
     eraserStrength,
     shape,
-    blob
+    blob,
+    layers
   } = state;
 
   const ref = useRef<HTMLCanvasElement>(null);
@@ -328,7 +329,7 @@ const Canvas: FC = () => {
 
   return (
     <>
-      <div>
+      <div id="canvas-bg">
         {/* A dot to indicate the radius of the eraser. */}
         { mode === "erase" && (
           <div style={{
@@ -360,19 +361,23 @@ const Canvas: FC = () => {
           </canvas>
         )}
         {/* The main canvas. */}
-        <canvas
-          className={`ideadrawn-canvas ${mode}`}
-          width={width}
-          height={height}
-          ref={ref}
-          onPointerDown={onMouseDown}
-          onPointerMove={onMouseMove}
-          onPointerUp={onMouseUp}
-          onPointerLeave={onMouseUp}
-          onPointerEnter={onMouseEnter}
-        >
-          
-        </canvas>
+        {
+          layers.map(layer => (
+            <canvas
+              key={layer.id}
+              className={`ideadrawn-canvas ${layer.active ? 'active' : ''}`}
+              width={width}
+              height={height}
+              ref={layer.active ? ref : null}
+              onPointerDown={onMouseDown}
+              onPointerMove={onMouseMove}
+              onPointerUp={onMouseUp}
+              onPointerLeave={onMouseLeave}
+              onPointerEnter={onMouseEnter}
+            >
+            </canvas>
+          ))
+        }
       </div>
       <div>
         <button onClick={clearCanvas}>Clear Canvas</button>
