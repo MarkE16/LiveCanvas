@@ -20,9 +20,9 @@ export const COLORS: Color[] = [
 ]
 
 export const MODES = [
-  { name: 'select', icon: 'fa-mouse-pointer' },
-  { name: 'draw', icon: 'fa-pen' },
-  { name: 'erase', icon: 'fa-eraser' }
+  { name: 'select', icon: 'fa-mouse-pointer', shortcut: 's' },
+  { name: 'draw', icon: 'fa-pen-nib', shortcut: 'd' },
+  { name: 'erase', icon: 'fa-eraser', shortcut: 'e' },
 ]
 
 export type RootState = ReturnType<typeof store.getState>;

@@ -7,6 +7,10 @@
   display: inline-flex;
 }
 
+#additional-settings {
+  display: inline-flex;
+}
+
 hr {
   width: 100%;
 }

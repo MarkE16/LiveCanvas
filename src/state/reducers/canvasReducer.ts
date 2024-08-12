@@ -9,7 +9,10 @@ type CanvasState = {
   height: number;
   mode: 'select' | 'draw' | 'erase';
   color: string;
-  blob?: Blob;
+  drawStrength: number;
+  eraserStrength: number;
+  blob?: string;
+  ws?: WebSocket;
 }
 
 type Resolution = 'width' | 'height';
@@ -24,12 +27,15 @@ const initState: CanvasState = {
   height: 400,
   mode: 'select',
   color: '#000000',
-  blob: undefined
+  drawStrength: 5,
+  eraserStrength: 3,
+  blob: undefined,
+  ws: undefined
 }
 
 export const canvasReducer = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction>
+  action: PayloadAction<string | ResolutionAction | number>
 ) => {
   switch (action.type) {
     case 'SET_COLOR': {
@@ -46,9 +52,20 @@ export const canvasReducer = (
 
     case 'SET_MODE':
       return { ...state, mode: action.payload as 'select' | 'draw' | 'erase' };
+    
+    case 'SET_DRAW_STRENGTH':
+      return { ...state, drawStrength: action.payload as number };
+    
+    case 'SET_ERASE_STRENGTH':
+      return { ...state, eraserStrength: action.payload as number };
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };
+    
+    case 'SET_WS': {
+      // const conn =
+      return state
+    }
     
     default:
       return state;
