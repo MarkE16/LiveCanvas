@@ -31,6 +31,7 @@ export const MODES = [
   { name: 'shapes', icon: 'fa-shapes', shortcut: 'a' },
   { name: 'zoom_in', icon: 'fa-search-plus', shortcut: '+' },
   { name: 'zoom_out', icon: 'fa-search-minus', shortcut: '_' },
+  { name: 'move', icon: 'fa-arrows-alt', shortcut: 'm' },
 ]
 
 export const SHAPES = [

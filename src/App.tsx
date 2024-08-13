@@ -1,5 +1,5 @@
 // Lib
-import { useEffect, useRef, useState } from "react";
+import { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { useAppSelector, useAppDispatch } from "./state/hooks/reduxHooks";
 
 // Styles
@@ -54,11 +54,13 @@ function App() {
   //   }
   // }
 
-  const addLayer = () => {
+  const addLayer = (e) => {
+    e.stopPropagation();
     dispatch({ type: "ADD_LAYER" });
   }
 
-  const deleteLayer = () => {
+  const deleteLayer = (e) => {
+    e.stopPropagation();
     dispatch({ type: "REMOVE_LAYER", payload: layers.length - 1 });
   }
 

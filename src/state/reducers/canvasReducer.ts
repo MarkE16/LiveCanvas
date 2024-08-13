@@ -9,7 +9,7 @@ type Layer = {
   active: boolean;
 }
 
-type Mode = 'select' | 'draw' | 'erase' | 'shapes' | 'zoom_in' | 'zoom_out';
+type Mode = 'select' | 'draw' | 'erase' | 'shapes' | 'zoom_in' | 'zoom_out' | 'move';
 
 type CanvasState = {
   width: number;
@@ -54,6 +54,7 @@ export const canvasReducer = (
   state: CanvasState = initState,
   action: PayloadAction<string | ResolutionAction | number | Mode>
 ) => {
+  console.log(state.scale)
   switch (action.type) {
     case 'SET_COLOR': {
       const newColor = COLORS.find(c => c.name === action.payload);
@@ -101,7 +102,7 @@ export const canvasReducer = (
         const newLayers = state.layers.filter(l => l.id !== pendingLayer?.id);
 
         if (pendingLayer?.active) {
-          // redux ignore
+          // redux ignore. `.filter` returns a new array, so we can safely access the last element
           newLayers[newLayers.length - 1].active = true;
         }
 
@@ -123,11 +124,15 @@ export const canvasReducer = (
       return { ...state, layers: newLayers };
     }
 
-    case 'INCREASE_SCALE':
-      return { ...state, scale: state.scale + 0.1 };
+    case 'INCREASE_SCALE': {
+      const newScale = Math.min(2, state.scale + 0.1);
+      return { ...state, scale: newScale };
+    }
     
-    case 'DECREASE_SCALE':
-      return { ...state, scale: state.scale - 0.1 };
+    case 'DECREASE_SCALE': {
+      const newScale = Math.max(0.2, state.scale - 0.1);
+      return { ...state, scale: newScale };
+    }
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

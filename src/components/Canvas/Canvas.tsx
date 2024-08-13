@@ -34,7 +34,9 @@ const Canvas: FC = () => {
   });
   const selectionRect = useRef(null);
   const movingSelection = useRef<boolean>(false);
+  const clientPosition = useRef({ x: 0, y: 0 });
   const [lastPointerPosition, setLastPointerPosition] = useState({ x: 0, y: 0 });
+  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
 
@@ -48,6 +50,18 @@ const Canvas: FC = () => {
 
     
     return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
+  }
+
+  const getCanvasPosition = () => {
+    const transformRegex = /translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
+
+    const match = ref.current!.style.transform.match(transformRegex);
+
+    if (!match) return;
+
+    const [, tx, , ty] = match
+
+    return { x: +tx, y: +ty };
   }
 
   const onMouseDown = (e: MouseEvent) => {
@@ -79,13 +93,18 @@ const Canvas: FC = () => {
     // }
     isDrawing.current = true;
 
-
+    
+    clientPosition.current = { x: e.clientX, y: e.clientY };
     if (mode === "draw") {
       mainCanvas!.beginPath();
       mainCanvas!.moveTo(canvasPointerX, canvasPointerY);
     } else if (mode === "select" ||  mode == "shapes") {
       selectPosition.current = { x: canvasPointerX, y: canvasPointerY };
       // ctx?.strokeRect(pointerX, pointerY, 0, 0);
+    } else if (mode === "move") {
+      const { x: tx, y: ty } = getCanvasPosition()!;
+
+      setCanvasPosition({ x: tx, y: ty });
     }
   }
 
@@ -219,6 +238,20 @@ const Canvas: FC = () => {
           }
         break;
       }
+
+      case 'move': {
+        // Move the canvas.
+
+        const dx = e.clientX - clientPosition.current.x;
+        const dy = e.clientY - clientPosition.current.y;
+
+        ref.current!.style.transform = `
+          translate(
+          ${(canvasPosition.x - -dx)}px,
+          ${canvasPosition.y - -dy}px) scale(${scale})`;
+          
+          break;
+        }
         default:
           break;
       }
@@ -239,6 +272,13 @@ const Canvas: FC = () => {
 
       mainCanvas!.drawImage(selectionRef.current!, 0, 0);
       selectionCanvas!.clearRect(0, 0, width, height);
+    } else if (mode === "move") {
+      const { x: tx, y: ty } = getCanvasPosition()!;
+
+      setCanvasPosition({
+        x: tx,
+        y: ty
+      });
     }
 
     // Save the canvas state.
@@ -370,8 +410,8 @@ const Canvas: FC = () => {
             position: 'absolute',
             transform:
             `translate(
-            ${lastPointerPosition.x - (ERASER_RADIUS * eraserStrength / 2)}px,
-            ${lastPointerPosition.y - (ERASER_RADIUS * eraserStrength / 2)}px
+            ${lastPointerPosition.x}px,
+            ${lastPointerPosition.y}px
             )`,
             width: `${ERASER_RADIUS * eraserStrength}px`,
             height: `${ERASER_RADIUS * eraserStrength}px`,
@@ -383,8 +423,13 @@ const Canvas: FC = () => {
 
         { /* Add an extra layer for selection mode. */ }
           <canvas
-            className={`ideadrawn-canvas selectionMode ${mode === "select" ? 'active' : ''}`}
-            style={{ transform: `scale(${scale})` }}
+            className={`ideadrawn-canvas selectionMode ${mode === "select" || mode === "shapes" ? 'active' : ''}`}
+            style={{
+              transform: `translate(
+              ${canvasPosition.x}px,
+              ${canvasPosition.y}px
+              ) scale(${scale})`
+            }}
             width={width}
             height={height}
             ref={selectionRef}
@@ -401,8 +446,14 @@ const Canvas: FC = () => {
           layers.map(layer => (
             <canvas
               key={layer.id}
-              className={`ideadrawn-canvas ${layer.active ? 'active' : ''}`}
-              style={{ transform: `scale(${scale})` }}
+              className={`ideadrawn-canvas ${layer.active ? 'active' : ''} ${mode}`}
+              style={{
+                transform:
+                `translate(
+                ${canvasPosition.x}px, 
+                ${canvasPosition.y}px
+                ) scale(${scale})`
+              }}
               width={width}
               height={height}
               ref={layer.active ? ref : null}

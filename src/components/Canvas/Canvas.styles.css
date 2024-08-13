@@ -9,12 +9,15 @@
   cursor: crosshair;
   border-radius: 3px;
   border: 1px solid gray;
-  /* transform: scale(1); */
 }
 
 /* .ideadrawn-canvas:last-child {
   background-color: rgba(255, 255, 0, 0.2);
 } */
+
+.ideadrawn-canvas.move {
+  opacity: 0;;
+}
 
 .ideadrawn-canvas.active {
   background-color: rgba(226, 226, 226, 0.1);
@@ -29,6 +32,18 @@
 
 .ideadrawn-canvas.selectionMode.active {
   opacity: 1;
+}
+
+.ideadrawn-canvas.zoom_in {
+  cursor: zoom-in;
+}
+
+.ideadrawn-canvas.zoom_out {
+  cursor: zoom-out;
+}
+
+.ideadrawn-canvas.move {
+  cursor: move;
 }
 
 #clear-btn {

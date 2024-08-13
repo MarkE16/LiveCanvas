@@ -69,7 +69,7 @@ const Toolbar: FC = () => {
         if (!e.shiftKey) return;
 
         // Zooming in
-        if (e.deltaY > 0) {
+        if (e.deltaY < 0) {
           dispatch({ type: 'INCREASE_SCALE' });
         } else {
           dispatch({ type: 'DECREASE_SCALE' });
