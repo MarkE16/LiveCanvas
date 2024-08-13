@@ -69,8 +69,8 @@ function App() {
 
   return (
     <>
-      <h2>Welcome to Canvas</h2>
-      <h3>Active Connections: {connections}</h3>
+      {/* <h2>Welcome to Canvas</h2> */}
+      {/* <h3>Active Connections: {connections}</h3> */}
       {/* <button onClick={wsSent}>Send Message</button> */}
       <button onClick={addLayer}>Add Layer</button>
       <button onClick={deleteLayer}>Delete Layer</button>
@@ -86,7 +86,9 @@ function App() {
         Width: <input type="number" value={width} onChange={e => updateResolution("width", e.target.value)} />
         Height: <input type="number" value={height} onChange={e => updateResolution("height", e.target.value)} />
       </div>
-      <Canvas />
+      <div>
+        <Canvas />
+      </div>
       <Toolbar />
     </>
   );

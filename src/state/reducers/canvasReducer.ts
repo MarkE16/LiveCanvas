@@ -30,8 +30,10 @@ type ResolutionAction = {
 }
 
 const initState: CanvasState = {
-  width: 400,
-  height: 400,
+  // width: 400,
+  // height: 400,
+  width: window.innerWidth,
+  height: window.innerHeight,
   mode: 'select',
   color: '#000000',
   drawStrength: 5,
@@ -105,7 +107,7 @@ export const canvasReducer = (
     case 'TOGGLE_LAYER': {
       const currentActiveIndex = state.layers.findIndex(l => l.active);
       const newLayers = state.layers.map(l => {
-        
+
         // Update the new active layer, and deactivate the previous active layer
         if (l.id === action.payload || l.id === currentActiveIndex) {
           return { ...l, active: !l.active };

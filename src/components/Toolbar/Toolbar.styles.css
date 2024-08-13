@@ -10,6 +10,7 @@
   background-color: lightgrey;
   padding: 0.5em;
   margin: 0.5em;
+  z-index: 100;
 }
 
 .toolbar-option {

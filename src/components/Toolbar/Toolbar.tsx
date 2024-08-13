@@ -41,13 +41,13 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
   }, [onClick, shortcut]);
 
   return (
-    <div
+    <button
       className={`toolbar-option ${isActive ? 'active' : ''}`}
       onClick={onClick}
       title={UTILS.capitalize(name) + ` (${shortcut.toUpperCase()})`}
     >
       <i className={`fa ${icon}`} />
-    </div>
+    </button>
   );
 }
 

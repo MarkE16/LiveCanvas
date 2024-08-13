@@ -53,10 +53,14 @@ const Canvas: FC = () => {
     // Start drawing.
   
     const mainCanvas = ref.current!.getContext('2d');
-    const { offsetLeft, offsetTop } = ref.current!;
+    const { width: canvasWidth, height: canvasHeight } = ref.current!;
+    const rect = ref.current!.getBoundingClientRect();
 
-    const pointerX = e.clientX - offsetLeft;
-    const pointerY = e.clientY - offsetTop;
+    const scaleX = canvasWidth / rect.width;
+    const scaleY = canvasHeight / rect.height;
+
+    const canvasPointerX = (e.clientX - rect.left) * scaleX;
+    const canvasPointerY = (e.clientY - rect.top) * scaleY;
 
     // if (isPointerInsideRect(pointerX, pointerY)) {
       // Move the selection.
@@ -77,19 +81,23 @@ const Canvas: FC = () => {
 
     if (mode === "draw") {
       mainCanvas!.beginPath();
-      mainCanvas!.moveTo(pointerX, pointerY);
+      mainCanvas!.moveTo(canvasPointerX, canvasPointerY);
     } else if (mode === "select" ||  mode == "shapes") {
-      selectPosition.current = { x: pointerX, y: pointerY };
+      selectPosition.current = { x: canvasPointerX, y: canvasPointerY };
       // ctx?.strokeRect(pointerX, pointerY, 0, 0);
     }
   }
 
   const onMouseMove = (e: MouseEvent) => {
     const mainCanvas = ref.current!.getContext('2d');
-    const { offsetLeft, offsetTop } = ref.current!;
-    
-    const canvasPointerX = e.clientX - offsetLeft;
-    const canvasPointerY = e.clientY - offsetTop;
+    const { width: canvasWidth, height: canvasHeight } = ref.current!;
+    const rect = ref.current!.getBoundingClientRect();
+
+    const scaleX = canvasWidth / rect.width;
+    const scaleY = canvasHeight / rect.height;
+
+    const canvasPointerX = (e.clientX - rect.left) * scaleX;
+    const canvasPointerY = (e.clientY - rect.top) * scaleY;
 
     setLastPointerPosition({
       x: e.clientX,
@@ -380,7 +388,7 @@ const Canvas: FC = () => {
         }
       </div>
       <div>
-        <button onClick={clearCanvas}>Clear Canvas</button>
+        <button id="clear-btn" onClick={clearCanvas}>Clear Canvas</button>
       </div>
     </>
   )
