@@ -5,7 +5,12 @@ import { Color } from "../components/Toolbar/Toolbar.types";
 export const store = configureStore({
   reducer: {
     canvas: canvasReducer
-  }
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    immutableCheck: {
+      ignoredPaths: ['canvas.layers']
+    }
+  })
 });
 
 export const COLORS: Color[] = [
@@ -24,6 +29,8 @@ export const MODES = [
   { name: 'draw', icon: 'fa-pen-nib', shortcut: 'd' },
   { name: 'erase', icon: 'fa-eraser', shortcut: 'e' },
   { name: 'shapes', icon: 'fa-shapes', shortcut: 'a' },
+  { name: 'zoom_in', icon: 'fa-search-plus', shortcut: '+' },
+  { name: 'zoom_out', icon: 'fa-search-minus', shortcut: '_' },
 ]
 
 export const SHAPES = [

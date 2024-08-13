@@ -9,15 +9,18 @@ type Layer = {
   active: boolean;
 }
 
+type Mode = 'select' | 'draw' | 'erase' | 'shapes' | 'zoom_in' | 'zoom_out';
+
 type CanvasState = {
   width: number;
   height: number;
-  mode: 'select' | 'draw' | 'erase' | 'shapes';
+  mode: Mode;
   color: string;
   drawStrength: number;
   eraserStrength: number;
   shape: 'rectangle' | 'circle' | 'triangle';
   layers: Layer[];
+  scale: number;
   blob?: string;
   ws?: WebSocket;
 }
@@ -42,13 +45,14 @@ const initState: CanvasState = {
   layers: [
     { id: 0, active: true }
   ],
+  scale: 1,
   blob: undefined,
   ws: undefined
 }
 
 export const canvasReducer = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction | number>
+  action: PayloadAction<string | ResolutionAction | number | Mode>
 ) => {
   switch (action.type) {
     case 'SET_COLOR': {
@@ -64,7 +68,7 @@ export const canvasReducer = (
     }
 
     case 'SET_MODE':
-      return { ...state, mode: action.payload as 'select' | 'draw' | 'erase' | 'shapes' };
+      return { ...state, mode: action.payload as Mode };
     
     case 'SET_DRAW_STRENGTH':
       return { ...state, drawStrength: action.payload as number };
@@ -97,9 +101,9 @@ export const canvasReducer = (
         const newLayers = state.layers.filter(l => l.id !== pendingLayer?.id);
 
         if (pendingLayer?.active) {
+          // redux ignore
           newLayers[newLayers.length - 1].active = true;
         }
-
 
       return { ...state, layers: newLayers };
     }
@@ -118,6 +122,12 @@ export const canvasReducer = (
 
       return { ...state, layers: newLayers };
     }
+
+    case 'INCREASE_SCALE':
+      return { ...state, scale: state.scale + 0.1 };
+    
+    case 'DECREASE_SCALE':
+      return { ...state, scale: state.scale - 0.1 };
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

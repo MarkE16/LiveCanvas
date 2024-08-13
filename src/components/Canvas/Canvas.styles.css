@@ -23,9 +23,12 @@
 }
 
 .ideadrawn-canvas.selectionMode {
-  opacity: 0.5;
+  opacity: 0;
   cursor: default;
-  z-index: 99;
+}
+
+.ideadrawn-canvas.selectionMode.active {
+  opacity: 1;
 }
 
 #clear-btn {

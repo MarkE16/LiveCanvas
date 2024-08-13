@@ -20,7 +20,8 @@ const Canvas: FC = () => {
     eraserStrength,
     shape,
     blob,
-    layers
+    layers,
+    scale
   } = state;
 
   const ref = useRef<HTMLCanvasElement>(null);
@@ -100,8 +101,8 @@ const Canvas: FC = () => {
     const canvasPointerY = (e.clientY - rect.top) * scaleY;
 
     setLastPointerPosition({
-      x: e.clientX,
-      y: e.clientY
+      x: canvasPointerX,
+      y: canvasPointerY
     });
 
     // if (selectionRect.current) {
@@ -286,17 +287,18 @@ const Canvas: FC = () => {
   //   selectionRect.current = null;
   // }, [blob, getContext, mode]);
 
-  // Handle keyboard shortcuts for selection mode.
+  // Handle keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!selectionRect.current) return;
-      const { x, y, rectWidth, rectHeight } = selectionRect.current;
       const selectionCanvas = selectionRef.current!.getContext('2d')
 
       switch (e.key) {
         case 'Backspace':
         case 'Delete': {
+          if (!selectionRect.current) { return; }
+
           const mainCanvas = ref.current!.getContext('2d');
+          const { x, y, rectWidth, rectHeight } = selectionRect.current;
 
           mainCanvas!.clearRect(x, y, rectWidth, rectHeight);
           
@@ -312,6 +314,23 @@ const Canvas: FC = () => {
           break;
         }
 
+        // Zoom in.
+        case '+': {
+          if (!e.shiftKey) { return; }
+
+          dispatch({ type: 'SET_SCALE', payload: scale + 0.1 });
+          break;
+        }
+
+        // Zoom out.
+        case '_': {
+          if (!e.shiftKey) { return; }
+
+          dispatch({ type: 'SET_SCALE', payload: scale - 0.1 });
+
+          break;
+        }
+
         default:
           break; // Do nothing.
       }
@@ -321,19 +340,25 @@ const Canvas: FC = () => {
       e.preventDefault();
     }
 
-    const mainCanvasRef = ref.current!;
-    const selectionCanvasRef = selectionRef.current!;
+    const mainCanvasRef = ref.current;
+    const selectionCanvasRef = selectionRef.current;
     
     window.addEventListener('keydown', handleKeyDown);
-    mainCanvasRef.addEventListener('contextmenu', canvasContextMenu);
-    selectionCanvasRef.addEventListener('contextmenu', canvasContextMenu);
+    mainCanvasRef?.addEventListener('contextmenu', canvasContextMenu);
+    selectionCanvasRef?.addEventListener('contextmenu', canvasContextMenu);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      mainCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
-      selectionCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
+      mainCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
+      selectionCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
     }
-  }, [width, height]);
+  }, [width, height, dispatch, scale]);
+
+  useEffect(() => {
+    if (mode !== "select") {
+      selectionRef.current!.getContext('2d')!.clearRect(0, 0, width, height);
+    }
+  }, [mode, width, height]);
 
   return (
     <>
@@ -343,20 +368,23 @@ const Canvas: FC = () => {
           <div style={{
             zIndex: 99,
             position: 'absolute',
-            transform: `translate(${lastPointerPosition.x}px, ${lastPointerPosition.y}px)`,
-            width: eraserStrength * ERASER_RADIUS,
-            height: eraserStrength * ERASER_RADIUS,
-            left: -2.5 * eraserStrength,
-            top: -2.5 * eraserStrength,
+            transform:
+            `translate(
+            ${lastPointerPosition.x - (ERASER_RADIUS * eraserStrength / 2)}px,
+            ${lastPointerPosition.y - (ERASER_RADIUS * eraserStrength / 2)}px
+            )`,
+            width: `${ERASER_RADIUS * eraserStrength}px`,
+            height: `${ERASER_RADIUS * eraserStrength}px`,
             pointerEvents: 'none',
             cursor: 'crosshair',
             backgroundColor: 'rgba(0, 0, 0, 0.1)',
           }}></div>
         )}
+
         { /* Add an extra layer for selection mode. */ }
-        { (mode === "select" || mode === "shapes") && (
           <canvas
-            className="ideadrawn-canvas selectionMode"
+            className={`ideadrawn-canvas selectionMode ${mode === "select" ? 'active' : ''}`}
+            style={{ transform: `scale(${scale})` }}
             width={width}
             height={height}
             ref={selectionRef}
@@ -367,13 +395,14 @@ const Canvas: FC = () => {
           >
 
           </canvas>
-        )}
+        
         {/* The main canvas. */}
         {
           layers.map(layer => (
             <canvas
               key={layer.id}
               className={`ideadrawn-canvas ${layer.active ? 'active' : ''}`}
+              style={{ transform: `scale(${scale})` }}
               width={width}
               height={height}
               ref={layer.active ? ref : null}

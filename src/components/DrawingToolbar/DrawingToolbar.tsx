@@ -56,9 +56,7 @@ const DrawingToolbar: FC = () => {
     const { icon, name } = s;
 
     const isActive = shape === name;
-
-    console.log(isActive);
-
+    
     return (
       <button
         key={name}
