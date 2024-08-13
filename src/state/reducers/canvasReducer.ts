@@ -1,3 +1,6 @@
+// Lib
+import { v4 as uuidv4 } from 'uuid';
+
 // Types
 import { PayloadAction } from '@reduxjs/toolkit';
 
@@ -5,7 +8,8 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { COLORS } from '../../state/store';
 
 type Layer = {
-  id: number;
+  name: string;
+  id: string;
   active: boolean;
 }
 
@@ -22,6 +26,7 @@ type CanvasState = {
   layers: Layer[];
   scale: number;
   blob?: string;
+  show_all: boolean;
   ws?: WebSocket;
 }
 
@@ -43,16 +48,17 @@ const initState: CanvasState = {
   eraserStrength: 3,
   shape: 'rectangle',
   layers: [
-    { id: 0, active: true }
+    { name: "Layer 1", id: uuidv4(), active: true }
   ],
   scale: 1,
   blob: undefined,
+  show_all: false,
   ws: undefined
 }
 
 export const canvasReducer = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction | number | Mode>
+  action: PayloadAction<string | ResolutionAction | number | Mode | boolean>
 ) => {
   console.log(state.scale)
   switch (action.type) {
@@ -81,14 +87,14 @@ export const canvasReducer = (
       return { ...state, shape: action.payload as 'rectangle' | 'circle' | 'triangle' };
     
     case 'ADD_LAYER': {
-      const currentActiveIndex = state.layers.findIndex(l => l.active);
-      const newLayer = { id: state.layers.length, active: true };
+      const newLayer = {
+        name: "New Layer",
+        id: uuidv4(),
+        active: true
+      };
       
       const newLayers = state.layers.map(l => {
-        if (l.id === currentActiveIndex) {
-          return { ...l, active: false };
-        }
-        return l;
+        return { ...l, active: false };
       })
 
       return { ...state, layers: [...newLayers, newLayer] };
@@ -97,7 +103,7 @@ export const canvasReducer = (
     case 'REMOVE_LAYER': {
       if (state.layers.length === 1) return state;
 
-       const pendingLayer = state.layers.find(l => l.id === action.payload);
+      const pendingLayer = state.layers.find(l => l.id === action.payload);
 
         const newLayers = state.layers.filter(l => l.id !== pendingLayer?.id);
 
@@ -110,16 +116,64 @@ export const canvasReducer = (
     }
 
     case 'TOGGLE_LAYER': {
-      const currentActiveIndex = state.layers.findIndex(l => l.active);
+      const currentActiveLayer = state.layers.find(l => l.active);
       const newLayers = state.layers.map(l => {
 
         // Update the new active layer, and deactivate the previous active layer
-        if (l.id === action.payload || l.id === currentActiveIndex) {
+        if (l.id === action.payload || l.id === currentActiveLayer?.id) {
           return { ...l, active: !l.active };
         }
 
         return l;
       });
+
+      return { ...state, layers: newLayers };
+    }
+  
+    case "MOVE_LAYER_UP": {
+      const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
+      const newIndex = selectedLayerIndex - 1;
+
+      if (newIndex < 0) return state;
+
+      const currentLayer = state.layers[selectedLayerIndex];
+      const layerAbove = state.layers[newIndex];
+
+      const newLayers = state.layers.map((l, i) => {
+        if (i === selectedLayerIndex) {
+          return layerAbove;
+        }
+
+        if (i === newIndex) {
+          return currentLayer;
+        }
+
+        return l;
+      });
+
+      return { ...state, layers: newLayers };
+    }
+
+    case "MOVE_LAYER_DOWN": {
+      const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
+      const newIndex = selectedLayerIndex + 1;
+
+      if (newIndex >= state.layers.length) return state;
+
+      const currentLayer = state.layers[selectedLayerIndex];
+      const layerBelow = state.layers[newIndex];
+
+      const newLayers = state.layers.map((l, i) => {
+        if (i === selectedLayerIndex) {
+          return layerBelow;
+        }
+
+        if (i === newIndex) {
+          return currentLayer;
+        }
+
+        return l;
+      })
 
       return { ...state, layers: newLayers };
     }
@@ -133,6 +187,9 @@ export const canvasReducer = (
       const newScale = Math.max(0.2, state.scale - 0.1);
       return { ...state, scale: newScale };
     }
+
+    case 'SHOW_ALL_LAYERS':
+      return { ...state, show_all: action.payload as boolean };
 
     case 'SET_BLOB':
       return { ...state, blob: action.payload };

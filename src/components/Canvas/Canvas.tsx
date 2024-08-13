@@ -21,7 +21,8 @@ const Canvas: FC = () => {
     shape,
     blob,
     layers,
-    scale
+    scale,
+    show_all
   } = state;
 
   const ref = useRef<HTMLCanvasElement>(null);
@@ -36,7 +37,7 @@ const Canvas: FC = () => {
   const movingSelection = useRef<boolean>(false);
   const clientPosition = useRef({ x: 0, y: 0 });
   const [lastPointerPosition, setLastPointerPosition] = useState({ x: 0, y: 0 });
-  const [canvasPosition, setCanvasPosition] = useState({ x: 0, y: 0 });
+  const canvasPosition = useRef({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
 
@@ -104,7 +105,7 @@ const Canvas: FC = () => {
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
-      setCanvasPosition({ x: tx, y: ty });
+      canvasPosition.current = { x: tx, y: ty };
     }
   }
 
@@ -120,8 +121,8 @@ const Canvas: FC = () => {
     const canvasPointerY = (e.clientY - rect.top) * scaleY;
 
     setLastPointerPosition({
-      x: canvasPointerX,
-      y: canvasPointerY
+      x: e.clientX,
+      y: e.clientY
     });
 
     // if (selectionRect.current) {
@@ -209,7 +210,7 @@ const Canvas: FC = () => {
 
           selectionCanvas!.strokeStyle = 'rgba(43, 184, 227)';
           selectionCanvas!.lineWidth = 2;
-          selectionCanvas!.fillStyle = 'rgba(43, 184, 227, 0.1)';
+          selectionCanvas!.fillStyle = 'rgba(103, 181, 230, 0.1)';
 
           // if (movingSelection.current) {
           //   const { rectX, rectY, rectWidth, rectHeight } = selectionRect.current;
@@ -247,8 +248,8 @@ const Canvas: FC = () => {
 
         ref.current!.style.transform = `
           translate(
-          ${(canvasPosition.x - -dx)}px,
-          ${canvasPosition.y - -dy}px) scale(${scale})`;
+          ${(canvasPosition.current.x - -dx)}px,
+          ${canvasPosition.current.y - -dy}px) scale(${scale})`;
           
           break;
         }
@@ -275,10 +276,10 @@ const Canvas: FC = () => {
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
-      setCanvasPosition({
+      canvasPosition.current = {
         x: tx,
         y: ty
-      });
+      };
     }
 
     // Save the canvas state.
@@ -404,7 +405,7 @@ const Canvas: FC = () => {
     <>
       <div id="canvas-bg">
         {/* A dot to indicate the radius of the eraser. */}
-        { mode === "erase" && (
+        {/* { mode === "erase" && (
           <div style={{
             zIndex: 99,
             position: 'absolute',
@@ -419,15 +420,15 @@ const Canvas: FC = () => {
             cursor: 'crosshair',
             backgroundColor: 'rgba(0, 0, 0, 0.1)',
           }}></div>
-        )}
+        )} */}
 
         { /* Add an extra layer for selection mode. */ }
           <canvas
             className={`ideadrawn-canvas selectionMode ${mode === "select" || mode === "shapes" ? 'active' : ''}`}
             style={{
               transform: `translate(
-              ${canvasPosition.x}px,
-              ${canvasPosition.y}px
+              ${canvasPosition.current.x}px,
+              ${canvasPosition.current.y}px
               ) scale(${scale})`
             }}
             width={width}
@@ -446,12 +447,12 @@ const Canvas: FC = () => {
           layers.map(layer => (
             <canvas
               key={layer.id}
-              className={`ideadrawn-canvas ${layer.active ? 'active' : ''} ${mode}`}
+              className={`ideadrawn-canvas ${(layer.active || show_all) ? 'active' : ''} ${mode}`}
               style={{
                 transform:
                 `translate(
-                ${canvasPosition.x}px, 
-                ${canvasPosition.y}px
+                ${canvasPosition.current.x}px, 
+                ${canvasPosition.current.y}px
                 ) scale(${scale})`
               }}
               width={width}

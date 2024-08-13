@@ -1,5 +1,7 @@
 
 #canvas-bg {
+  position: relative;
+  /* overflow: hidden; */
 }
 
 .ideadrawn-canvas {
@@ -16,7 +18,7 @@
 } */
 
 .ideadrawn-canvas.move {
-  opacity: 0;;
+  opacity: 0;
 }
 
 .ideadrawn-canvas.active {
@@ -28,6 +30,7 @@
 .ideadrawn-canvas.selectionMode {
   opacity: 0;
   cursor: default;
+  z-index: 99;
 }
 
 .ideadrawn-canvas.selectionMode.active {
