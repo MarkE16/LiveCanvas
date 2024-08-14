@@ -1,5 +1,7 @@
 // Lib
 import { useAppDispatch } from "../../state/hooks/reduxHooks";
+import { socket } from "../../server/socket";
+import { useEffect } from "react";
 
 // Types
 import { FC } from "react";
@@ -18,12 +20,29 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
   }
 
   const onDelete = () => {
-    dispatch({ type: "REMOVE_LAYER", payload: id });
+    socket.emit("layer-remove", id);
   }
 
   const onMoveLayer = (dir: 'up' | 'down') => {
-    dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
+    socket.emit("layer-move", id, dir);
   }
+
+  useEffect(() => {
+    socket.on("layer-remove", (id) => {
+      dispatch({ type: "REMOVE_LAYER", payload: id });
+    });
+
+    socket.on("layer-move", (id, dir) => {
+      console.log(id, dir)
+      dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
+    });
+
+    return () => {
+      socket.off("layer-remove");
+      socket.off("layer-move");
+    };
+
+  }, [dispatch]);
 
   return (
     <div className="layer-info">

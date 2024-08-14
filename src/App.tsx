@@ -1,4 +1,6 @@
 // Lib
+import { socket } from "./server/socket";
+import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "./state/hooks/reduxHooks";
 
 // Styles
@@ -23,12 +25,33 @@ function App() {
 
   const addLayer = (e) => {
     e.stopPropagation();
-    dispatch({ type: "ADD_LAYER" });
+    socket.emit("layer-add");
   }
 
   const showAllLayers = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({ type: "SHOW_ALL_LAYERS", payload: e.target.checked });
   }
+
+  // Socket for listening for layer changes.
+  useEffect(() => {
+    socket.on("layer-add", (_) => {
+      dispatch({ type: "ADD_LAYER" });
+    });
+
+    // ONLY CALL THIS ONCE HERE.
+    // When using the socket elsewhere,
+    // only set up an effect that listens for
+    // socket events.
+    socket.connect();
+
+
+    return () => {
+      socket.off("layer-add");
+
+      socket.disconnect();
+    };
+
+  }, [dispatch]);
 
 
   return (

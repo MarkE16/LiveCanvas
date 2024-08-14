@@ -1,12 +1,14 @@
 // Lib
 import { useRef, useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
+import { socket } from '../../server/socket';
 
 // Types
 import type { FC, MouseEvent } from 'react';
 
 // Styles
 import './Canvas.styles.css';
+import { Coordinates, SelectionRectProperties } from './Canvas.types';
 
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
@@ -19,7 +21,6 @@ const Canvas: FC = () => {
     drawStrength,
     eraserStrength,
     shape,
-    blob,
     layers,
     scale,
     show_all
@@ -29,15 +30,14 @@ const Canvas: FC = () => {
   const selectionRef = useRef<HTMLCanvasElement>(null);
   
   const isDrawing = useRef<boolean>(false);
-  const selectPosition = useRef({
-    x: ref.current?.offsetLeft ?? 0,
-    y: ref.current?.offsetTop ?? 0
+  const selectPosition = useRef<Coordinates>({
+    x: 0,
+    y: 0
   });
-  const selectionRect = useRef(null);
-  const movingSelection = useRef<boolean>(false);
-  const clientPosition = useRef({ x: 0, y: 0 });
-  const [lastPointerPosition, setLastPointerPosition] = useState({ x: 0, y: 0 });
-  const canvasPosition = useRef({ x: 0, y: 0 });
+  const selectionRect = useRef<SelectionRectProperties | null>(null);
+  const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
+  const [lastPointerPosition, setLastPointerPosition] = useState<Coordinates>({ x: 0, y: 0 });
+  const canvasPosition = useRef<Coordinates>({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
 
@@ -53,7 +53,7 @@ const Canvas: FC = () => {
     return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
   }
 
-  const getCanvasPosition = () => {
+  const getCanvasPosition = (): Coordinates | undefined => {
     const transformRegex = /translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
 
     const match = ref.current!.style.transform.match(transformRegex);
@@ -63,6 +63,20 @@ const Canvas: FC = () => {
     const [, tx, , ty] = match
 
     return { x: +tx, y: +ty };
+  }
+
+  const sendCanvasStateOnSocket = () => {
+    // Emit the canvas state to the server,
+    // so that other users can see the changes
+    // via the WebSocket connection.
+    ref.current!.toBlob(b => {
+      if (!b) {
+        console.error('Error converting canvas to blob.');
+        return;
+      }
+
+      socket.emit('canvas-update', b);
+    });
   }
 
   const onMouseDown = (e: MouseEvent) => {
@@ -146,6 +160,8 @@ const Canvas: FC = () => {
           
           mainCanvas!.lineTo(canvasPointerX, canvasPointerY);
           mainCanvas!.stroke();
+
+          // sendCanvasStateOnSocket();
           break;
         }
 
@@ -187,6 +203,7 @@ const Canvas: FC = () => {
           
           selectionCanvas!.stroke();
           selectionCanvas!.closePath();
+
           break;
         }
         
@@ -197,6 +214,8 @@ const Canvas: FC = () => {
             eraserStrength * ERASER_RADIUS, // width
             eraserStrength * ERASER_RADIUS // height
           );
+
+          // sendCanvasStateOnSocket();
           break;
         }
         
@@ -268,11 +287,14 @@ const Canvas: FC = () => {
 
     mainCanvas!.closePath();
 
+    if (mode === "zoom_in" || mode === "zoom_out" || mode == "select") return;
+
     if (mode === "shapes") {
       const selectionCanvas = selectionRef.current!.getContext('2d');
 
       mainCanvas!.drawImage(selectionRef.current!, 0, 0);
       selectionCanvas!.clearRect(0, 0, width, height);
+      sendCanvasStateOnSocket();
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
@@ -280,14 +302,10 @@ const Canvas: FC = () => {
         x: tx,
         y: ty
       };
+    } else {
+      sendCanvasStateOnSocket();
     }
 
-    // Save the canvas state.
-    // ref.current!.toBlob(b => {
-    //   b?.text().then(txt => {
-    //     dispatch({ type: 'SET_BLOB', payload: txt });
-    //   });
-    // })
   }
 
   const onMouseLeave = () => {
@@ -310,23 +328,9 @@ const Canvas: FC = () => {
     const mainCanvas = ref.current!.getContext('2d');
 
     mainCanvas!.clearRect(0, 0, width, height);
+
+    sendCanvasStateOnSocket();
   }
-
-  // useEffect(() =>{
-  //   const { ctx } = getContext(mode);
-
-  //   // blob is a string from Blob.text()
-
-  //   if (blob) {
-  //     const img = new Image();
-  //     img.src = blob;
-  //     img.onload = () => {
-  //       ctx!.drawImage(img, 0, 0);
-  //     }
-  //   }
-
-  //   selectionRect.current = null;
-  // }, [blob, getContext, mode]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -345,6 +349,8 @@ const Canvas: FC = () => {
           
           
           selectionCanvas!.clearRect(0, 0, width, height);
+
+          sendCanvasStateOnSocket();
           selectionRect.current = null;
           break;
         }
@@ -392,14 +398,31 @@ const Canvas: FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       mainCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
       selectionCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
-    }
+    };
   }, [width, height, dispatch, scale]);
 
+  // Effect for setting up the socket.
   useEffect(() => {
-    if (mode !== "select") {
-      selectionRef.current!.getContext('2d')!.clearRect(0, 0, width, height);
-    }
-  }, [mode, width, height]);
+
+    socket.on('canvas-update', (data) => {
+      const mainCanvas = ref.current!.getContext('2d');
+      const img = new Image();
+      const blob = new Blob([data], { type: 'image/jpeg' });
+
+      const url = URL.createObjectURL(blob);
+
+      img.onload = () => {
+        mainCanvas!.drawImage(img, 0, 0);
+      };
+
+      img.src = url;
+
+    });
+
+    return () => {
+      socket.off('canvas-update');
+    };
+  }, []);
 
   return (
     <>
