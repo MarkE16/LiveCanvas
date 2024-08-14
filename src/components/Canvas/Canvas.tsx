@@ -45,7 +45,7 @@ const Canvas: FC = () => {
 
     // Referring to if the layer has the class 'active'
     // so that this function does not have to depend
-    // on `layers`.
+    // on `layers` from the state.
     return refsOfLayers.current.find(ref => ref.classList.contains('active'));
   }
 
@@ -74,12 +74,16 @@ const Canvas: FC = () => {
 
     const match = layer.style.transform.match(transformRegex);
 
-    if (!match) return;
+    if (!match) return undefined;
 
-    const [, tx, , ty] = match
+    const [, tx, , ty] = match;
 
+    // The `+` operator converts the string to a number.
     return { x: +tx, y: +ty };
   }
+
+  const updateCanvasPosition = (dx: number, dy: number) => {}
+    
 
 
   const sendCanvasStateOnSocket = useCallback(() => {
@@ -114,7 +118,7 @@ const Canvas: FC = () => {
     }
 
     const mainCanvas = layer.getContext('2d');
-    const { width: canvasWidth, height: canvasHeight } = layer
+    const { width: canvasWidth, height: canvasHeight } = layer;
     const rect = layer.getBoundingClientRect();
 
     const scaleX = canvasWidth / rect.width;
@@ -144,9 +148,10 @@ const Canvas: FC = () => {
     if (mode === "draw") {
       mainCanvas!.beginPath();
       mainCanvas!.moveTo(canvasPointerX, canvasPointerY);
+
     } else if (mode === "select" ||  mode == "shapes") {
       selectPosition.current = { x: canvasPointerX, y: canvasPointerY };
-      // ctx?.strokeRect(pointerX, pointerY, 0, 0);
+
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
@@ -489,6 +494,9 @@ const Canvas: FC = () => {
 
       img.onload = () => {
 
+        // Use the `width` and `height` properties of the canvas
+        // instead of the `width` and `height` state variables
+        // so that the effect does not depend on them.
         mainCanvas!.clearRect(0, 0, layerToUpdate.width, layerToUpdate.height);
         mainCanvas!.drawImage(img, 0, 0);
       }

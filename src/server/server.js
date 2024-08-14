@@ -11,6 +11,13 @@ let layers = undefined;
 
 io.on("connection", socket => {
   console.log("User connected");
+  io.emit("user-connect", layers);
+
+  socket.on("get-layers", () => {
+    socket.emit("layer-update", layers);
+  })
+
+  // data should be an ArrayBuffer and the id of the layer to update.
   socket.on("canvas-update", (...data) => {
     console.log("websocket received CANVAS_UPDATE: ", data);
     socket.broadcast.emit("canvas-update", ...data);
@@ -28,11 +35,11 @@ io.on("connection", socket => {
   });
 
   // data should be the layer object.
-  socket.on("layer-add", (...data) => {
+  socket.on("layer-add", data => {
     if (layers !== undefined) {
       const allInactive = layers.map(layer => ({ ...layer, active: false }));
 
-      layers = [...allInactive, data[0]];
+      layers = [...allInactive, data];
     }
 
     console.log("websocket received LAYER_ADD: ", data);
@@ -54,6 +61,27 @@ io.on("connection", socket => {
 
     socket.broadcast.emit("layer-update", layers);
   });
+
+  // data should be the layer id and the direction to move the layer (up/down).
+  socket.on("layer-move", (...data) => {
+    if (layers !== undefined) {
+      const index = layers.findIndex(layer => layer.id === data[0]);
+      const newIndex = data[1] === "up" ? index - 1 : index + 1;
+
+      if (newIndex < 0 || newIndex >= layers.length) {
+        console.log("websocket failed to move layer: INVALID INDEX");
+        return;
+      }
+
+      const temp = layers[index];
+      layers[index] = layers[newIndex];
+      layers[newIndex] = temp;
+
+    }
+
+    console.log("websocket received LAYER_MOVE: ", data);
+    socket.broadcast.emit("layer-update", layers);
+  })
 
   socket.on("disconnect", () => {
     console.log("User disconnected");

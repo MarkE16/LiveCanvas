@@ -28,6 +28,7 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
   }
 
   const onMoveLayer = (dir: 'up' | 'down') => {
+    socket.emit("layer-move", id, dir);
     dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
   }
 

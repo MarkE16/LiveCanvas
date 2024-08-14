@@ -126,22 +126,7 @@ export const canvasReducer = (
       const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
       const newIndex = selectedLayerIndex - 1;
 
-      if (newIndex < 0) return state;
-
-      const currentLayer = state.layers[selectedLayerIndex];
-      const layerAbove = state.layers[newIndex];
-
-      const newLayers = state.layers.map((l, i) => {
-        if (i === selectedLayerIndex) {
-          return layerAbove;
-        }
-
-        if (i === newIndex) {
-          return currentLayer;
-        }
-
-        return l;
-      });
+      const newLayers = UTILS.moveLayer(state.layers, selectedLayerIndex, newIndex);
 
       return { ...state, layers: newLayers };
     }
@@ -150,22 +135,7 @@ export const canvasReducer = (
       const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
       const newIndex = selectedLayerIndex + 1;
 
-      if (newIndex >= state.layers.length) return state;
-
-      const currentLayer = state.layers[selectedLayerIndex];
-      const layerBelow = state.layers[newIndex];
-
-      const newLayers = state.layers.map((l, i) => {
-        if (i === selectedLayerIndex) {
-          return layerBelow;
-        }
-
-        if (i === newIndex) {
-          return currentLayer;
-        }
-
-        return l;
-      })
+      const newLayers = UTILS.moveLayer(state.layers, selectedLayerIndex, newIndex);
 
       return { ...state, layers: newLayers };
     }

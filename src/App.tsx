@@ -48,8 +48,21 @@ function App() {
   // Socket for listening for layer changes.
   useEffect(() => {
 
-    socket.on("layer-update", (layers) => {
+    socket.on("get-layers", (layers) => {
       dispatch({ type: "SET_LAYERS", payload: layers });
+    });
+
+    socket.on("layer-update", (layers) => {
+      layersRef.current = layers;
+      dispatch({ type: "SET_LAYERS", payload: layers });
+    });
+
+    socket.on("user-connect", (layers) => {
+      if (!layers) {
+        socket.emit("layer-update", layersRef.current);
+      } else {
+        dispatch({ type: "SET_LAYERS", payload: layers });
+      }
     });
 
     // ONLY CALL THIS ONCE HERE.
@@ -58,11 +71,11 @@ function App() {
     // socket events.
     socket.connect();
 
-    socket.emit("layer-update", layersRef.current);
-
 
     return () => {
+      socket.off("get-layers");
       socket.off("layer-update");
+      socket.off("user-connect");
       socket.disconnect();
     };
 
