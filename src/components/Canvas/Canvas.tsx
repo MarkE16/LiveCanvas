@@ -444,7 +444,7 @@ const Canvas: FC = () => {
         
         {/* The main canvas. */}
         {
-          layers.map(layer => (
+          layers.map((layer, i) => (
             <canvas
               key={layer.id}
               className={`ideadrawn-canvas ${(layer.active || show_all) ? 'active' : ''} ${mode}`}
@@ -453,7 +453,8 @@ const Canvas: FC = () => {
                 `translate(
                 ${canvasPosition.current.x}px, 
                 ${canvasPosition.current.y}px
-                ) scale(${scale})`
+                ) scale(${scale})`,
+                zIndex: layers.length - i // Layers from the top of the list are drawn first. 
               }}
               width={width}
               height={height}

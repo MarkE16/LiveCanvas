@@ -59,7 +59,7 @@ const Toolbar: FC = () => {
   const dispatch = useAppDispatch();
 
   const renderedModes = MODES.map((m) => {
-    return <ToolbarButton {...m} />;
+    return <ToolbarButton {...m} key={m.name} />;
   });
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const Toolbar: FC = () => {
     return () => {
       window.removeEventListener('wheel', updateZoom);
       window.removeEventListener('click', updateZoom);
-    }
+    };
   }, [mode, dispatch]);
 
   return (

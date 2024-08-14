@@ -25,9 +25,7 @@ type CanvasState = {
   shape: 'rectangle' | 'circle' | 'triangle';
   layers: Layer[];
   scale: number;
-  blob?: string;
   show_all: boolean;
-  ws?: WebSocket;
 }
 
 type Resolution = 'width' | 'height';
@@ -38,10 +36,8 @@ type ResolutionAction = {
 }
 
 const initState: CanvasState = {
-  // width: 400,
-  // height: 400,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: 400,
+  height: 400,
   mode: 'select',
   color: '#000000',
   drawStrength: 5,
@@ -51,16 +47,13 @@ const initState: CanvasState = {
     { name: "Layer 1", id: uuidv4(), active: true }
   ],
   scale: 1,
-  blob: undefined,
   show_all: false,
-  ws: undefined
 }
 
 export const canvasReducer = (
   state: CanvasState = initState,
   action: PayloadAction<string | ResolutionAction | number | Mode | boolean>
-) => {
-  console.log(state.scale)
+): CanvasState => {
   switch (action.type) {
     case 'SET_COLOR': {
       const newColor = COLORS.find(c => c.name === action.payload);
@@ -190,14 +183,6 @@ export const canvasReducer = (
 
     case 'SHOW_ALL_LAYERS':
       return { ...state, show_all: action.payload as boolean };
-
-    case 'SET_BLOB':
-      return { ...state, blob: action.payload };
-    
-    case 'SET_WS': {
-      // const conn =
-      return state
-    }
     
     default:
       return state;
