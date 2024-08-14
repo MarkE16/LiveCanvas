@@ -12,9 +12,9 @@ io.on("connection", socket => {
   totalConnections++;
   console.log("User connected");
 
-  socket.on("canvas-update", data => {
+  socket.on("canvas-update", (...data) => {
     console.log("websocket received CANVAS_UPDATE: ", data);
-    socket.broadcast.emit("canvas-update", data);
+    socket.broadcast.emit("canvas-update", ...data);
   });
 
   socket.on("layer-add", data => {
@@ -27,9 +27,9 @@ io.on("connection", socket => {
     io.emit("layer-remove", data);
   });
 
-  socket.on("layer-move", (id, dir) => {
-    console.log("websocket received LAYER_MOVE: ", id, dir);
-    io.emit("layer-move", id, dir);
+  socket.on("layer-move", (...data) => {
+    console.log("websocket received LAYER_MOVE: ", data);
+    io.emit("layer-move", ...data);
   })
 
   socket.on("disconnect", () => {

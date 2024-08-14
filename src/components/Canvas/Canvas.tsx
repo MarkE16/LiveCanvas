@@ -65,7 +65,7 @@ const Canvas: FC = () => {
     return { x: +tx, y: +ty };
   }
 
-  const sendCanvasStateOnSocket = () => {
+  const sendCanvasStateOnSocket = (m: "draw" | "erase") => {
     // Emit the canvas state to the server,
     // so that other users can see the changes
     // via the WebSocket connection.
@@ -75,7 +75,7 @@ const Canvas: FC = () => {
         return;
       }
 
-      socket.emit('canvas-update', b);
+      socket.emit('canvas-update', b, m);
     });
   }
 
@@ -161,7 +161,7 @@ const Canvas: FC = () => {
           mainCanvas!.lineTo(canvasPointerX, canvasPointerY);
           mainCanvas!.stroke();
 
-          // sendCanvasStateOnSocket();
+          sendCanvasStateOnSocket("draw");
           break;
         }
 
@@ -215,7 +215,7 @@ const Canvas: FC = () => {
             eraserStrength * ERASER_RADIUS // height
           );
 
-          // sendCanvasStateOnSocket();
+          sendCanvasStateOnSocket("erase");
           break;
         }
         
@@ -294,7 +294,7 @@ const Canvas: FC = () => {
 
       mainCanvas!.drawImage(selectionRef.current!, 0, 0);
       selectionCanvas!.clearRect(0, 0, width, height);
-      sendCanvasStateOnSocket();
+      sendCanvasStateOnSocket("draw");
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
@@ -302,8 +302,6 @@ const Canvas: FC = () => {
         x: tx,
         y: ty
       };
-    } else {
-      sendCanvasStateOnSocket();
     }
 
   }
@@ -329,7 +327,7 @@ const Canvas: FC = () => {
 
     mainCanvas!.clearRect(0, 0, width, height);
 
-    sendCanvasStateOnSocket();
+    sendCanvasStateOnSocket("erase");
   }
 
   // Handle keyboard shortcuts
@@ -350,7 +348,7 @@ const Canvas: FC = () => {
           
           selectionCanvas!.clearRect(0, 0, width, height);
 
-          sendCanvasStateOnSocket();
+          sendCanvasStateOnSocket("erase");
           selectionRect.current = null;
           break;
         }
@@ -404,18 +402,22 @@ const Canvas: FC = () => {
   // Effect for setting up the socket.
   useEffect(() => {
 
-    socket.on('canvas-update', (data) => {
+    socket.on('canvas-update', (data: ArrayBuffer, mode: "draw" | "erase") => {
       const mainCanvas = ref.current!.getContext('2d');
       const img = new Image();
-      const blob = new Blob([data], { type: 'image/jpeg' });
-
-      const url = URL.createObjectURL(blob);
 
       img.onload = () => {
-        mainCanvas!.drawImage(img, 0, 0);
-      };
+        if (mode === "erase") {
+          mainCanvas!.clearRect(0, 0, ref.current!.width, ref.current!.height);
+        }
 
-      img.src = url;
+        mainCanvas!.drawImage(img, 0, 0);
+      }
+
+      const blob = new Blob([data]);
+
+      img.src = URL.createObjectURL(blob);
+
 
     });
 
