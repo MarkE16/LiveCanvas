@@ -6,6 +6,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 
 // Constants
 import { COLORS } from '../../state/store';
+import UTILS from '../../utils';
 
 type Layer = {
   name: string;
@@ -52,7 +53,7 @@ const initState: CanvasState = {
 
 export const canvasReducer = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction | number | Mode | boolean>
+  action: PayloadAction<string | ResolutionAction | number | Mode | boolean | Layer[] | Layer>
 ): CanvasState => {
   switch (action.type) {
     case 'SET_COLOR': {
@@ -80,11 +81,9 @@ export const canvasReducer = (
       return { ...state, shape: action.payload as 'rectangle' | 'circle' | 'triangle' };
     
     case 'ADD_LAYER': {
-      const newLayer = {
-        name: "New Layer",
-        id: uuidv4(),
-        active: true
-      };
+      const newLayer = action.payload as Layer ?? UTILS.createLayer();
+
+      newLayer.active = true; // Ensure the new layer is active if the new layer is provided
       
       const newLayers = state.layers.map(l => {
         return { ...l, active: false };
@@ -169,6 +168,12 @@ export const canvasReducer = (
       })
 
       return { ...state, layers: newLayers };
+    }
+
+    // This action is dispatched when the server sends the layers.
+    // This should not be used anywhere else.
+    case "SET_LAYERS": {
+      return { ...state, layers: action.payload as Layer[] };
     }
 
     case 'INCREASE_SCALE': {

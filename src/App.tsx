@@ -1,7 +1,8 @@
 // Lib
 import { socket } from "./server/socket";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "./state/hooks/reduxHooks";
+import UTILS from "./utils";
 
 // Styles
 import "./App.css";
@@ -12,8 +13,13 @@ import Toolbar from "./components/Toolbar/Toolbar";
 import LayerInfo from "./components/LayerInfo/LayerInfo";
 
 
+
 function App() {
   const { width, height, layers, show_all } = useAppSelector(state => state.canvas);
+  
+  // For use in the socket.on("layer-update") callback
+  // to prevent infinite loops in the effect.
+  const layersRef = useRef(layers);
   const dispatch = useAppDispatch();
 
   const updateResolution = (
@@ -24,8 +30,15 @@ function App() {
   }
 
   const addLayer = (e) => {
+    const newLayer = UTILS.createLayer()
     e.stopPropagation();
-    socket.emit("layer-add");
+    if (socket.connected) {
+      socket.emit("layer-add", newLayer);
+    }
+
+
+    
+    dispatch({ type: "ADD_LAYER", payload: newLayer });
   }
 
   const showAllLayers = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +47,9 @@ function App() {
 
   // Socket for listening for layer changes.
   useEffect(() => {
-    socket.on("layer-add", (_) => {
-      dispatch({ type: "ADD_LAYER" });
+
+    socket.on("layer-update", (layers) => {
+      dispatch({ type: "SET_LAYERS", payload: layers });
     });
 
     // ONLY CALL THIS ONCE HERE.
@@ -44,10 +58,11 @@ function App() {
     // socket events.
     socket.connect();
 
+    socket.emit("layer-update", layersRef.current);
+
 
     return () => {
-      socket.off("layer-add");
-
+      socket.off("layer-update");
       socket.disconnect();
     };
 

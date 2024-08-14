@@ -20,11 +20,15 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
   }
 
   const onDelete = () => {
-    socket.emit("layer-remove", id);
+    if (socket.connected) {
+      socket.emit("layer-remove", id);
+    }
+
+    dispatch({ type: "REMOVE_LAYER", payload: id });
   }
 
   const onMoveLayer = (dir: 'up' | 'down') => {
-    socket.emit("layer-move", id, dir);
+    dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
   }
 
   useEffect(() => {
@@ -32,14 +36,8 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
       dispatch({ type: "REMOVE_LAYER", payload: id });
     });
 
-    socket.on("layer-move", (id, dir) => {
-      console.log(id, dir)
-      dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
-    });
-
     return () => {
       socket.off("layer-remove");
-      socket.off("layer-move");
     };
 
   }, [dispatch]);

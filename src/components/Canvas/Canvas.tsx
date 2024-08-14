@@ -1,5 +1,5 @@
 // Lib
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { socket } from '../../server/socket';
 
@@ -26,7 +26,7 @@ const Canvas: FC = () => {
     show_all
   } = state;
 
-  const ref = useRef<HTMLCanvasElement>(null);
+  const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
   const selectionRef = useRef<HTMLCanvasElement>(null);
   
   const isDrawing = useRef<boolean>(false);
@@ -40,6 +40,18 @@ const Canvas: FC = () => {
   const canvasPosition = useRef<Coordinates>({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
+
+  const getActiveLayer = (): HTMLCanvasElement | undefined => {
+
+    // Referring to if the layer has the class 'active'
+    // so that this function does not have to depend
+    // on `layers`.
+    return refsOfLayers.current.find(ref => ref.classList.contains('active'));
+  }
+
+  const getLayer = (id: string): HTMLCanvasElement | undefined => {
+    return refsOfLayers.current.find(ref => ref.id === id);
+  }
 
   const isPointerInsideRect = (
     x: number,
@@ -56,7 +68,11 @@ const Canvas: FC = () => {
   const getCanvasPosition = (): Coordinates | undefined => {
     const transformRegex = /translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
 
-    const match = ref.current!.style.transform.match(transformRegex);
+    const layer = getActiveLayer();
+
+    if (!layer) return undefined;
+
+    const match = layer.style.transform.match(transformRegex);
 
     if (!match) return;
 
@@ -65,26 +81,41 @@ const Canvas: FC = () => {
     return { x: +tx, y: +ty };
   }
 
-  const sendCanvasStateOnSocket = (m: "draw" | "erase") => {
+
+  const sendCanvasStateOnSocket = useCallback(() => {
     // Emit the canvas state to the server,
     // so that other users can see the changes
     // via the WebSocket connection.
-    ref.current!.toBlob(b => {
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("Can't update layer over socket: Layer does not exist.");
+      return;
+    }
+
+    layer.toBlob(b => {
       if (!b) {
         console.error('Error converting canvas to blob.');
         return;
       }
 
-      socket.emit('canvas-update', b, m);
+      socket.emit('canvas-update', b, layer.id);
     });
-  }
+  }, []);
 
   const onMouseDown = (e: MouseEvent) => {
     // Start drawing.
-  
-    const mainCanvas = ref.current!.getContext('2d');
-    const { width: canvasWidth, height: canvasHeight } = ref.current!;
-    const rect = ref.current!.getBoundingClientRect();
+
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("`onMouseDown`: Can't draw: Layer does not exist.");
+      return;
+    }
+
+    const mainCanvas = layer.getContext('2d');
+    const { width: canvasWidth, height: canvasHeight } = layer
+    const rect = layer.getBoundingClientRect();
 
     const scaleX = canvasWidth / rect.width;
     const scaleY = canvasHeight / rect.height;
@@ -124,9 +155,15 @@ const Canvas: FC = () => {
   }
 
   const onMouseMove = (e: MouseEvent) => {
-    const mainCanvas = ref.current!.getContext('2d');
-    const { width: canvasWidth, height: canvasHeight } = ref.current!;
-    const rect = ref.current!.getBoundingClientRect();
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("`onMouseMove`: Can't draw: Layer does not exist.");
+      return;
+    }
+    const mainCanvas = layer.getContext('2d');
+    const { width: canvasWidth, height: canvasHeight } = layer;
+    const rect = layer.getBoundingClientRect();
 
     const scaleX = canvasWidth / rect.width;
     const scaleY = canvasHeight / rect.height;
@@ -161,7 +198,7 @@ const Canvas: FC = () => {
           mainCanvas!.lineTo(canvasPointerX, canvasPointerY);
           mainCanvas!.stroke();
 
-          sendCanvasStateOnSocket("draw");
+          sendCanvasStateOnSocket();
           break;
         }
 
@@ -215,7 +252,7 @@ const Canvas: FC = () => {
             eraserStrength * ERASER_RADIUS // height
           );
 
-          sendCanvasStateOnSocket("erase");
+          sendCanvasStateOnSocket();
           break;
         }
         
@@ -265,7 +302,14 @@ const Canvas: FC = () => {
         const dx = e.clientX - clientPosition.current.x;
         const dy = e.clientY - clientPosition.current.y;
 
-        ref.current!.style.transform = `
+        const layer = getActiveLayer();
+
+        if (!layer) {
+          console.error("`onMouseMove`: Can't move canvas: Layer does not exist.");
+          return;
+        }
+
+        layer.style.transform = `
           translate(
           ${(canvasPosition.current.x - -dx)}px,
           ${canvasPosition.current.y - -dy}px) scale(${scale})`;
@@ -283,7 +327,14 @@ const Canvas: FC = () => {
     isDrawing.current = false;
     // movingSelection.current = false;
 
-    const mainCanvas = ref.current!.getContext('2d');
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("`onMouseUp`: Can't draw: Layer does not exist.");
+      return
+    }
+
+    const mainCanvas = layer.getContext('2d');
 
     mainCanvas!.closePath();
 
@@ -294,7 +345,7 @@ const Canvas: FC = () => {
 
       mainCanvas!.drawImage(selectionRef.current!, 0, 0);
       selectionCanvas!.clearRect(0, 0, width, height);
-      sendCanvasStateOnSocket("draw");
+      sendCanvasStateOnSocket();
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
 
@@ -323,35 +374,49 @@ const Canvas: FC = () => {
 
     // We're only concerned with the main canvas.
     // The selection canvas is cleared when the selection is done.
-    const mainCanvas = ref.current!.getContext('2d');
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("`clearCanvas`: Can't clear canvas: Layer does not exist.");
+      return;
+    }
+
+    const mainCanvas = layer.getContext('2d');
 
     mainCanvas!.clearRect(0, 0, width, height);
 
-    sendCanvasStateOnSocket("erase");
+    sendCanvasStateOnSocket();
   }
 
   // Handle keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      const selectionCanvas = selectionRef.current!.getContext('2d')
+      const layer = getActiveLayer();
 
+      if (!layer) {
+        console.error("`handleKeyDown`: Can't draw: Layer does not exist.");
+        return;
+      }
+
+      const selectionCanvas = selectionRef.current!.getContext('2d')
+      
       switch (e.key) {
         case 'Backspace':
         case 'Delete': {
+          
           if (!selectionRect.current) { return; }
 
-          const mainCanvas = ref.current!.getContext('2d');
+          const mainCanvas = layer.getContext('2d');
           const { x, y, rectWidth, rectHeight } = selectionRect.current;
-
           mainCanvas!.clearRect(x, y, rectWidth, rectHeight);
           
           
           selectionCanvas!.clearRect(0, 0, width, height);
 
-          sendCanvasStateOnSocket("erase");
+          sendCanvasStateOnSocket();
           selectionRect.current = null;
           break;
-        }
+      }
 
         case 'Escape': {
           selectionCanvas!.clearRect(0, 0, width, height);
@@ -385,40 +450,52 @@ const Canvas: FC = () => {
       e.preventDefault();
     }
 
-    const mainCanvasRef = ref.current;
+    const layer = getActiveLayer();
+
+    if (!layer) {
+      console.error("`useEffect` (keyboard shortcuts): Can't draw: Layer does not exist.");
+      return;
+    }
+
+    const mainCanvasRef = layer;
     const selectionCanvasRef = selectionRef.current;
     
     window.addEventListener('keydown', handleKeyDown);
-    mainCanvasRef?.addEventListener('contextmenu', canvasContextMenu);
+    mainCanvasRef.addEventListener('contextmenu', canvasContextMenu);
     selectionCanvasRef?.addEventListener('contextmenu', canvasContextMenu);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      mainCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
+      mainCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
       selectionCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
     };
-  }, [width, height, dispatch, scale]);
+  }, [width, height, dispatch, scale, sendCanvasStateOnSocket]);
 
   // Effect for setting up the socket.
   useEffect(() => {
 
-    socket.on('canvas-update', (data: ArrayBuffer, mode: "draw" | "erase") => {
-      const mainCanvas = ref.current!.getContext('2d');
+    socket.on('canvas-update', (data: ArrayBuffer, layerId: string) => {
+
+      const layerToUpdate = getLayer(layerId);
+      if (!layerToUpdate) {
+        console.error(
+          `Error updating layer ${layerId}: Layer does not exist.`
+        );
+        return;
+      }
+
+      const mainCanvas = layerToUpdate.getContext('2d');
       const img = new Image();
 
       img.onload = () => {
-        if (mode === "erase") {
-          mainCanvas!.clearRect(0, 0, ref.current!.width, ref.current!.height);
-        }
 
+        mainCanvas!.clearRect(0, 0, layerToUpdate.width, layerToUpdate.height);
         mainCanvas!.drawImage(img, 0, 0);
       }
 
       const blob = new Blob([data]);
 
       img.src = URL.createObjectURL(blob);
-
-
     });
 
     return () => {
@@ -469,9 +546,10 @@ const Canvas: FC = () => {
         
         {/* The main canvas. */}
         {
-          layers.map((layer, i) => (
+          layers.reverse().map((layer, i) => (
             <canvas
               key={layer.id}
+              id={layer.id}
               className={`ideadrawn-canvas ${(layer.active || show_all) ? 'active' : ''} ${mode}`}
               style={{
                 transform:
@@ -483,7 +561,7 @@ const Canvas: FC = () => {
               }}
               width={width}
               height={height}
-              ref={layer.active ? ref : null}
+              ref={el => refsOfLayers.current[i] = el!}
               onPointerDown={onMouseDown}
               onPointerMove={onMouseMove}
               onPointerUp={onMouseUp}
