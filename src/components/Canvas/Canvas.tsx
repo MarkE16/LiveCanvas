@@ -9,6 +9,7 @@ import type { FC, MouseEvent } from 'react';
 // Styles
 import './Canvas.styles.css';
 import { Coordinates, SelectionRectProperties } from './Canvas.types';
+import CanvasLayer from '../CanvasLayer/CanvasLayer';
 
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
@@ -572,7 +573,7 @@ const Canvas: FC = () => {
           </canvas>
         
         {/* The main canvas. */}
-        {
+        {/* {
           layers.reverse().map((layer, i) => (
             <canvas
               key={layer.id}
@@ -596,6 +597,19 @@ const Canvas: FC = () => {
               onPointerEnter={onMouseEnter}
             >
             </canvas>
+          ))
+        } */}
+        {
+          layers.reverse().map((layer, i) => (
+            <CanvasLayer
+              key={layer.id}
+              ref={(el: HTMLCanvasElement) => refsOfLayers.current[i] = el}
+              onMouseDown={onMouseDown}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseLeave}
+              onMouseEnter={onMouseEnter}
+            />
           ))
         }
       </div>
