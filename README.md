@@ -1,5 +1,7 @@
 # IdeaDrawn | LiveCanvas
-An open-source web based canvas editor.
+An open-source web based canvas editor. 
+
+> Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
 
 ## Setup
 > **Prerequisites**
@@ -15,7 +17,7 @@ $ git clone https://github.com/MarkE16/LiveCanvas
 $ cd LiveCanvas # after clone is complete.
 ```
 
-Next, install all the required packages (see [prerequisites](https://github.com/MarkE16/LiveCanvas#prerequisites) to if you don't have `pnpm` installed).
+Next, install all the required packages (see [prerequisites](https://github.com/MarkE16/LiveCanvas#prerequisites) if you don't have `pnpm` installed).
 ```bash
 $ pnpm install
 ```
@@ -34,5 +36,8 @@ You're all set!
 Feel free to join [IdeaDrawn Discord community](https://discord.gg/ideas) to find a place to connect with others. Anyone is welcome to strike a conversation, lurk, or give suggestions.
 
 ## Contribution
+> Note: We are actively looking for talented web developers who are interested in working together
+to maintain the project! If you are interested, please contact @MarkE16.
+
 In case you haven't already noticed, this project is **open-source**, meaning anyone can contribute to help build this project from the ground up. If you are interested in
 taking the time to propose code implementation, feel free to fork the repo and make a pull request.

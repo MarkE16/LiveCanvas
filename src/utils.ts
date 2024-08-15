@@ -20,7 +20,7 @@ const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.sl
  * @param name The name of the layer. Defaults to "New Layer".
  * @returns A new Layer object.
  */
-const createLayer = (name: string = "New Layer"): Layer => ({ name, id: uuidv4(), active: false });
+const createLayer = (name: string = "New Layer"): Layer => ({ name, id: uuidv4(), buffer: undefined, active: false });
 
 /**
  * Swaps the position of two Layer objects in an array. This is done by
