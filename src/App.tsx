@@ -45,23 +45,31 @@ function App() {
     dispatch({ type: "SHOW_ALL_LAYERS", payload: e.target.checked });
   }
 
+  
   // Socket for listening for layer changes.
   useEffect(() => {
-
-    socket.on("get-layers", (layers) => {
-      dispatch({ type: "SET_LAYERS", payload: layers });
-    });
+    
+    const updateLayers = (pendingLayers) => {
+  
+      console.log(pendingLayers)
+      const newLayers = pendingLayers.map((layer, i) => {
+        return { ...layer, active: layersRef.current[i]?.active ?? false };
+      });
+  
+      console.log(newLayers)
+  
+      dispatch({ type: "SET_LAYERS", payload: newLayers });
+    }
 
     socket.on("layer-update", (layers) => {
-      layersRef.current = layers;
-      dispatch({ type: "SET_LAYERS", payload: layers });
+      updateLayers(layers);
     });
 
-    socket.on("user-connect", (layers) => {
+    socket.once("user-connect", (layers) => {
       if (!layers) {
         socket.emit("layer-update", layersRef.current);
       } else {
-        dispatch({ type: "SET_LAYERS", payload: layers });
+        updateLayers(layers);
       }
     });
 
@@ -73,9 +81,7 @@ function App() {
 
 
     return () => {
-      socket.off("get-layers");
       socket.off("layer-update");
-      socket.off("user-connect");
       socket.disconnect();
     };
 

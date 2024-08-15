@@ -9,13 +9,10 @@ const io = new Server({
 
 let layers = undefined;
 
+
 io.on("connection", socket => {
   console.log("User connected");
-  io.emit("user-connect", layers);
-
-  socket.on("get-layers", () => {
-    socket.emit("layer-update", layers);
-  })
+  socket.emit("user-connect", layers);
 
   // data should be an ArrayBuffer and the id of the layer to update.
   socket.on("canvas-update", (...data) => {
@@ -37,9 +34,13 @@ io.on("connection", socket => {
   // data should be the layer object.
   socket.on("layer-add", data => {
     if (layers !== undefined) {
-      const allInactive = layers.map(layer => ({ ...layer, active: false }));
+      layers.forEach(layer => {
+        delete layer.active; // We don't care about the active property in the server.
+      })
 
-      layers = [...allInactive, data];
+      delete data.active; // We don't care about the active property in the server.
+
+      layers.push(data)
     }
 
     console.log("websocket received LAYER_ADD: ", data);
@@ -49,12 +50,7 @@ io.on("connection", socket => {
   // data should be the layer id.
   socket.on("layer-remove", data => {
     if (layers !== undefined) {
-      const layer = layers.find(layer => layer.id === data);
       layers = layers.filter(layer => layer.id !== data);
-
-      if (layer.active) {
-        layers[0].active = true;
-      }
       
     }
     console.log("websocket received LAYER_REMOVE: ", data);

@@ -83,13 +83,9 @@ export const canvasReducer = (
     case 'ADD_LAYER': {
       const newLayer = action.payload as Layer ?? UTILS.createLayer();
 
-      newLayer.active = true; // Ensure the new layer is active if the new layer is provided
-      
-      const newLayers = state.layers.map(l => {
-        return { ...l, active: false };
-      })
+      newLayer.active = false; // Ensure the new layer is not active if the new layer is provided
 
-      return { ...state, layers: [...newLayers, newLayer] };
+      return { ...state, layers: [...state.layers, newLayer] };
     }
 
     case 'REMOVE_LAYER': {
