@@ -511,6 +511,25 @@ const Canvas: FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    refsOfLayers.current.forEach((ref, i) => {
+      if (ref) {
+        const ctx = ref.getContext('2d');
+        const layerBuffer = layers[i].buffer;
+
+        if (layerBuffer) {
+          const img = new Image();
+
+          img.onload = () => {
+            ctx!.drawImage(img, 0, 0);
+          }
+
+          img.src = URL.createObjectURL(new Blob([layerBuffer]));
+        }
+      }
+    })
+  }, [layers, width, height]);
+
   return (
     <>
       <div id="canvas-bg">

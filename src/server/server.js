@@ -7,6 +7,13 @@ const io = new Server({
   }
 });
 
+/**
+ * type Layer =  {
+ *  id: string;
+ *  name: string;
+ *  buffer: ArrayBuffer; // => To store the image data.
+ * }
+ */
 let layers = undefined;
 
 
@@ -16,6 +23,22 @@ io.on("connection", socket => {
 
   // data should be an ArrayBuffer and the id of the layer to update.
   socket.on("canvas-update", (...data) => {
+
+    // data[0] is the buffer
+    // data[1] is the layer id
+
+    if (layers === undefined) {
+      console.log("websocket failed to update canvas: NO LAYERS");
+      return;
+    }
+
+    const layer = layers.findIndex(layer => layer.id === data[1]);
+    if (layer === undefined) {
+      console.log("websocket failed to update canvas: LAYER NOT FOUND");
+      return;
+    }
+    layers[layer].buffer = data[0];
+
     console.log("websocket received CANVAS_UPDATE: ", data);
     socket.broadcast.emit("canvas-update", ...data);
   });

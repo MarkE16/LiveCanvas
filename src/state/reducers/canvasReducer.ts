@@ -6,11 +6,12 @@ import { PayloadAction } from '@reduxjs/toolkit';
 
 // Constants
 import { COLORS } from '../../state/store';
-import UTILS from '../../utils';
+import UTILS from "../../utils";
 
 type Layer = {
   name: string;
   id: string;
+  buffer: ArrayBuffer | undefined; // => to store the image data from the canvas
   active: boolean;
 }
 
@@ -45,7 +46,7 @@ const initState: CanvasState = {
   eraserStrength: 3,
   shape: 'rectangle',
   layers: [
-    { name: "Layer 1", id: uuidv4(), active: true }
+    { name: "Layer 1", id: uuidv4(), buffer: undefined, active: true }
   ],
   scale: 1,
   show_all: false,
@@ -142,8 +143,22 @@ export const canvasReducer = (
       return { ...state, layers: action.payload as Layer[] };
     }
 
+    case "UPDATE_LAYER_BUFFER": {
+      const { id, buffer } = action.payload as Layer;
+
+      const newLayers = state.layers.map(l => {
+        if (l.id === id) {
+          return { ...l, buffer };
+        }
+
+        return l;
+      });
+
+      return { ...state, layers: newLayers };
+    }
+
     case 'INCREASE_SCALE': {
-      const newScale = Math.min(2, state.scale + 0.1);
+      const newScale = Math.min(3, state.scale + 0.1);
       return { ...state, scale: newScale };
     }
     
