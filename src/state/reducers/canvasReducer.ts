@@ -6,10 +6,12 @@ import { PayloadAction } from '@reduxjs/toolkit';
 
 // Constants
 import { COLORS } from '../../state/store';
+import UTILS from "../../utils";
 
 type Layer = {
   name: string;
   id: string;
+  buffer: ArrayBuffer | undefined; // => to store the image data from the canvas
   active: boolean;
 }
 
@@ -44,7 +46,7 @@ const initState: CanvasState = {
   eraserStrength: 3,
   shape: 'rectangle',
   layers: [
-    { name: "Layer 1", id: uuidv4(), active: true }
+    { name: "Layer 1", id: uuidv4(), buffer: undefined, active: true }
   ],
   scale: 1,
   show_all: false,
@@ -52,7 +54,7 @@ const initState: CanvasState = {
 
 export const canvasReducer = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction | number | Mode | boolean>
+  action: PayloadAction<string | ResolutionAction | number | Mode | boolean | Layer[] | Layer>
 ): CanvasState => {
   switch (action.type) {
     case 'SET_COLOR': {
@@ -80,17 +82,11 @@ export const canvasReducer = (
       return { ...state, shape: action.payload as 'rectangle' | 'circle' | 'triangle' };
     
     case 'ADD_LAYER': {
-      const newLayer = {
-        name: "New Layer",
-        id: uuidv4(),
-        active: true
-      };
-      
-      const newLayers = state.layers.map(l => {
-        return { ...l, active: false };
-      })
+      const newLayer = action.payload as Layer ?? UTILS.createLayer();
 
-      return { ...state, layers: [...newLayers, newLayer] };
+      newLayer.active = false; // Ensure the new layer is not active if the new layer is provided
+
+      return { ...state, layers: [...state.layers, newLayer] };
     }
 
     case 'REMOVE_LAYER': {
@@ -127,22 +123,7 @@ export const canvasReducer = (
       const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
       const newIndex = selectedLayerIndex - 1;
 
-      if (newIndex < 0) return state;
-
-      const currentLayer = state.layers[selectedLayerIndex];
-      const layerAbove = state.layers[newIndex];
-
-      const newLayers = state.layers.map((l, i) => {
-        if (i === selectedLayerIndex) {
-          return layerAbove;
-        }
-
-        if (i === newIndex) {
-          return currentLayer;
-        }
-
-        return l;
-      });
+      const newLayers = UTILS.moveLayer(state.layers, selectedLayerIndex, newIndex);
 
       return { ...state, layers: newLayers };
     }
@@ -151,28 +132,33 @@ export const canvasReducer = (
       const selectedLayerIndex = state.layers.findIndex(l => l.id === action.payload);
       const newIndex = selectedLayerIndex + 1;
 
-      if (newIndex >= state.layers.length) return state;
+      const newLayers = UTILS.moveLayer(state.layers, selectedLayerIndex, newIndex);
 
-      const currentLayer = state.layers[selectedLayerIndex];
-      const layerBelow = state.layers[newIndex];
+      return { ...state, layers: newLayers };
+    }
 
-      const newLayers = state.layers.map((l, i) => {
-        if (i === selectedLayerIndex) {
-          return layerBelow;
-        }
+    // This action is dispatched when the server sends the layers.
+    // This should not be used anywhere else.
+    case "SET_LAYERS": {
+      return { ...state, layers: action.payload as Layer[] };
+    }
 
-        if (i === newIndex) {
-          return currentLayer;
+    case "UPDATE_LAYER_BUFFER": {
+      const { id, buffer } = action.payload as Layer;
+
+      const newLayers = state.layers.map(l => {
+        if (l.id === id) {
+          return { ...l, buffer };
         }
 
         return l;
-      })
+      });
 
       return { ...state, layers: newLayers };
     }
 
     case 'INCREASE_SCALE': {
-      const newScale = Math.min(2, state.scale + 0.1);
+      const newScale = Math.min(3, state.scale + 0.1);
       return { ...state, scale: newScale };
     }
     
