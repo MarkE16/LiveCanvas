@@ -1,10 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
+import { MouseEvent } from 'react';
 
 type Layer = {
   name: string;
   id: string;
   buffer: ArrayBuffer | undefined; // => to store the image data from the canvas
   active: boolean;
+}
+
+type Coordinates = {
+  x: number;
+  y: number;
 }
 
 /**
@@ -53,10 +59,28 @@ const moveLayer = (layers: Layer[], from: number, to: number): Layer[] => {
   });
 }
 
+/**
+ * Get the position of the pointer on the given canvas element.
+ * @param e The MouseEvent object.
+ * @param canvas The canvas element.
+ * @returns The position of the pointer on the canvas.
+ */
+const getCanvasPointerPosition = (e: MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement): Coordinates => {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  return { x, y };
+}
+
 const UTILS = {
   capitalize,
   createLayer,
-  moveLayer
+  moveLayer,
+  getCanvasPointerPosition
 };
 
 export default UTILS;

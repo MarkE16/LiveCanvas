@@ -4,7 +4,7 @@
   /* overflow: hidden; */
 }
 
-.ideadrawn-canvas {
+.canvas {
   position: absolute;
   background-color: transparent;
   opacity: 0.1;
@@ -13,38 +13,29 @@
   border: 1px solid gray;
 }
 
-/* .ideadrawn-canvas:last-child {
-  background-color: rgba(255, 255, 0, 0.2);
-} */
-
-.ideadrawn-canvas.move {
+.canvas.move {
   opacity: 0;
 }
 
-.ideadrawn-canvas.active {
+.canvas.active {
   background-color: rgba(226, 226, 226, 0.1);
   opacity: 1;
 }
 
-.ideadrawn-canvas.selectionMode {
-  opacity: 0;
-  cursor: default;
-  z-index: 99;
-}
-
-.ideadrawn-canvas.selectionMode.active {
+.canvas.selection {
   opacity: 1;
+  cursor: default;
 }
 
-.ideadrawn-canvas.zoom_in {
+.canvas.zoom_in {
   cursor: zoom-in;
 }
 
-.ideadrawn-canvas.zoom_out {
+.canvas.zoom_out {
   cursor: zoom-out;
 }
 
-.ideadrawn-canvas.move {
+.canvas.move {
   cursor: move;
 }
 

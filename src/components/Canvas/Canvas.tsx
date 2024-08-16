@@ -10,6 +10,7 @@ import type { FC, MouseEvent } from 'react';
 import './Canvas.styles.css';
 import { Coordinates, SelectionRectProperties } from './Canvas.types';
 import CanvasLayer from '../CanvasLayer/CanvasLayer';
+import SelectionCanvasLayer from '../SelectionCanvasLayer/SelectionCanvasLayer';
 
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
@@ -41,6 +42,7 @@ const Canvas: FC = () => {
   const canvasPosition = useRef<Coordinates>({ x: 0, y: 0 });
 
   const ERASER_RADIUS = 5;
+  const isSelecting = mode === "select" || mode === "shapes";
 
   const getActiveLayer = (): HTMLCanvasElement | undefined => {
 
@@ -177,10 +179,10 @@ const Canvas: FC = () => {
     const canvasPointerX = (e.clientX - rect.left) * scaleX;
     const canvasPointerY = (e.clientY - rect.top) * scaleY;
 
-    setLastPointerPosition({
-      x: e.clientX,
-      y: e.clientY
-    });
+    // setLastPointerPosition({
+    //   x: e.clientX,
+    //   y: e.clientY
+    // });
 
     // if (selectionRect.current) {
     //   if (isPointerInsideRect(pointerX, pointerY)) {
@@ -350,7 +352,12 @@ const Canvas: FC = () => {
       const selectionCanvas = selectionRef.current!.getContext('2d');
 
       mainCanvas!.drawImage(selectionRef.current!, 0, 0);
-      selectionCanvas!.clearRect(0, 0, width, height);
+      selectionCanvas!.clearRect(
+        0,
+        0,
+        selectionRef.current!.width,
+        selectionRef.current!.height
+      );
       sendCanvasStateOnSocket();
     } else if (mode === "move") {
       const { x: tx, y: ty } = getCanvasPosition()!;
@@ -361,10 +368,6 @@ const Canvas: FC = () => {
       };
     }
 
-  }
-
-  const onMouseLeave = () => {
-    //...
   }
 
   const onMouseEnter = (e: MouseEvent) => {
@@ -393,89 +396,6 @@ const Canvas: FC = () => {
 
     sendCanvasStateOnSocket();
   }
-
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      const layer = getActiveLayer();
-
-      if (!layer) {
-        console.error("`handleKeyDown`: Can't draw: Layer does not exist.");
-        return;
-      }
-
-      const selectionCanvas = selectionRef.current!.getContext('2d')
-      
-      switch (e.key) {
-        case 'Backspace':
-        case 'Delete': {
-          
-          if (!selectionRect.current) { return; }
-
-          const mainCanvas = layer.getContext('2d');
-          const { x, y, rectWidth, rectHeight } = selectionRect.current;
-          mainCanvas!.clearRect(x, y, rectWidth, rectHeight);
-          
-          
-          selectionCanvas!.clearRect(0, 0, width, height);
-
-          sendCanvasStateOnSocket();
-          selectionRect.current = null;
-          break;
-      }
-
-        case 'Escape': {
-          selectionCanvas!.clearRect(0, 0, width, height);
-          selectionRect.current = null;
-          break;
-        }
-
-        // Zoom in.
-        case '+': {
-          if (!e.shiftKey) { return; }
-
-          dispatch({ type: 'SET_SCALE', payload: scale + 0.1 });
-          break;
-        }
-
-        // Zoom out.
-        case '_': {
-          if (!e.shiftKey) { return; }
-
-          dispatch({ type: 'SET_SCALE', payload: scale - 0.1 });
-
-          break;
-        }
-
-        default:
-          break; // Do nothing.
-      }
-    }
-
-    function canvasContextMenu(e: Event) {
-      e.preventDefault();
-    }
-
-    const layer = getActiveLayer();
-
-    if (!layer) {
-      console.error("`useEffect` (keyboard shortcuts): Can't draw: Layer does not exist.");
-      return;
-    }
-
-    const mainCanvasRef = layer;
-    const selectionCanvasRef = selectionRef.current;
-    
-    window.addEventListener('keydown', handleKeyDown);
-    mainCanvasRef.addEventListener('contextmenu', canvasContextMenu);
-    selectionCanvasRef?.addEventListener('contextmenu', canvasContextMenu);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      mainCanvasRef.removeEventListener('contextmenu', canvasContextMenu);
-      selectionCanvasRef?.removeEventListener('contextmenu', canvasContextMenu);
-    };
-  }, [width, height, dispatch, scale, sendCanvasStateOnSocket]);
 
   // Effect for setting up the socket.
   useEffect(() => {
@@ -553,62 +473,32 @@ const Canvas: FC = () => {
         )} */}
 
         { /* Add an extra layer for selection mode. */ }
-          <canvas
-            className={`ideadrawn-canvas selectionMode ${mode === "select" || mode === "shapes" ? 'active' : ''}`}
-            style={{
-              transform: `translate(
-              ${canvasPosition.current.x}px,
-              ${canvasPosition.current.y}px
-              ) scale(${scale})`
-            }}
-            width={width}
-            height={height}
-            ref={selectionRef}
-            onPointerDown={onMouseDown}
-            onPointerMove={onMouseMove}
-            onPointerUp={onMouseUp}
-            onPointerLeave={onMouseLeave}
-          >
-
-          </canvas>
-        
-        {/* The main canvas. */}
-        {/* {
-          layers.reverse().map((layer, i) => (
-            <canvas
-              key={layer.id}
-              id={layer.id}
-              className={`ideadrawn-canvas ${(layer.active || show_all) ? 'active' : ''} ${mode}`}
-              style={{
-                transform:
-                `translate(
-                ${canvasPosition.current.x}px, 
-                ${canvasPosition.current.y}px
-                ) scale(${scale})`,
-                zIndex: layers.length - i // Layers from the top of the list are drawn first. 
-              }}
+        {
+          isSelecting && (
+            <SelectionCanvasLayer
+              id="selection-canvas"
               width={width}
               height={height}
-              ref={el => refsOfLayers.current[i] = el!}
-              onPointerDown={onMouseDown}
-              onPointerMove={onMouseMove}
-              onPointerUp={onMouseUp}
-              onPointerLeave={onMouseLeave}
-              onPointerEnter={onMouseEnter}
-            >
-            </canvas>
-          ))
-        } */}
+              activeLayer={getActiveLayer()}
+              layerIndex={layers.length + 1}
+              xPosition={canvasPosition.current.x}
+              yPosition={canvasPosition.current.y}
+            />
+          )
+        }
+        
+        {/* The main canvas. */}
         {
           layers.reverse().map((layer, i) => (
             <CanvasLayer
               key={layer.id}
-              ref={(el: HTMLCanvasElement) => refsOfLayers.current[i] = el}
-              onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onMouseLeave={onMouseLeave}
-              onMouseEnter={onMouseEnter}
+              id={layer.id}
+              width={width}
+              height={height}
+              active={layer.active}
+              layerIndex={!layer.active ? layers.length - i - 1 : layers.length}
+              xPosition={canvasPosition.current.x}
+              yPosition={canvasPosition.current.y}
             />
           ))
         }
