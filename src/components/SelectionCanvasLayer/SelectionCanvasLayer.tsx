@@ -16,6 +16,8 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
   ...rest
 }) => {
   const scale = useAppSelector(state => state.canvas.scale, (prev, next) => prev === next);
+  const mode = useAppSelector(state => state.canvas.mode, (prev, next) => prev === next);
+  const shape = useAppSelector(state => state.canvas.shape, (prev, next) => prev === next);
   const isSelecting = useRef<boolean>(false);
   const selectionRef = useRef<HTMLCanvasElement>(null);
   const selectionRect = useRef({ x: 0, y: 0, width: 0, height: 0 });
@@ -48,20 +50,96 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
     const rectWidth = x - startX;
     const rectHeight = y - startY;
 
+    ctx!.beginPath();
     ctx!.clearRect(0, 0, selectionRef.current!.width, selectionRef.current!.height);
 
-    ctx!.strokeStyle = 'rgba(43, 184, 227)';
-    ctx!.lineWidth = 2;
-    ctx!.fillStyle = 'rgba(103, 181, 230, 0.1)';
+    if (mode === "select") {
+      ctx!.strokeStyle = 'rgba(43, 184, 227)';
+      ctx!.lineWidth = 2;
+      ctx!.fillStyle = 'rgba(103, 181, 230, 0.1)';
 
-    ctx!.fillRect(startX, startY, rectWidth, rectHeight);
-    ctx!.strokeRect(startX, startY, rectWidth, rectHeight);
+      ctx!.fillRect(startX, startY, rectWidth, rectHeight);
+      ctx!.strokeRect(startX, startY, rectWidth, rectHeight);
+
+    } else if (mode === "shapes") {
+      switch (shape) {
+        case "rectangle": {
+          ctx!.strokeStyle = 'rgba(43, 184, 227)';
+          ctx!.lineWidth = 2;
+          ctx!.fillStyle = 'rgba(103, 181, 230, 0.1)';
+
+          if (e.shiftKey) {
+            // Make all the sides equal.
+            const side = Math.min(rectWidth, rectHeight);
+            ctx!.fillRect(startX, startY, side, side);
+            ctx!.strokeRect(startX, startY, side, side);
+          } else {
+            ctx!.fillRect(startX, startY, rectWidth, rectHeight);
+            ctx!.strokeRect(startX, startY, rectWidth, rectHeight);
+          }
+          break;
+        }
+
+        case "circle": {
+          // Recall: x^2 + y^2 = r^2
+
+          const radius = Math.sqrt(rectWidth ** 2 + rectHeight ** 2);
+
+          ctx!.strokeStyle = 'rgba(43, 184, 227)';
+          ctx!.lineWidth = 2;
+          ctx!.arc(startX, startY, radius, 0, 2 * Math.PI);
+          ctx!.stroke();
+          break;
+        }
+
+        case "triangle": {
+          ctx!.strokeStyle = 'rgba(43, 184, 227)';
+          ctx!.lineWidth = 2;
+
+          ctx!.beginPath();
+          
+          if (e.shiftKey) {
+            // Equilateral triangle
+            const side = Math.min(rectWidth, rectHeight);
+            ctx!.moveTo(startX, startY);
+            ctx!.lineTo(startX + side, startY);
+            ctx!.lineTo(startX + side / 2, startY + side);
+            ctx!.lineTo(startX, startY);
+          } else {
+            ctx!.moveTo(startX + rectWidth / 2, startY);
+            ctx!.lineTo(startX, startY + rectHeight);
+            ctx!.lineTo(startX + rectWidth, startY + rectHeight);
+            ctx!.lineTo(startX + rectWidth / 2, startY);
+          }
+
+          ctx!.stroke();
+          break;
+        }
+      }
+    }
 
     selectionRect.current = { x: startX, y: startY, width: rectWidth, height: rectHeight };
   }
 
   const onMouseUp: MouseEventHandler<HTMLCanvasElement> = () => {
     isSelecting.current = false;
+
+    const activeLayer = getActiveLayer();
+
+    if (!activeLayer) {
+      const err = "`SelectionCanvasLayer`: No active layer found to select.";
+      console.error(err);
+      alert(err);
+      return;
+    }
+
+    const mainCtx = activeLayer.getContext("2d");
+    const selectCtx = selectionRef.current!.getContext("2d");
+
+    if (mode === "shapes") {
+      mainCtx!.drawImage(selectionRef.current!, 0, 0);
+      selectCtx!.clearRect(0, 0, selectionRef.current!.width, selectionRef.current!.height);
+    }
   }
 
   useEffect(() => {
