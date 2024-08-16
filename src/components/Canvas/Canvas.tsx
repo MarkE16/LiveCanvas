@@ -1,6 +1,6 @@
 // Lib
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
+import { useAppSelector } from '../../state/hooks/reduxHooks';
 import { socket } from '../../server/socket';
 
 // Types
@@ -14,7 +14,6 @@ import SelectionCanvasLayer from '../SelectionCanvasLayer/SelectionCanvasLayer';
 
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
-  const dispatch = useAppDispatch();
   const { 
     width,
     height,
@@ -25,7 +24,6 @@ const Canvas: FC = () => {
     shape,
     layers,
     scale,
-    show_all
   } = state;
 
   const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
@@ -44,48 +42,28 @@ const Canvas: FC = () => {
   const ERASER_RADIUS = 5;
   const isSelecting = mode === "select" || mode === "shapes";
 
-  const getActiveLayer = (): HTMLCanvasElement | undefined => {
-
-    // Referring to if the layer has the class 'active'
-    // so that this function does not have to depend
-    // on `layers` from the state.
+  const getActiveLayer = useCallback((): HTMLCanvasElement | undefined => {
+    // Get the active layer.
     return refsOfLayers.current.find(ref => ref.classList.contains('active'));
-  }
+  }, []);
 
   const getLayer = (id: string): HTMLCanvasElement | undefined => {
     return refsOfLayers.current.find(ref => ref.id === id);
   }
 
-  const isPointerInsideRect = (
-    x: number,
-    y: number
-  ): boolean => {
-    if (!selectionRect.current) return false;
+  // const isPointerInsideRect = (
+  //   x: number,
+  //   y: number
+  // ): boolean => {
+  //   if (!selectionRect.current) return false;
 
-    const { x: rectX, y: rectY, rectWidth, rectHeight } = selectionRect.current;
+  //   const { x: rectX, y: rectY, rectWidth, rectHeight } = selectionRect.current;
 
     
-    return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
-  }
+  //   return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
+  // }
 
-  const getCanvasPosition = (): Coordinates | undefined => {
-    const transformRegex = /translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
-
-    const layer = getActiveLayer();
-
-    if (!layer) return undefined;
-
-    const match = layer.style.transform.match(transformRegex);
-
-    if (!match) return undefined;
-
-    const [, tx, , ty] = match;
-
-    // The `+` operator converts the string to a number.
-    return { x: +tx, y: +ty };
-  }
-
-  const updateCanvasPosition = (dx: number, dy: number) => {}
+  // const updateCanvasPosition = (dx: number, dy: number) => {}
     
 
 
@@ -93,85 +71,32 @@ const Canvas: FC = () => {
     // Emit the canvas state to the server,
     // so that other users can see the changes
     // via the WebSocket connection.
-    const layer = getActiveLayer();
-
-    if (!layer) {
+    const activeLayer = getActiveLayer();
+    if (!activeLayer) {
       console.error("Can't update layer over socket: Layer does not exist.");
       return;
     }
 
-    layer.toBlob(b => {
+    activeLayer.toBlob(b => {
       if (!b) {
         console.error('Error converting canvas to blob.');
         return;
       }
 
-      socket.emit('canvas-update', b, layer.id);
+      socket.emit('canvas-update', b, activeLayer.id);
     });
-  }, []);
-
-  const onMouseDown = (e: MouseEvent) => {
-    // Start drawing.
-
-    const layer = getActiveLayer();
-
-    if (!layer) {
-      console.error("`onMouseDown`: Can't draw: Layer does not exist.");
-      return;
-    }
-
-    const mainCanvas = layer.getContext('2d');
-    const { width: canvasWidth, height: canvasHeight } = layer;
-    const rect = layer.getBoundingClientRect();
-
-    const scaleX = canvasWidth / rect.width;
-    const scaleY = canvasHeight / rect.height;
-
-    const canvasPointerX = (e.clientX - rect.left) * scaleX;
-    const canvasPointerY = (e.clientY - rect.top) * scaleY;
-
-    // if (isPointerInsideRect(pointerX, pointerY)) {
-      // Move the selection.
-      // movingSelection.current = true;
-      // return;
-      // const mainCanvas = ref.current!.getContext('2d');
-      // const selectionCanvas = selectionRef.current!.getContext('2d');
-      // const { x, y, rectWidth, rectHeight } = selectionRect.current!;
-
-      // const dx = pointerX - x;
-      // const dy = pointerY - y;
-
-      // // mainCanvas!.drawImage(selectionRef.current!, x, y, rectWidth, rectHeight, pointerX - dx, pointerY - dy, rectWidth, rectHeight);
-      
-    // }
-    isDrawing.current = true;
-
-    
-    clientPosition.current = { x: e.clientX, y: e.clientY };
-    if (mode === "draw") {
-      mainCanvas!.beginPath();
-      mainCanvas!.moveTo(canvasPointerX, canvasPointerY);
-
-    } else if (mode === "select" ||  mode == "shapes") {
-      selectPosition.current = { x: canvasPointerX, y: canvasPointerY };
-
-    } else if (mode === "move") {
-      const { x: tx, y: ty } = getCanvasPosition()!;
-
-      canvasPosition.current = { x: tx, y: ty };
-    }
-  }
+  }, [getActiveLayer]);
 
   const onMouseMove = (e: MouseEvent) => {
-    const layer = getActiveLayer();
+    const activeLayer = getActiveLayer();
 
-    if (!layer) {
+    if (!activeLayer) {
       console.error("`onMouseMove`: Can't draw: Layer does not exist.");
       return;
     }
-    const mainCanvas = layer.getContext('2d');
-    const { width: canvasWidth, height: canvasHeight } = layer;
-    const rect = layer.getBoundingClientRect();
+    const mainCanvas = activeLayer.getContext('2d');
+    const { width: canvasWidth, height: canvasHeight } = activeLayer;
+    const rect = activeLayer.getBoundingClientRect();
 
     const scaleX = canvasWidth / rect.width;
     const scaleY = canvasHeight / rect.height;
@@ -310,14 +235,12 @@ const Canvas: FC = () => {
         const dx = e.clientX - clientPosition.current.x;
         const dy = e.clientY - clientPosition.current.y;
 
-        const layer = getActiveLayer();
-
-        if (!layer) {
+        if (!activeLayer) {
           console.error("`onMouseMove`: Can't move canvas: Layer does not exist.");
           return;
         }
 
-        layer.style.transform = `
+        activeLayer.style.transform = `
           translate(
           ${(canvasPosition.current.x - -dx)}px,
           ${canvasPosition.current.y - -dy}px) scale(${scale})`;
@@ -330,67 +253,19 @@ const Canvas: FC = () => {
     }
   }
 
-  const onMouseUp = () => {
-    // Stop drawing.
-    isDrawing.current = false;
-    // movingSelection.current = false;
-
-    const layer = getActiveLayer();
-
-    if (!layer) {
-      console.error("`onMouseUp`: Can't draw: Layer does not exist.");
-      return
-    }
-
-    const mainCanvas = layer.getContext('2d');
-
-    mainCanvas!.closePath();
-
-    if (mode === "zoom_in" || mode === "zoom_out" || mode == "select") return;
-
-    if (mode === "shapes") {
-      const selectionCanvas = selectionRef.current!.getContext('2d');
-
-      mainCanvas!.drawImage(selectionRef.current!, 0, 0);
-      selectionCanvas!.clearRect(
-        0,
-        0,
-        selectionRef.current!.width,
-        selectionRef.current!.height
-      );
-      sendCanvasStateOnSocket();
-    } else if (mode === "move") {
-      const { x: tx, y: ty } = getCanvasPosition()!;
-
-      canvasPosition.current = {
-        x: tx,
-        y: ty
-      };
-    }
-
-  }
-
-  const onMouseEnter = (e: MouseEvent) => {
-    // Check if the mouse is down.
-    // If it is, start drawing.
-
-    if (e.buttons === 1) {
-      onMouseDown(e);
-    }
-  }
-
   const clearCanvas = () => {
 
     // We're only concerned with the main canvas.
     // The selection canvas is cleared when the selection is done.
-    const layer = getActiveLayer();
 
-    if (!layer) {
+    const activeLayer = getActiveLayer();
+
+    if (!activeLayer) {
       console.error("`clearCanvas`: Can't clear canvas: Layer does not exist.");
       return;
     }
 
-    const mainCanvas = layer.getContext('2d');
+    const mainCanvas = activeLayer.getContext('2d');
 
     mainCanvas!.clearRect(0, 0, width, height);
 
@@ -451,6 +326,21 @@ const Canvas: FC = () => {
     })
   }, [layers, width, height]);
 
+  const renderedLayers = layers.reverse().map((layer, i) => (
+    <CanvasLayer
+      key={layer.id}
+      id={layer.id}
+      width={width}
+      ref={(element: HTMLCanvasElement) => refsOfLayers.current[i] = element}
+      height={height}
+      active={layer.active}
+      layerRef={refsOfLayers.current[i]}
+      layerIndex={!layer.active ? layers.length - i - 1 : layers.length}
+      xPosition={canvasPosition.current.x}
+      yPosition={canvasPosition.current.y}
+    />
+  ));
+
   return (
     <>
       <div id="canvas-bg">
@@ -472,15 +362,13 @@ const Canvas: FC = () => {
           }}></div>
         )} */}
 
-        { /* Add an extra layer for selection mode. */ }
         {
           isSelecting && (
             <SelectionCanvasLayer
               id="selection-canvas"
               width={width}
               height={height}
-              activeLayer={getActiveLayer()}
-              layerIndex={layers.length + 1}
+              getActiveLayer={getActiveLayer}
               xPosition={canvasPosition.current.x}
               yPosition={canvasPosition.current.y}
             />
@@ -488,21 +376,9 @@ const Canvas: FC = () => {
         }
         
         {/* The main canvas. */}
-        {
-          layers.reverse().map((layer, i) => (
-            <CanvasLayer
-              key={layer.id}
-              id={layer.id}
-              width={width}
-              height={height}
-              active={layer.active}
-              layerIndex={!layer.active ? layers.length - i - 1 : layers.length}
-              xPosition={canvasPosition.current.x}
-              yPosition={canvasPosition.current.y}
-            />
-          ))
-        }
+        {renderedLayers}
       </div>
+        { /* Add an extra layer for selection mode. */ }
       <div>
         <button id="clear-btn" onClick={clearCanvas}>Clear Canvas</button>
       </div>

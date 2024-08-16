@@ -1,5 +1,5 @@
 // Lib
-import { useRef, useEffect, act } from "react";
+import { useRef, useEffect } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 import UTILS from "../../utils";
 
@@ -10,16 +10,15 @@ import type { SelectionCanvasLayerProps, Coordinates } from "./SelectionCanvasLa
 const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
   width,
   height,
-  layerIndex,
   xPosition,
   yPosition,
-  activeLayer,
+  getActiveLayer,
   ...rest
 }) => {
   const scale = useAppSelector(state => state.canvas.scale, (prev, next) => prev === next);
   const isSelecting = useRef<boolean>(false);
   const selectionRef = useRef<HTMLCanvasElement>(null);
-  const selectionRct = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const selectionRect = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const selectionStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
 
   const onMouseDown: MouseEventHandler<HTMLCanvasElement> = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -33,7 +32,7 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
     
 
     selectionStartingPoint.current = { x, y };
-    selectionRct.current = { ...selectionRct.current, x, y };
+    selectionRect.current = { ...selectionRect.current, x, y };
   }
 
   const onMouseMove: MouseEventHandler<HTMLCanvasElement> = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -58,15 +57,11 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
     ctx!.fillRect(startX, startY, rectWidth, rectHeight);
     ctx!.strokeRect(startX, startY, rectWidth, rectHeight);
 
-    selectionRct.current = { x: startX, y: startY, width: rectWidth, height: rectHeight };
+    selectionRect.current = { x: startX, y: startY, width: rectWidth, height: rectHeight };
   }
 
   const onMouseUp: MouseEventHandler<HTMLCanvasElement> = () => {
     isSelecting.current = false;
-
-    // const ctx = selectionRef.current!.getContext("2d");
-    // ctx!.clearRect(0, 0, selectionRef.current!.width, selectionRef.current!.height);
-
   }
 
   useEffect(() => {
@@ -79,6 +74,8 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
       } else if (e.key === "Delete" || e.key === "Backspace") {
         // Delete the selection.
 
+        const activeLayer = getActiveLayer();
+
         if (!activeLayer) {
           const err = "`SelectionCanvasLayer`: No active layer found to delete.";
           console.error(err);
@@ -90,10 +87,10 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
         const selectCtx = selectionRef.current!.getContext("2d");
 
         ctx!.clearRect(
-          selectionRct.current.x,
-          selectionRct.current.y,
-          selectionRct.current.width,
-          selectionRct.current.height
+          selectionRect.current.x,
+          selectionRect.current.y,
+          selectionRect.current.width,
+          selectionRect.current.height
         );
         selectCtx!.clearRect(0, 0, canvasWidth, canvasHeight);
       }
@@ -102,7 +99,13 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
     document.addEventListener("keydown", handleKeyboardActions);
 
     return () => document.removeEventListener("keydown", handleKeyboardActions);
-  }, [activeLayer]);
+
+    // Dependency error says that `getActiveLayer` is missing from the dependency array,
+    // and that it should be added, or the function should be wrapped in a useCallback.
+    // However, it __is__ wrapped in a useCallback in the parent component.
+    // Not sure why it still gives a warning.
+    // eslint-disable-next-line
+  }, []);
   
   return (
     <canvas
@@ -116,7 +119,6 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
         ${xPosition}px, 
         ${yPosition}px
         ) scale(${scale})`,
-        zIndex: layerIndex // Layers from the top of the list are drawn first.
       }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

@@ -25,6 +25,7 @@
 .canvas.selection {
   opacity: 1;
   cursor: default;
+  z-index: 99;
 }
 
 .canvas.zoom_in {
