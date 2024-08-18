@@ -5,10 +5,12 @@ import { socket } from '../../server/socket';
 
 // Types
 import type { FC } from 'react';
+import type { Coordinates } from './Canvas.types';
 
 // Styles
 import './Canvas.styles.css';
-import { Coordinates } from './Canvas.types';
+
+// Components
 import CanvasLayer from '../CanvasLayer/CanvasLayer';
 import SelectionCanvasLayer from '../SelectionCanvasLayer/SelectionCanvasLayer';
 
@@ -23,20 +25,24 @@ const Canvas: FC = () => {
 
   const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
 
-  const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
   const [lastPointerPosition, setLastPointerPosition] = useState<Coordinates>({ x: 0, y: 0 });
   const [canvasPosition, setCanvasPosition] = useState<Coordinates>({ x: 0, y: 0 });
 
   const isSelecting = mode === "select" || mode === "shapes";
 
-  const getActiveLayer = useCallback((): HTMLCanvasElement | undefined => {
-    // Get the active layer.
+  /**
+   * Get the layer with the specified ID. If no ID is provided,
+   * the active layer is returned.
+   * @param id The ID of the layer to get.
+   * @returns The layer with the specified ID, or the active layer.
+   */
+  const getLayer = useCallback((id?: string): HTMLCanvasElement | undefined => {
+    if (id) {
+      return refsOfLayers.current.find(ref => ref.id === id);
+    }
+
     return refsOfLayers.current.find(ref => ref.classList.contains('active'));
   }, []);
-
-  const getLayer = (id: string): HTMLCanvasElement | undefined => {
-    return refsOfLayers.current.find(ref => ref.id === id);
-  }
 
   // const isPointerInsideRect = (
   //   x: number,
@@ -50,32 +56,12 @@ const Canvas: FC = () => {
   //   return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
   // }
 
-  const sendCanvasStateOnSocket = useCallback(() => {
-    // Emit the canvas state to the server,
-    // so that other users can see the changes
-    // via the WebSocket connection.
-    const activeLayer = getActiveLayer();
-    if (!activeLayer) {
-      console.error("Can't update layer over socket: Layer does not exist.");
-      return;
-    }
-
-    activeLayer.toBlob(b => {
-      if (!b) {
-        console.error('Error converting canvas to blob.');
-        return;
-      }
-
-      socket.emit('canvas-update', b, activeLayer.id);
-    });
-  }, [getActiveLayer]);
-
   const clearCanvas = () => {
 
     // We're only concerned with the main canvas.
     // The selection canvas is cleared when the selection is done.
 
-    const activeLayer = getActiveLayer();
+    const activeLayer = getLayer();
 
     if (!activeLayer) {
       console.error("`clearCanvas`: Can't clear canvas: Layer does not exist.");
@@ -86,7 +72,7 @@ const Canvas: FC = () => {
 
     mainCanvas!.clearRect(0, 0, width, height);
 
-    sendCanvasStateOnSocket();
+    // sendCanvasStateOnSocket();
   }
 
   // Effect for setting up the socket.
@@ -122,7 +108,7 @@ const Canvas: FC = () => {
     return () => {
       socket.off('canvas-update');
     };
-  }, []);
+  }, [getLayer]);
 
   useEffect(() => {
     refsOfLayers.current.forEach((ref, i) => {
@@ -159,8 +145,6 @@ const Canvas: FC = () => {
     />
   ));
 
-  console.log(clientPosition.current);
-
   return (
     <>
       <div id="canvas-bg">
@@ -188,7 +172,7 @@ const Canvas: FC = () => {
               id="selection-canvas"
               width={width}
               height={height}
-              getActiveLayer={getActiveLayer}
+              getActiveLayer={getLayer}
               xPosition={canvasPosition.x}
               yPosition={canvasPosition.y}
             />

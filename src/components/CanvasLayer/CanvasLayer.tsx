@@ -1,7 +1,8 @@
 // Lib
 import { useAppSelector } from "../../state/hooks/reduxHooks";
-import { memo, useRef, forwardRef, act } from "react";
+import { memo, useRef, forwardRef } from "react";
 import UTILS from "../../utils";
+import { socket } from "../../server/socket";
 
 // Types
 import type { Ref, MouseEventHandler, MouseEvent } from "react";
@@ -32,6 +33,28 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
   const isDrawing = useRef<boolean>(false);
   const ERASER_RADIUS = 7;
+
+  const emitLayerState = () => {
+    // Emit the canvas state to the server,
+    // so that other users can see the changes
+    // via the WebSocket connection.
+    if (!layerRef) {
+      console.error("Can't update layer over socket: Layer does not exist.");
+      return;
+    }
+
+    console.log('Emitting canvas update...');
+    return; // Remove this line when you're ready to emit the canvas update.
+
+    layerRef.toBlob(b => {
+      if (!b) {
+        console.error('Error converting canvas to blob.');
+        return;
+      }
+
+      socket.emit('canvas-update', b, layerRef.id);
+    });
+  }
 
   const getCurrentTransformPosition = (): Coordinates | undefined => {
     const transformRegex = /translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
@@ -124,13 +147,16 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     const ctx = layerRef!.getContext('2d');
 
-    if (mode === "draw") {
+    if (mode === "draw" || mode === "erase") {
       ctx!.closePath();
     } else if (mode === "move") {
       const { x, y } = getCurrentTransformPosition()!;
 
       setCanvasPosition({ x, y });
+      return;
     }
+
+    emitLayerState();
   }
 
   const onMouseEnter: MouseEventHandler<HTMLCanvasElement> = (e: MouseEvent<HTMLCanvasElement>) => {
