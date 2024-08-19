@@ -4,6 +4,7 @@ export type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> & RefAttributes
   width: number;
   height: number;
   active?: boolean;
+  layerHidden?: boolean;
   layerRef: HTMLCanvasElement | undefined;
   layerIndex?: number; // z-index essentially.
   xPosition: number;

@@ -1,16 +1,21 @@
-
-#canvas-bg {
-  position: relative;
-  /* overflow: hidden; */
-}
-
-.canvas {
+.canvas, #background-canvas {
   position: absolute;
+  /* top: 0;
+  left: 0; */
   background-color: transparent;
   opacity: 0.1;
   cursor: crosshair;
   border-radius: 3px;
   border: 1px solid gray;
+}
+
+#background-canvas {
+  background-color: white;
+  opacity: 1;
+}
+
+.canvas.hidden {
+  opacity: 0 !important;
 }
 
 .canvas.active, .canvas.active.move {
@@ -21,7 +26,6 @@
 .canvas.move {
   opacity: 0;
 }
-
 
 .canvas.selection {
   opacity: 1;

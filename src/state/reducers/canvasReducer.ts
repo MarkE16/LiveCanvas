@@ -13,6 +13,7 @@ type Layer = {
   id: string;
   buffer: ArrayBuffer | undefined; // => to store the image data from the canvas
   active: boolean;
+  hidden: boolean;
 }
 
 type Mode = 'select' | 'draw' | 'erase' | 'shapes' | 'zoom_in' | 'zoom_out' | 'move';
@@ -46,7 +47,7 @@ const initState: CanvasState = {
   eraserStrength: 3,
   shape: 'rectangle',
   layers: [
-    { name: "Layer 1", id: uuidv4(), buffer: undefined, active: true }
+    { name: "Layer 1", id: uuidv4(), buffer: undefined, active: true, hidden: false }
   ],
   scale: 1,
   show_all: false,
@@ -149,6 +150,32 @@ export const canvasReducer = (
       const newLayers = state.layers.map(l => {
         if (l.id === id) {
           return { ...l, buffer };
+        }
+
+        return l;
+      });
+
+      return { ...state, layers: newLayers };
+    }
+
+    case "RENAME_LAYER": {
+      const { id, name } = action.payload as Layer;
+
+      const newLayers = state.layers.map(l => {
+        if (l.id === id) {
+          return { ...l, name };
+        }
+
+        return l;
+      });
+
+      return { ...state, layers: newLayers };
+    }
+
+    case "TOGGLE_VISIBILITY": {
+      const newLayers = state.layers.map(l => {
+        if (l.id === action.payload) {
+          return { ...l, hidden: !l.hidden };
         }
 
         return l;

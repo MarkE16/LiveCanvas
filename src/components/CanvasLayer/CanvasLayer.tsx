@@ -13,7 +13,8 @@ import { Coordinates } from "../Canvas/Canvas.types";
 const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   width,
   height,
-  active,
+  active = false,
+  layerHidden = false,
   layerRef,
   layerIndex,
   xPosition,
@@ -95,7 +96,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   // This should handle a majority of the drawing process.
   const onMouseMove: MouseEventHandler<HTMLCanvasElement> = (e: MouseEvent<HTMLCanvasElement>) => {
     // If the left mouse button is not pressed, then we should not draw.
-    if (!isDrawing.current && e.buttons !== 1) {
+    if ((!isDrawing.current && e.buttons !== 1) || layerHidden) {
       return;
     }
 
@@ -132,7 +133,9 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         const dx = e.clientX - clientPosition.current.x;
         const dy = e.clientY - clientPosition.current.y;
 
-        layerRef!.style.transform = `translate(${xPosition + dx}px, ${yPosition + dy}px) scale(${scale})`;
+        const { x: startX, y: startY } = getCurrentTransformPosition()!;
+
+        setCanvasPosition({ x: startX + dx, y: startY + dy });
         break;
       }
 
@@ -149,11 +152,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     if (mode === "draw" || mode === "erase") {
       ctx!.closePath();
-    } else if (mode === "move") {
-      const { x, y } = getCurrentTransformPosition()!;
-
-      setCanvasPosition({ x, y });
-      return;
     }
 
     emitLayerState();
@@ -168,17 +166,18 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   const onMouseLeave = () => {
     isDrawing.current = false;
 
-    const { x, y } = getCurrentTransformPosition()!;
+    // const { x, y } = getCurrentTransformPosition()!;
 
-    setCanvasPosition({ x, y });
+    // setCanvasPosition({ x, y });
   }
+  
 
   return (
     <canvas
       ref={ref}
       width={width}
       height={height}
-      className={`canvas ${active ? "active" : ""} ${mode}`}
+      className={`canvas ${active ? "active" : ""} ${mode} ${layerHidden ? "hidden" : ""}`}
       style={{
         transform:
         `translate(

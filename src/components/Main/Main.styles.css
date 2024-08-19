@@ -1,0 +1,29 @@
+#main-content {
+  display: flex;
+  height: 100%;
+}
+
+#main-canvas-pane {
+  display: flex;
+  position: relative;
+  border: 1px solid red;
+  justify-content: center;
+  align-items: center;
+  flex: 3;
+  height: 100vh;
+  width: 100%;
+}
+
+#canvas-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  /* border: 1px solid #000000; */
+}
+
+#right-side-pane {
+  width: min-content;
+}

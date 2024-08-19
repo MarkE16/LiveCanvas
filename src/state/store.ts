@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { canvasReducer } from "./reducers/canvasReducer";
-import { Color } from "../components/Toolbar/Toolbar.types";
+import { Color } from "../components/LeftToolbar/LeftToolbar.types";
 
 export const store = configureStore({
   reducer: {

@@ -56,25 +56,6 @@ const Canvas: FC = () => {
   //   return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
   // }
 
-  const clearCanvas = () => {
-
-    // We're only concerned with the main canvas.
-    // The selection canvas is cleared when the selection is done.
-
-    const activeLayer = getLayer();
-
-    if (!activeLayer) {
-      console.error("`clearCanvas`: Can't clear canvas: Layer does not exist.");
-      return;
-    }
-
-    const mainCanvas = activeLayer.getContext('2d');
-
-    mainCanvas!.clearRect(0, 0, width, height);
-
-    // sendCanvasStateOnSocket();
-  }
-
   // Effect for setting up the socket.
   useEffect(() => {
 
@@ -129,63 +110,72 @@ const Canvas: FC = () => {
     })
   }, [layers, width, height]);
 
-  const renderedLayers = layers.reverse().map((layer, i) => (
-    <CanvasLayer
-      key={layer.id}
-      id={layer.id}
-      width={width}
-      ref={(element: HTMLCanvasElement) => refsOfLayers.current[i] = element}
-      height={height}
-      active={layer.active}
-      layerRef={refsOfLayers.current[i]}
-      layerIndex={!layer.active ? layers.length - i - 1 : layers.length}
-      xPosition={canvasPosition.x}
-      yPosition={canvasPosition.y}
-      setCanvasPosition={setCanvasPosition}
-    />
-  ));
+  const renderedLayers = layers.reverse().map((layer, i) => {
+    return (
+      <CanvasLayer
+        key={layer.id}
+        id={layer.id}
+        width={width}
+        ref={(element: HTMLCanvasElement) => refsOfLayers.current[i] = element}
+        height={height}
+        active={layer.active}
+        layerHidden={layer.hidden}
+        layerRef={refsOfLayers.current[i]}
+        layerIndex={!layer.active ? layers.length - i - 1 : layers.length}
+        xPosition={canvasPosition.x}
+        yPosition={canvasPosition.y}
+        setCanvasPosition={setCanvasPosition}
+      />
+    );
+  });
+
+  console.log(canvasPosition)
 
   return (
     <>
-      <div id="canvas-bg">
-        {/* A dot to indicate the radius of the eraser. */}
-        {/* { mode === "erase" && (
-          <div style={{
-            zIndex: 99,
-            position: 'absolute',
-            transform:
-            `translate(
-            ${lastPointerPosition.x}px,
-            ${lastPointerPosition.y}px
-            )`,
-            width: `${ERASER_RADIUS * eraserStrength}px`,
-            height: `${ERASER_RADIUS * eraserStrength}px`,
-            pointerEvents: 'none',
-            cursor: 'crosshair',
-            backgroundColor: 'rgba(0, 0, 0, 0.1)',
-          }}></div>
-        )} */}
+      {/* A dot to indicate the radius of the eraser. */}
+      {/* { mode === "erase" && (
+        <div style={{
+          zIndex: 99,
+          position: 'absolute',
+          transform:
+          `translate(
+          ${lastPointerPosition.x}px,
+          ${lastPointerPosition.y}px
+          )`,
+          width: `${ERASER_RADIUS * eraserStrength}px`,
+          height: `${ERASER_RADIUS * eraserStrength}px`,
+          pointerEvents: 'none',
+          cursor: 'crosshair',
+          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        }}></div>
+      )} */}
 
-        {
-          isSelecting && (
-            <SelectionCanvasLayer
-              id="selection-canvas"
-              width={width}
-              height={height}
-              getActiveLayer={getLayer}
-              xPosition={canvasPosition.x}
-              yPosition={canvasPosition.y}
-            />
-          )
-        }
-        
-        {/* The main canvas. */}
-        {renderedLayers}
-      </div>
-        { /* Add an extra layer for selection mode. */ }
-      <div>
-        <button id="clear-btn" onClick={clearCanvas}>Clear Canvas</button>
-      </div>
+      {
+        isSelecting && (
+          <SelectionCanvasLayer
+            id="selection-canvas"
+            width={width}
+            height={height}
+            getActiveLayer={getLayer}
+            xPosition={canvasPosition.x}
+            yPosition={canvasPosition.y}
+          />
+        )
+      }
+      
+      {/* The main canvas. */}
+      {renderedLayers}
+
+      <CanvasLayer
+        id="background-canvas"
+        width={width}
+        height={height}
+        active={false}
+        layerIndex={-1}
+        xPosition={canvasPosition.x}
+        yPosition={canvasPosition.y}
+      />
     </>
   )
 };

@@ -1,0 +1,40 @@
+#footer-container {
+  display: flex;
+  /* justify-content: flex-start; */
+  align-items: flex-start;
+  padding: 1rem 0 0 8px;
+  flex-direction: column;
+  height: fit-content;
+}
+
+#footer-logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+}
+
+#site-name {
+  font-style: italic;
+  font-size: 1.2rem;
+  text-decoration: underline;
+  text-align: center;
+}
+
+#version {
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+#footer-links > a {
+  display: block;
+  width: fit-content;
+  color: #4d5b75;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+#footer-links > a:hover {
+  color: #d1836a;
+  text-decoration: underline;
+}

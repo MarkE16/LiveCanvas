@@ -3,15 +3,14 @@ import { useEffect, useCallback } from 'react';
 import UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { MODES } from '../../state/store';
+import { Tooltip } from '@mui/material';
 
 // Types
-import type { FC } from 'react';
+import type { FC, MouseEventHandler } from 'react';
 
 // Styles
-import './Toolbar.styles.css';
+import './LeftToolbar.styles.css';
 
-// Components
-import DrawingToolbar from '../DrawingToolbar/DrawingToolbar';
 
 type ToolbarButtonProps = {
   icon: string;
@@ -25,8 +24,8 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
 
   const isActive = mode === name;
 
-  const onClick = useCallback((e) => {
-    e.preventDefault();
+  const onClick: MouseEventHandler<HTMLButtonElement> = useCallback((e: MouseEvent | KeyboardEvent) => {
+    // e.preventDefault();
     e.stopPropagation();
     dispatch({ type: 'SET_MODE', payload: name });
   }, [dispatch, name]);
@@ -42,19 +41,22 @@ useEffect(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClick, shortcut]);
 
+  const tooltip = UTILS.capitalize(name).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
+
   return (
-    <button
-      className={`toolbar-option ${isActive ? 'active' : ''}`}
-      onClick={onClick}
-      title={UTILS.capitalize(name) + ` (${shortcut.toUpperCase()})`}
-    >
-      <i className={`fa ${icon}`} />
-    </button>
+    <Tooltip title={tooltip} arrow placement='right'>
+        <button
+          className={`toolbar-option ${isActive ? 'active' : ''}`}
+          onClick={onClick}
+        >
+        <i className={`fa ${icon}`} />
+      </button>
+    </Tooltip>
   );
 }
 
 
-const Toolbar: FC = () => {
+const LeftToolbar: FC = () => {
   const { mode } = useAppSelector(state => state.canvas);
   const dispatch = useAppDispatch();
 
@@ -96,14 +98,12 @@ const Toolbar: FC = () => {
   }, [mode, dispatch]);
 
   return (
-    <div id='toolbar-container'>
-      <DrawingToolbar />
-      { mode !== "select" && <hr /> }
-      <div id="modes">
-        {renderedModes}
-      </div>
-    </div>
+    <aside id='left-toolbar-container'>
+      {/* <DrawingToolbar />
+      { mode !== "select" && <hr /> } */}
+      {renderedModes}
+    </aside>
   );
 }
 
-export default Toolbar;
+export default LeftToolbar;

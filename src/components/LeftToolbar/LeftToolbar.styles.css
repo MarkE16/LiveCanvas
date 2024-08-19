@@ -1,0 +1,28 @@
+#left-toolbar-container {
+  display: flex;
+  flex-direction: column;
+  width: 5vw;
+  min-width: 5vw;
+  /* border: 1px solid #000000; */
+}
+
+.toolbar-option {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 5px;
+  border: none;
+  margin: 0.2em 0;
+  font-size: large;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 100ms;
+}
+
+.toolbar-option:hover {
+  background-color: #3b3b3b;
+}
+
+.toolbar-option.active {
+  background-color: #d1836a;
+  border: 1px solid #d1603a;
+}

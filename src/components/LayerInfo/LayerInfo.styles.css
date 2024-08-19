@@ -1,0 +1,77 @@
+.layer-info-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  /* height: 100%; */
+  padding: 0.3rem 0.5rem;
+  background-color: rgb(36, 36, 36);
+  white-space: nowrap;
+  border: 1px solid rgb(56, 55, 55);
+  /* overflow-y: auto; */
+}
+
+.layer-info-container.active {
+  background-color: #d1836a;
+}
+
+.layer-info-name {
+  color: white;
+  font-size: 1em;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0.3rem;
+  /* cursor: text; */
+}
+
+.layer-info-container:last-child {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.layer-info-container > input[type="radio"] {
+  display: none;
+}
+
+.layer-info-container > input[type="text"] {
+  outline: none;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid white;
+  background-color: transparent;
+}
+
+.layer-info-container > input[type="text"]:focus {
+  border-bottom: 1px solid #007bff;
+}
+
+.layer-info-container > .layer-info-actions > button {
+  opacity: 0;
+  background-color: transparent;
+  margin: 0 3px;
+  padding: 0.6em;
+  border: none;
+  border-radius: 50%;
+  transition: opacity 100ms;
+}
+
+.layer-info-container > .layer-info-actions > button:last-child {
+  margin-right: 0;
+}
+
+.layer-info-container:hover > .layer-info-actions > button,
+.layer-info-container.active > .layer-info-actions > button,
+.layer-info-container.editing > .layer-info-actions > button {
+  opacity: 1;
+}
+
+.layer-info-container > .layer-info-actions > button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.layer-info-container:nth-child(3) > .layer-info-actions > .layer-up,
+.layer-info-container:last-child > .layer-info-actions > .layer-down {
+  display: none;
+}

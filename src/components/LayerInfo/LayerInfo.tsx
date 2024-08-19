@@ -1,25 +1,38 @@
 // Lib
 import { useAppDispatch } from "../../state/hooks/reduxHooks";
 import { socket } from "../../server/socket";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Tooltip } from "@mui/material";
 
 // Types
 import { FC } from "react";
+
+// Styles
+import "./LayerInfo.styles.css";
 
 type LayerInfoProps = {
   name: string;
   id: string;
   active: boolean;
+  hidden: boolean;
 }
 
-const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
+const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
   const dispatch = useAppDispatch();
+  const nameRef = useRef<HTMLSpanElement>(null);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editedName, setEditedName] = useState<string>(name);
 
   const onToggle = () => {
     dispatch({ type: "TOGGLE_LAYER", payload: id });
   }
 
+  const onToggleVisibility = () => {
+    dispatch({ type: "TOGGLE_VISIBILITY", payload: id });
+  }
+
   const onDelete = () => {
+    if (!window.confirm("Are you sure you want to delete " + name + "?")) return;
     if (socket.connected) {
       socket.emit("layer-remove", id);
     }
@@ -32,30 +45,104 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active }) => {
     dispatch({ type: `MOVE_LAYER_${dir.toUpperCase()}`, payload: id });
   }
 
+  const onRename = useCallback(() => {
+    if (editedName.length === 0) return;
+    setIsEditing(prev => !prev);
+
+   if (isEditing) {
+
+      dispatch({
+        type: "RENAME_LAYER",
+        payload: { id, name: editedName }
+      });
+      return;
+    }
+  }, [dispatch, id, isEditing, editedName]);
+
   useEffect(() => {
     socket.on("layer-remove", (id) => {
       dispatch({ type: "REMOVE_LAYER", payload: id });
     });
 
+    const ref = nameRef.current;
+
+    ref?.addEventListener("dblclick", onRename);
+
     return () => {
       socket.off("layer-remove");
+      ref?.removeEventListener("dblclick", onRename);
     };
 
-  }, [dispatch]);
+  }, [dispatch, onRename]);
 
   return (
-    <div className="layer-info">
+    <label htmlFor={"layer-" + id} className={`layer-info-container ${active ? 'active' : isEditing ? 'editing': ''}`}>
       <input
         type="radio"
-        id={id}
+        id={"layer-" + id}
+        name="layer"
         checked={active}
         onChange={onToggle}
       />
-      <label htmlFor={id}>{name}</label>
-      <button onClick={onDelete}>Delete</button>
-      <button onClick={() => onMoveLayer('up')}>Up</button>
-      <button onClick={() => onMoveLayer('down')}>Down</button>
-    </div>
+      <div style={{
+        width: "100%",
+        // overflow: "hidden",
+        // textOverflow: "ellipsis",
+        // whiteSpace: "nowrap",
+      }}>
+        <Tooltip title={!hidden ? "Show" : "Hide"} arrow placement="left">
+          <button onClick={onToggleVisibility}>
+            <i className={`fas ${!hidden ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+          </button>
+        </Tooltip>
+        {
+          isEditing ? (
+            <input
+              type="text"
+              defaultValue={name}
+              value={editedName}
+              onChange={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                setEditedName(e.target.value);
+              }}
+              onBlur={onRename}
+            />
+          ) : (
+            <span className="layer-info-name" ref={nameRef}>{name}</span>
+          )
+        }
+      </div>
+      <div className="layer-info-actions">
+        <Tooltip title={isEditing ? "Done" : "Rename"} arrow placement="top">
+          <button className="layer-rename" onClick={onRename} disabled={editedName.length === 0}>
+            <i className={`fas ${isEditing ? 'fa-check' : 'fa-pencil-alt'}`}></i>
+          </button>
+        </Tooltip>
+        {
+          !isEditing && (
+            <>
+              <Tooltip title="Move Up" arrow placement="top">
+                <button className="layer-up" onClick={() => onMoveLayer('up')}>
+                  <i className="fas fa-angle-up"></i>
+                </button>
+              </Tooltip>
+              <Tooltip title="Move Down" arrow placement="top">
+                <button className="layer-down" onClick={() => onMoveLayer('down')}>
+                  <i className="fas fa-angle-down"></i>
+                </button>
+              </Tooltip>
+              <Tooltip title="Delete" arrow placement="top">
+                <button className="layer-delete" onClick={onDelete}>
+                  <i className="fas fa-trash-alt"></i>
+                </button>
+              </Tooltip>
+            </>
+          )
+        }
+      </div>
+    </label>
   );
 }
 
