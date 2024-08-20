@@ -83,6 +83,7 @@ const DrawingToolbar: FC = () => {
         )
       }
       { mode === "shapes" && <div id="shapes">{renderedShapes}</div> }
+      <div className="vertical-line"></div>
       { (mode === "draw" || mode === "erase") && (
         <div id="additional-settings">
           Strength: <input 

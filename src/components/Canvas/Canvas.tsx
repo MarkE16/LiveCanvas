@@ -1,7 +1,6 @@
 // Lib
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useAppSelector } from '../../state/hooks/reduxHooks';
-import { socket } from '../../server/socket';
 
 // Types
 import type { FC } from 'react';
@@ -24,8 +23,6 @@ const Canvas: FC = () => {
   } = state;
 
   const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
-
-  const [lastPointerPosition, setLastPointerPosition] = useState<Coordinates>({ x: 0, y: 0 });
   const [canvasPosition, setCanvasPosition] = useState<Coordinates>({ x: 0, y: 0 });
 
   const isSelecting = mode === "select" || mode === "shapes";
@@ -43,72 +40,6 @@ const Canvas: FC = () => {
 
     return refsOfLayers.current.find(ref => ref.classList.contains('active'));
   }, []);
-
-  // const isPointerInsideRect = (
-  //   x: number,
-  //   y: number
-  // ): boolean => {
-  //   if (!selectionRect.current) return false;
-
-  //   const { x: rectX, y: rectY, rectWidth, rectHeight } = selectionRect.current;
-
-    
-  //   return x >= rectX && x <= rectX + rectWidth && y >= rectY && y <= rectY + rectHeight;
-  // }
-
-  // Effect for setting up the socket.
-  useEffect(() => {
-
-    socket.on('canvas-update', (data: ArrayBuffer, layerId: string) => {
-
-      const layerToUpdate = getLayer(layerId);
-      if (!layerToUpdate) {
-        console.error(
-          `Error updating layer ${layerId}: Layer does not exist.`
-        );
-        return;
-      }
-
-      const mainCanvas = layerToUpdate.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-
-        // Use the `width` and `height` properties of the canvas
-        // instead of the `width` and `height` state variables
-        // so that the effect does not depend on them.
-        mainCanvas!.clearRect(0, 0, layerToUpdate.width, layerToUpdate.height);
-        mainCanvas!.drawImage(img, 0, 0);
-      }
-
-      const blob = new Blob([data]);
-
-      img.src = URL.createObjectURL(blob);
-    });
-
-    return () => {
-      socket.off('canvas-update');
-    };
-  }, [getLayer]);
-
-  useEffect(() => {
-    refsOfLayers.current.forEach((ref, i) => {
-      if (ref) {
-        const ctx = ref.getContext('2d');
-        const layerBuffer = layers[i].buffer;
-
-        if (layerBuffer) {
-          const img = new Image();
-
-          img.onload = () => {
-            ctx!.drawImage(img, 0, 0);
-          }
-
-          img.src = URL.createObjectURL(new Blob([layerBuffer]));
-        }
-      }
-    })
-  }, [layers, width, height]);
 
   const renderedLayers = layers.reverse().map((layer, i) => {
     return (
@@ -129,28 +60,8 @@ const Canvas: FC = () => {
     );
   });
 
-  console.log(canvasPosition)
-
   return (
     <>
-      {/* A dot to indicate the radius of the eraser. */}
-      {/* { mode === "erase" && (
-        <div style={{
-          zIndex: 99,
-          position: 'absolute',
-          transform:
-          `translate(
-          ${lastPointerPosition.x}px,
-          ${lastPointerPosition.y}px
-          )`,
-          width: `${ERASER_RADIUS * eraserStrength}px`,
-          height: `${ERASER_RADIUS * eraserStrength}px`,
-          pointerEvents: 'none',
-          cursor: 'crosshair',
-          backgroundColor: 'rgba(0, 0, 0, 0.1)',
-        }}></div>
-      )} */}
-
       {
         isSelecting && (
           <SelectionCanvasLayer
@@ -173,6 +84,8 @@ const Canvas: FC = () => {
         height={height}
         active={false}
         layerIndex={-1}
+        layerRef={undefined}
+        setCanvasPosition={setCanvasPosition}
         xPosition={canvasPosition.x}
         yPosition={canvasPosition.y}
       />

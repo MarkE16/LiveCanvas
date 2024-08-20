@@ -2,7 +2,6 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { memo, useRef, forwardRef } from "react";
 import UTILS from "../../utils";
-import { socket } from "../../server/socket";
 
 // Types
 import type { Ref, MouseEventHandler, MouseEvent } from "react";
@@ -47,23 +46,14 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     console.log('Emitting canvas update...');
 
-    layerRef.toBlob(b => {
-      if (!b) {
-        console.error('Error converting canvas to blob.');
-        return;
+    const base64Buffer = layerRef.toDataURL();
+
+    dispatch({
+      type: "UPDATE_LAYER_BUFFER",
+      payload: {
+        id: layerRef.id,
+        base64Buffer
       }
-
-      b.arrayBuffer().then(buffer => {
-        dispatch({
-          type: "UPDATE_LAYER_BUFFER",
-          payload: {
-            id: layerRef.id,
-            base64Buffer: UTILS.arrayBufferToBase64(buffer)
-          }
-        })
-      })
-
-      // socket.emit('canvas-update', b, layerRef.id);
     });
   }
 
@@ -125,7 +115,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         ctx!.lineTo(x, y);
         ctx!.stroke();
 
-        emitLayerState();
+        // emitLayerState(); // Not necessary to emit every time the mouse moves (at the moment)
         break;
       }
 
@@ -136,7 +126,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
           ERASER_RADIUS * eraserStrength,
           ERASER_RADIUS * eraserStrength
         );
-        emitLayerState();
+        // emitLayerState(); // Not necessary to emit every time the mouse moves (at the moment)
         break;
       }
 

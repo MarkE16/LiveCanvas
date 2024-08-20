@@ -4,7 +4,9 @@
   align-items: flex-start;
   padding: 1rem 0 0 8px;
   flex-direction: column;
-  height: fit-content;
+  /* height: fit-content; */
+  border: 1px solid #383737;
+  height: 100%;
 }
 
 #footer-logo {
@@ -40,4 +42,10 @@
 
 #footer-links > .footer-link {
   display: block;
+}
+
+hr {
+  width: 100%;
+  /* margin: 0.5rem 0; */
+  border: 1px solid #4d5b75;
 }

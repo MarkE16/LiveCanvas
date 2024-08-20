@@ -14,7 +14,7 @@ const Footer: FC = () => {
   return (
     <footer id="footer-container">
       <img id="footer-logo" src={logo} alt="logo" />
-      <span id="site-name">Live Canvas</span>
+      <span id="site-name">IdeaDrawn | Live Canvas</span>
       <span id="version">Version {VERSION}</span>
       <hr />
       <span id="footer-text">

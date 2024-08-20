@@ -77,41 +77,12 @@ const getCanvasPointerPosition = (e: MouseEvent<HTMLCanvasElement>, canvas: HTML
   return { x, y };
 }
 
-/**
- * Converts an ArrayBuffer object to a base64 string.
- * @param buffer An ArrayBuffer object.
- * @returns The base64 representation of the ArrayBuffer object.
- */
-const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return window.btoa(binary);
-}
-
-/**
- * Converts a base64 string to an ArrayBuffer object.
- * @param base64 The base64 string.
- * @returns The ArrayBuffer object.
- */
-const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
-  const binaryString = window.atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
 
 const UTILS = {
   capitalize,
   createLayer,
   moveLayer,
-  getCanvasPointerPosition,
-  arrayBufferToBase64,
-  base64ToArrayBuffer,
+  getCanvasPointerPosition
 };
 
 export default UTILS;

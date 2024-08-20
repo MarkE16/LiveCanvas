@@ -27,36 +27,36 @@ const Navbar: FC = () => {
   }
 
   const handleExport = () => {
+    setExporting(true);
     const substituteCanvas = document.createElement("canvas");
   
     // Set the canvas size (assuming all layers have the same dimensions)
-    console.log(layers);
     substituteCanvas.width = width; // Set to your canvas width
     substituteCanvas.height = height; // Set to your canvas height
-    substituteCanvas.style.display = "none";
-    substituteCanvas.style.backgroundColor = "white";
   
     const ctx = substituteCanvas.getContext("2d");
-  
-    const promises = layers.map(layer => {
-      return new Promise<void>(resolve => {
-        const base64 = layer.base64Buffer;
-  
-        if (base64) {
-          const img = new Image();
-          
-          img.onload = () => {
-            ctx?.drawImage(img, 0, 0);
-            resolve();  // Resolve the promise after drawing the image
-          }
 
-          const buffer = new Uint8Array(
-            UTILS.base64ToArrayBuffer(base64)
-          );
-          img.src = URL.createObjectURL(new Blob([buffer]));
-        } else {
-          resolve();  // Resolve immediately if there's no image data
+    // Before drawing the images,
+    // let's give the canvas a white background, as by default it's transparent.
+    ctx!.fillStyle = "white";
+    ctx!.fillRect(0, 0, width, height);
+  
+    const promises = layers.reverse().map(layer => {
+      return new Promise<void>(resolve => {
+        const base64String = layer.base64Buffer;
+
+        if (!base64String) {
+          resolve();
+          return;
         }
+
+        const img = new Image();
+        img.src = base64String;
+
+        img.onload = () => {
+          ctx!.drawImage(img, 0, 0, width, height);
+          resolve();
+        };
       });
     });
   
@@ -72,6 +72,8 @@ const Navbar: FC = () => {
       URL.revokeObjectURL(a.href);
       substituteCanvas.remove();
       a.remove();
+
+      setExporting(false);
     });
   };  
 
@@ -85,13 +87,15 @@ const Navbar: FC = () => {
           <button onClick={openSnackbar}>File</button>
           <button onClick={openSnackbar}>Edit</button>
           <button onClick={openSnackbar}>View</button>
+          <button onClick={openSnackbar}>Filter</button>
+          <button onClick={openSnackbar}>Admin</button>
         </div>
       </section>
       <section id="navbar-buttons-section">
-        <button onClick={handleExport}>
+        <button onClick={handleExport} disabled={exporting} aria-disabled={exporting}>
           <span>Export Canvas</span>
         </button>
-        <CircularProgress />
+        {exporting && <CircularProgress size={20} />}
       </section>
 
       <Snackbar

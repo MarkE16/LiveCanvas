@@ -16,7 +16,7 @@ const LayerManager: FC = () => {
 
   return (
     <aside id="layer-manager-container">
-      <h2>Layers</h2>
+      <h4 id="layers-title">Layers</h4>
       <button id="new-layer-button" onClick={() => dispatch({ type: 'ADD_LAYER' })}>
         <i className="fa fa-plus"></i>
         {/* <span>New Layer</span> */}
