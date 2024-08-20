@@ -22,6 +22,17 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
   const nameRef = useRef<HTMLSpanElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedName, setEditedName] = useState<string>(name);
+  let cn = "layer-info-container ";
+
+  if (active) {
+    cn += " active ";
+  }
+
+  console.log({ active, isEditing });
+
+  if (isEditing) {
+    cn += " editing ";
+  }
 
   const onToggle = () => {
     dispatch({ type: "TOGGLE_LAYER", payload: id });
@@ -76,7 +87,7 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
   }, [dispatch, onRename]);
 
   return (
-    <label htmlFor={"layer-" + id} className={`layer-info-container ${active ? 'active' : isEditing ? 'editing': ''}`}>
+    <label htmlFor={"layer-" + id} className={cn}>
       <input
         type="radio"
         id={"layer-" + id}
@@ -84,36 +95,36 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
         checked={active}
         onChange={onToggle}
       />
-      <div style={{
-        width: "100%",
-        // overflow: "hidden",
-        // textOverflow: "ellipsis",
-        // whiteSpace: "nowrap",
-      }}>
-        <Tooltip title={!hidden ? "Show" : "Hide"} arrow placement="left">
-          <button onClick={onToggleVisibility}>
-            <i className={`fas ${!hidden ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+      <div className="layer-info-mover">
+        <Tooltip title="Move Up" arrow placement="left">
+          <button className="layer-up" onClick={() => onMoveLayer('up')}>
+            <i className="fas fa-angle-up"></i>
           </button>
         </Tooltip>
-        {
-          isEditing ? (
-            <input
-              type="text"
-              defaultValue={name}
-              value={editedName}
-              onChange={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                setEditedName(e.target.value);
-              }}
-              onBlur={onRename}
-            />
-          ) : (
-            <span className="layer-info-name" ref={nameRef}>{name}</span>
-          )
-        }
+        <Tooltip title="Move Down" arrow placement="left">
+          <button className="layer-down" onClick={() => onMoveLayer('down')}>
+            <i className="fas fa-angle-down"></i>
+          </button>
+        </Tooltip>
       </div>
+      {
+        isEditing ? (
+          <input
+            type="text"
+            defaultValue={name}
+            value={editedName}
+            onChange={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              setEditedName(e.target.value);
+            }}
+            onBlur={onRename}
+          />
+        ) : (
+          <span className="layer-info-name" ref={nameRef}>{name}</span>
+        )
+      }
       <div className="layer-info-actions">
         <Tooltip title={isEditing ? "Done" : "Rename"} arrow placement="top">
           <button className="layer-rename" onClick={onRename} disabled={editedName.length === 0}>
@@ -123,19 +134,14 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
         {
           !isEditing && (
             <>
-              <Tooltip title="Move Up" arrow placement="top">
-                <button className="layer-up" onClick={() => onMoveLayer('up')}>
-                  <i className="fas fa-angle-up"></i>
-                </button>
-              </Tooltip>
-              <Tooltip title="Move Down" arrow placement="top">
-                <button className="layer-down" onClick={() => onMoveLayer('down')}>
-                  <i className="fas fa-angle-down"></i>
-                </button>
-              </Tooltip>
               <Tooltip title="Delete" arrow placement="top">
                 <button className="layer-delete" onClick={onDelete}>
                   <i className="fas fa-trash-alt"></i>
+                </button>
+              </Tooltip>
+              <Tooltip title={hidden ? "Show" : "Hide"} arrow placement="top">
+                <button onClick={onToggleVisibility}>
+                  <i className={`fas ${hidden ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                 </button>
               </Tooltip>
             </>

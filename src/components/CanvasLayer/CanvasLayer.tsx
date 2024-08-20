@@ -1,5 +1,5 @@
 // Lib
-import { useAppSelector } from "../../state/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { memo, useRef, forwardRef } from "react";
 import UTILS from "../../utils";
 import { socket } from "../../server/socket";
@@ -29,6 +29,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     drawStrength,
     eraserStrength
   } = useAppSelector((state) => state.canvas);
+  const dispatch = useAppDispatch();
 
   const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
   const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -45,7 +46,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     }
 
     console.log('Emitting canvas update...');
-    return; // Remove this line when you're ready to emit the canvas update.
 
     layerRef.toBlob(b => {
       if (!b) {
@@ -53,7 +53,17 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         return;
       }
 
-      socket.emit('canvas-update', b, layerRef.id);
+      b.arrayBuffer().then(buffer => {
+        dispatch({
+          type: "UPDATE_LAYER_BUFFER",
+          payload: {
+            id: layerRef.id,
+            base64Buffer: UTILS.arrayBufferToBase64(buffer)
+          }
+        })
+      })
+
+      // socket.emit('canvas-update', b, layerRef.id);
     });
   }
 
@@ -114,6 +124,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
         ctx!.lineTo(x, y);
         ctx!.stroke();
+
+        emitLayerState();
         break;
       }
 
@@ -124,6 +136,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
           ERASER_RADIUS * eraserStrength,
           ERASER_RADIUS * eraserStrength
         );
+        emitLayerState();
         break;
       }
 

@@ -6,7 +6,6 @@
 #main-canvas-pane {
   display: flex;
   position: relative;
-  border: 1px solid red;
   justify-content: center;
   align-items: center;
   flex: 3;

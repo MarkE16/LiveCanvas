@@ -2,9 +2,9 @@
   position: relative;
   /* top: 0; */
   right: 0;
-  height: 75vh;
+  height: 70vh;
   width: 300px;
-  min-width: fit-content;
+  /* min-width: fit-content; */
   padding: 0.5em;
   background-color: rgb(36, 36, 36);
   border: 1px solid rgb(56, 55, 55);

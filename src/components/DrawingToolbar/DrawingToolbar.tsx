@@ -2,6 +2,7 @@
 import UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { COLORS, SHAPES } from '../../state/store';
+import { Tooltip } from '@mui/material';
 
 
 // Type
@@ -58,14 +59,15 @@ const DrawingToolbar: FC = () => {
     const isActive = shape === name;
     
     return (
-      <button
-        key={name}
-        className={`shape-option ${isActive ? 'active' : ''}`}
-        onClick={() => handleShapeChange(name)}
-        title={UTILS.capitalize(name)}
-      >
-        <i className={`fa ${icon}`} />
-      </button>
+      <Tooltip title={UTILS.capitalize(name)} arrow placement="bottom">
+          <button
+          key={name}
+          className={`shape-option ${isActive ? 'active' : ''}`}
+          onClick={() => handleShapeChange(name)}
+        >
+          <i className={`fa ${icon}`} />
+        </button>
+      </Tooltip>
     );
   });
 

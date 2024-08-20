@@ -32,22 +32,25 @@
   box-shadow: 0 0 5px rgba(226, 226, 226, 0.1);
 }
 
-#navbar-links > a {
+#navbar-links > button {
   margin-right: 1rem;
   font-size: 1.2em;
   font-weight: 500;
   color: #fdfdfd;
   border-bottom: 2px solid transparent;
   text-decoration: inherit;
+  background-color: transparent;
+  cursor: pointer;
+  border: none;
   transition: border-bottom 100ms;
 }
 
-#navbar-links > a:hover {
+#navbar-links > button:hover {
   color: #d1836a;
   border-bottom: 2px solid #d1836a;
 }
 
-#navbar-links > a:last-child {
+#navbar-links > button:last-child {
   margin-right: 0;
 }
 

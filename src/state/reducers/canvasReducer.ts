@@ -11,7 +11,7 @@ import UTILS from "../../utils";
 type Layer = {
   name: string;
   id: string;
-  buffer: ArrayBuffer | undefined; // => to store the image data from the canvas
+  base64Buffer: string | undefined; // => to store the image data from the canvas
   active: boolean;
   hidden: boolean;
 }
@@ -47,7 +47,7 @@ const initState: CanvasState = {
   eraserStrength: 3,
   shape: 'rectangle',
   layers: [
-    { name: "Layer 1", id: uuidv4(), buffer: undefined, active: true, hidden: false }
+    { name: "Layer 1", id: uuidv4(), base64Buffer: undefined, active: true, hidden: false }
   ],
   scale: 1,
   show_all: false,
@@ -145,11 +145,11 @@ export const canvasReducer = (
     }
 
     case "UPDATE_LAYER_BUFFER": {
-      const { id, buffer } = action.payload as Layer;
+      const { id, base64Buffer } = action.payload as Layer;
 
       const newLayers = state.layers.map(l => {
         if (l.id === id) {
-          return { ...l, buffer };
+          return { ...l, base64Buffer };
         }
 
         return l;
