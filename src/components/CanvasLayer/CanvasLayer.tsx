@@ -36,9 +36,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   const ERASER_RADIUS = 7;
 
   const emitLayerState = () => {
-    // Emit the canvas state to the server,
-    // so that other users can see the changes
-    // via the WebSocket connection.
     if (!layerRef) {
       console.error("Can't update layer over socket: Layer does not exist.");
       return;
@@ -136,9 +133,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         const dx = e.clientX - clientPosition.current.x;
         const dy = e.clientY - clientPosition.current.y;
 
-        const { x: startX, y: startY } = getCurrentTransformPosition()!;
-
-        setCanvasPosition({ x: startX + dx, y: startY + dy });
+        layerRef!.style.transform = `translate(${xPosition + dx}px, ${yPosition + dy}px) scale(${scale})`;
         break;
       }
 
@@ -157,6 +152,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
       ctx!.closePath();
     }
 
+    const { x, y } = getCurrentTransformPosition()!;
+
+    setCanvasPosition({ x, y });
+
     emitLayerState();
   }
 
@@ -169,9 +168,9 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   const onMouseLeave = () => {
     isDrawing.current = false;
 
-    // const { x, y } = getCurrentTransformPosition()!;
+    const { x, y } = getCurrentTransformPosition()!;
 
-    // setCanvasPosition({ x, y });
+    setCanvasPosition({ x, y });
   }
   
 
