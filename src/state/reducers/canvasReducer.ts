@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 // Types
-import { PayloadAction } from '@reduxjs/toolkit';
+import { PayloadAction, Reducer, UnknownAction } from '@reduxjs/toolkit';
 
 // Constants
 import { COLORS } from '../../state/store';
@@ -53,7 +53,7 @@ const initState: CanvasState = {
   show_all: false,
 }
 
-export const canvasReducer = (
+export const canvasReducer: Reducer<CanvasState, UnknownAction, CanvasState> = (
   state: CanvasState = initState,
   action: PayloadAction<string | ResolutionAction | number | Mode | boolean | Layer[] | Layer>
 ): CanvasState => {

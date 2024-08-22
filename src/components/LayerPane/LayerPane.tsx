@@ -14,7 +14,7 @@ const LayerPane: FC = () => {
   const layers = useAppSelector(state => state.canvas.layers);
   const dispatch = useAppDispatch();
 
-  return (
+return (
     <aside id="layer-manager-container">
       <h4 id="layers-title">Layers</h4>
       <button id="new-layer-button" onClick={() => dispatch({ type: 'ADD_LAYER' })}>

@@ -43,6 +43,9 @@
 }
 
 .color-option.red {
+  /* Add a tint of white to the top
+  of the color, to make it look like a
+  a shiny button */
   background-color: red;
 }
 

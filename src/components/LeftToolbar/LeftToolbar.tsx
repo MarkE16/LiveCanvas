@@ -1,5 +1,5 @@
 // Lib
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 import UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { MODES } from '../../state/store';
@@ -18,8 +18,9 @@ type ToolbarButtonProps = {
   shortcut: string;
 }
 
-const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
+const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) => {
   const mode = useAppSelector(state => state.canvas.mode);
+  const { undo, redo } = useAppSelector(state => state.savedActions);
   const dispatch = useAppDispatch();
 
   const isActive = mode === name;
@@ -27,7 +28,14 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
   const onClick: MouseEventHandler<HTMLButtonElement> = useCallback((e: MouseEvent) => {
     // e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: 'SET_MODE', payload: name });
+
+    if (name === "undo") {
+      dispatch({ type: "UNDO" });
+    } else if (name === "redo") {
+      dispatch({ type: "REDO" });
+    } else {
+      dispatch({ type: 'SET_MODE', payload: name });
+    }
   }, [dispatch, name]);
 
   const tooltip = UTILS.capitalize(name).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
@@ -37,12 +45,15 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
         <button
           className={`toolbar-option ${isActive ? 'active' : ''}`}
           onClick={onClick}
+          disabled={name === "undo" ? !undo.length : name === "redo" ? !redo.length : false}
         >
         <i className={`fa ${icon}`} />
       </button>
     </Tooltip>
   );
-}
+}, (prevProps, nextProps) => {
+  return prevProps.name === nextProps.name;
+});
 
 
 const LeftToolbar: FC = () => {

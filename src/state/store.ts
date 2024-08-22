@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { canvasReducer } from "./reducers/canvasReducer";
 import { Color } from "../components/LeftToolbar/LeftToolbar.types";
+import { savedActionsReducer } from "./reducers/savedActionsReducer";
 
 export const store = configureStore({
   reducer: {
-    canvas: canvasReducer
+    canvas: canvasReducer,
+    savedActions: savedActionsReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     immutableCheck: {
@@ -32,6 +34,8 @@ export const MODES = [
   { name: 'zoom_in', icon: 'fa-search-plus', shortcut: '+' },
   { name: 'zoom_out', icon: 'fa-search-minus', shortcut: '_' },
   { name: 'move', icon: 'fa-arrows-alt', shortcut: 'm' },
+  { name: 'undo', icon: 'fa-undo', shortcut: 'ctrl + z' },
+  { name: 'redo', icon: 'fa-redo', shortcut: 'ctrl + shift + z' },
 ]
 
 export const SHAPES = [

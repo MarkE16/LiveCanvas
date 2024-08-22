@@ -52,6 +52,13 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         base64Buffer
       }
     });
+    dispatch({
+      type: "SAVE_ACTION",
+      payload: {
+        type: "undo",
+        base64: base64Buffer
+      }
+    })
   }
 
   const getCurrentTransformPosition = (): Coordinates | undefined => {

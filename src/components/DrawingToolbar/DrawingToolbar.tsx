@@ -61,10 +61,10 @@ const DrawingToolbar: FC = () => {
     return (
       <Tooltip title={UTILS.capitalize(name)} arrow placement="bottom">
           <button
-          key={name}
-          className={`shape-option ${isActive ? 'active' : ''}`}
-          onClick={() => handleShapeChange(name)}
-        >
+            key={name}
+            className={`shape-option ${isActive ? 'active' : ''}`}
+            onClick={() => handleShapeChange(name)}
+          >
           <i className={`fa ${icon}`} />
         </button>
       </Tooltip>

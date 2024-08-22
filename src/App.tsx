@@ -16,10 +16,24 @@ function App() {
   // Add keyboard listeners for each mode.
   useEffect(() => {
     function listenToKeyboard(e: KeyboardEvent) {
-      const mode = MODES.find(m => m.shortcut === e.key);
+      e.preventDefault();
+      let shortcut = "";
+
+      if (e.ctrlKey) shortcut += "ctrl + ";
+      if (e.shiftKey) shortcut += "shift + ";
+      if (e.altKey) shortcut += "alt + ";
+
+      const mode = MODES.find(m => m.shortcut === shortcut.toLowerCase());
+
       if (mode) {
-        console.log(`Switching to mode: ${mode.name}`);
-        dispatch({ type: "SET_MODE", payload: mode.name });
+        if (mode.name === "undo") {
+          dispatch({ type: "UNDO" });
+        } else if (mode.name === "redo") {
+          dispatch({ type: "REDO" });
+        } else {
+          console.log(`Switching to mode: ${mode.name}`);
+          dispatch({ type: "SET_MODE", payload: mode.name });
+        }
       }
     }
 
