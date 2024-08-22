@@ -186,7 +186,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
         ${xPosition}px, 
         ${yPosition}px
         ) scale(${scale})`,
-        zIndex: layerIndex // Layers from the top of the list are drawn first.
+        zIndex: !layerHidden ? layerIndex : -2 // Layers from the top of the list are drawn first.
       }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

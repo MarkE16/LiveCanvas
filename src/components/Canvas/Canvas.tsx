@@ -23,6 +23,7 @@ const Canvas: FC = () => {
   } = state;
 
   const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
+  const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasPosition, setCanvasPosition] = useState<Coordinates>({ x: 0, y: 0 });
 
   const isSelecting = mode === "select" || mode === "shapes";
@@ -80,11 +81,12 @@ const Canvas: FC = () => {
 
       <CanvasLayer
         id="background-canvas"
+        ref={backgroundCanvasRef}
         width={width}
         height={height}
         active={false}
-        layerIndex={-1}
-        layerRef={undefined}
+        layerIndex={0}
+        layerRef={backgroundCanvasRef.current!}
         setCanvasPosition={setCanvasPosition}
         xPosition={canvasPosition.x}
         yPosition={canvasPosition.y}

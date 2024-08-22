@@ -5,7 +5,6 @@
   background-color: transparent;
   opacity: 0.1;
   cursor: crosshair;
-  border-radius: 3px;
   border: 1px solid gray;
 }
 
@@ -28,9 +27,13 @@
   opacity: 1;
 }
 
-.canvas.active.move + #background-canvas {
-  opacity: 0;
+.canvas.move:not(:has(.canvas.hidden)) ~ #background-canvas {
+  opacity: 1;
 }
+
+/* .canvas.hidden.move + #background-canvas {
+  opacity: 1 !important;
+} */
 
 .canvas.move {
   opacity: 0;

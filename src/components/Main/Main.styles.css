@@ -15,11 +15,12 @@
 
 #canvas-container {
   display: flex;
-  flex-direction: column;
   justify-content: center;
+  position: relative;
   align-items: center;
   height: 100%;
   width: 100%;
+  overflow: auto;
   /* border: 1px solid #000000; */
 }
 

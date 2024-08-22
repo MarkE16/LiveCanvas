@@ -1,59 +1,52 @@
 // Lib
+import { useEffect } from "react";
+import { MODES } from "./state/store";
+import { useAppDispatch } from "./state/hooks/reduxHooks";
 
 // Styles
 import "./App.css";
 
 // Components
-import Canvas from "./components/Canvas/Canvas";
-import LeftToolbar from "./components/LeftToolbar/LeftToolbar";
-import LayerInfo from "./components/LayerInfo/LayerInfo";
 import Navbar from "./components/Navbar/Navbar";
-import Footer from "./components/Footer/Footer";
 import Main from "./components/Main/Main";
 
 function App() {
+  const dispatch = useAppDispatch();
   
-  // Socket for listening for layer changes.
-  // useEffect(() => {
-    
-  //   const updateLayers = (pendingLayers) => {
-  
-  //     console.log(pendingLayers)
-  //     const newLayers = pendingLayers.map((layer, i) => {
-  //       return { ...layer, active: layersRef.current[i]?.active ?? false };
-  //     });
-  
-  //     console.log(newLayers)
-  
-  //     dispatch({ type: "SET_LAYERS", payload: newLayers });
-  //   }
+  // Add keyboard listeners for each mode.
+  useEffect(() => {
+    function listenToKeyboard(e: KeyboardEvent) {
+      const mode = MODES.find(m => m.shortcut === e.key);
+      if (mode) {
+        console.log(`Switching to mode: ${mode.name}`);
+        dispatch({ type: "SET_MODE", payload: mode.name });
+      }
+    }
 
-  //   socket.on("layer-update", (layers) => {
-  //     updateLayers(layers);
-  //   });
+    function listenToZoom(e: Event) {
+      if (e instanceof WheelEvent) {
+        if (!e.shiftKey) return;
 
-  //   socket.once("user-connect", (layers) => {
-  //     if (!layers) {
-  //       socket.emit("layer-update", layersRef.current);
-  //     } else {
-  //       updateLayers(layers);
-  //     }
-  //   });
+        if (e.deltaY > 0) {
+          dispatch({ type: "DECREASE_SCALE" });
+        } else {
+          dispatch({ type: "INCREASE_SCALE" });
+        }
+      
+      // On click.
+      } else {
+        
+      }
+    }
 
-  //   // ONLY CALL THIS ONCE HERE.
-  //   // When using the socket elsewhere,
-  //   // only set up an effect that listens for
-  //   // socket events.
-  //   socket.connect();
+    document.addEventListener("keydown", listenToKeyboard);
+    document.addEventListener("wheel", listenToZoom);
+    return () => {
+      document.removeEventListener("keydown", listenToKeyboard);
+      document.removeEventListener("wheel", listenToZoom);
+    };
 
-
-  //   return () => {
-  //     socket.off("layer-update");
-  //     socket.disconnect();
-  //   };
-
-  // }, [dispatch]);
-
+  }, [dispatch]);
 
   return (
     <>

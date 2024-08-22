@@ -1,5 +1,5 @@
 // Lib
-import { useAppDispatch } from "../../state/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { socket } from "../../server/socket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Tooltip } from "@mui/material";
@@ -15,9 +15,11 @@ type LayerInfoProps = {
   id: string;
   active: boolean;
   hidden: boolean;
+  positionIndex: number;
 }
 
-const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
+const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden, positionIndex }) => {
+  const totalLayers = useAppSelector(state => state.canvas.layers.length);
   const dispatch = useAppDispatch();
   const nameRef = useRef<HTMLSpanElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -27,8 +29,6 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
   if (active) {
     cn += " active ";
   }
-
-  console.log({ active, isEditing });
 
   if (isEditing) {
     cn += " editing ";
@@ -97,12 +97,12 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden }) => {
       />
       <div className="layer-info-mover">
         <Tooltip title="Move Up" arrow placement="left">
-          <button className="layer-up" onClick={() => onMoveLayer('up')}>
+          <button className="layer-up" onClick={() => onMoveLayer('up')} disabled={positionIndex === 0}>
             <i className="fas fa-angle-up"></i>
           </button>
         </Tooltip>
         <Tooltip title="Move Down" arrow placement="left">
-          <button className="layer-down" onClick={() => onMoveLayer('down')}>
+          <button className="layer-down" onClick={() => onMoveLayer('down')} disabled={positionIndex === totalLayers - 1}>
             <i className="fas fa-angle-down"></i>
           </button>
         </Tooltip>

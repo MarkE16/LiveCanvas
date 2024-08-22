@@ -5,12 +5,12 @@ import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import type { FC } from 'react';
 
 // Styles
-import './LayerManager.styles.css';
+import './LayerPane.styles.css';
 
 // Components
 import LayerInfo from '../LayerInfo/LayerInfo';
 
-const LayerManager: FC = () => {
+const LayerPane: FC = () => {
   const layers = useAppSelector(state => state.canvas.layers);
   const dispatch = useAppDispatch();
 
@@ -23,8 +23,8 @@ const LayerManager: FC = () => {
       </button>
       <div id="layer-list">
         {
-          layers.map(layer => (
-            <LayerInfo {...layer} key={layer.id} />
+          layers.map((layer, i) => (
+            <LayerInfo {...layer} key={layer.id} positionIndex={i} />
           ))
         }
       </div>
@@ -32,4 +32,4 @@ const LayerManager: FC = () => {
   );
 }
 
-export default LayerManager;
+export default LayerPane;

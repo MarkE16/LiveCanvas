@@ -11,7 +11,7 @@ import "./Main.styles.css";
 import LeftToolbar from "../LeftToolbar/LeftToolbar";
 import Canvas from "../Canvas/Canvas";
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
-import LayerManager from "../LayerManager/LayerManager";
+import LayerPane from "../LayerPane/LayerPane";
 import Footer from "../Footer/Footer";
 import AlphaSoftwareAgreementModal from "../AlphaSoftwareAgreementModal/AlphaSoftwareAgreementModal";
 import MobileNotSupportedModal from "../MobileNotSupportedModal/MobileNotSupportedModal";
@@ -24,8 +24,6 @@ const Main: FC = () => {
     const localStorage = window.localStorage;
 
     const agreed = localStorage.getItem("agreed") === "true";
-
-
 
     if (!agreed) {
       setShowAlphaModal(true);
@@ -50,20 +48,12 @@ const Main: FC = () => {
       
       <div id="main-canvas-pane">
         <DrawingToolbar />
-        <div className="canvas-container" style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          overflow: 'auto',
-        }}>
+        <div id="canvas-container">
           <Canvas />
         </div>
       </div>
       <div id="right-side-pane">
-        <LayerManager />
+        <LayerPane />
         <Footer />
       </div>
     </main>
