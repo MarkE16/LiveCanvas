@@ -26,3 +26,8 @@
   background-color: #d1836a;
   border: 1px solid #d1603a;
 }
+
+.toolbar-option:disabled {
+  background-color: #3b3b3b;
+  cursor: not-allowed;
+}

@@ -23,7 +23,9 @@ function App() {
       if (e.shiftKey) shortcut += "shift + ";
       if (e.altKey) shortcut += "alt + ";
 
-      const mode = MODES.find(m => m.shortcut === shortcut.toLowerCase());
+      shortcut += e.key.toLowerCase();
+
+      const mode = MODES.find(m => m.shortcut === shortcut);
 
       if (mode) {
         if (mode.name === "undo") {

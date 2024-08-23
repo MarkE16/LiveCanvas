@@ -41,6 +41,13 @@ export const savedActionsReducer = (
     }
     
     case 'SAVE_ACTION': {
+      if (state.undo.length === 20) {
+        const [, ...rest] = state.undo;
+        return {
+          undo: [...rest, action.payload],
+          redo: []
+        }
+      }
       return {
         undo: [...state.undo, action.payload],
         redo: []
