@@ -4,7 +4,6 @@ import { MouseEvent } from 'react';
 type Layer = {
   name: string;
   id: string;
-  base64Buffer: string | undefined; // => to store the image data from the canvas
   active: boolean;
   hidden: boolean;
 }

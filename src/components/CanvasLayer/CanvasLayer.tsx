@@ -1,6 +1,7 @@
 // Lib
-import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
+import { useAppSelector } from "../../state/hooks/reduxHooks";
 import { memo, useRef, forwardRef } from "react";
+import { getIndexedDB } from "../../state/idb";
 import UTILS from "../../utils";
 
 // Types
@@ -26,9 +27,9 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     scale,
     color,
     drawStrength,
-    eraserStrength
+    eraserStrength,
+    show_all: showall
   } = useAppSelector((state) => state.canvas);
-  const dispatch = useAppDispatch();
 
   const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
   const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -43,22 +44,23 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     console.log('Emitting canvas update...');
 
-    const base64Buffer = layerRef.toDataURL();
+    layerRef.toBlob(blob => {
+      if (!blob) return;
 
-    dispatch({
-      type: "UPDATE_LAYER_BUFFER",
-      payload: {
-        id: layerRef.id,
-        base64Buffer
-      }
-    });
-    dispatch({
-      type: "SAVE_ACTION",
-      payload: {
-        type: "undo",
-        base64: base64Buffer
-      }
+      getIndexedDB().then(db => {
+        const tx = db.transaction("layers", "readwrite");
+        const store = tx.objectStore("layers");
+
+        store.put(blob, layerRef.id);
+      });
     })
+    // dispatch({
+    //   type: "SAVE_ACTION",
+    //   payload: {
+    //     type: "undo",
+    //     base64: base64Buffer
+    //   }
+    // })
   }
 
   const getCurrentTransformPosition = (): Coordinates | undefined => {
@@ -179,14 +181,13 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     setCanvasPosition({ x, y });
   }
-  
 
   return (
     <canvas
       ref={ref}
       width={width}
       height={height}
-      className={`canvas ${active ? "active" : ""} ${mode} ${layerHidden ? "hidden" : ""}`}
+      className={`canvas ${active || showall ? "active" : ""} ${mode} ${layerHidden ? "hidden" : ""}`}
       style={{
         transform:
         `translate(

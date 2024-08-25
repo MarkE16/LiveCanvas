@@ -9,12 +9,11 @@ import type { FC } from "react";
 
 // Styles
 import "./Navbar.styles.css";
-import UTILS from "../../utils";
+import { getAllEntries } from "../../state/idb";
 
 const Navbar: FC = () => {
   const [exporting, setExporting] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-  const layers = useAppSelector(state => state.canvas.layers);
   const width = useAppSelector(state => state.canvas.width);
   const height = useAppSelector(state => state.canvas.height);
 
@@ -26,7 +25,7 @@ const Navbar: FC = () => {
     setSnackbarOpen(false);
   }
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setExporting(true);
     const substituteCanvas = document.createElement("canvas");
   
@@ -40,18 +39,15 @@ const Navbar: FC = () => {
     // let's give the canvas a white background, as by default it's transparent.
     ctx!.fillStyle = "white";
     ctx!.fillRect(0, 0, width, height);
+
+    const layers = await getAllEntries("layers");
   
     const promises = layers.reverse().map(layer => {
       return new Promise<void>(resolve => {
-        const base64String = layer.base64Buffer;
-
-        if (!base64String) {
-          resolve();
-          return;
-        }
+        const [_, blob] = layer;
 
         const img = new Image();
-        img.src = base64String;
+        img.src = URL.createObjectURL(blob);
 
         img.onload = () => {
           ctx!.drawImage(img, 0, 0, width, height);
