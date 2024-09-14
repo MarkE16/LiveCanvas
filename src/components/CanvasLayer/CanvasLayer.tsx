@@ -1,7 +1,7 @@
 // Lib
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 import useHistory from "../../state/hooks/useHistory";
-import { memo, useRef, forwardRef } from "react";
+import { memo, useRef, forwardRef, useEffect } from "react";
 import { getIndexedDB } from "../../state/idb";
 import * as UTILS from "../../utils";
 
@@ -173,7 +173,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
       x: drawStartingPoint.current.x - x,
       y: drawStartingPoint.current.y - y,
       width: dx - drawStartingPoint.current.x,
-      height: dy - drawStartingPoint.current.y
+      height: dy - drawStartingPoint.current.y,
+      layerId: layerRef!.id,
+      color,
+      drawStrength
     });
 
     setCanvasPosition({ x, y });
@@ -194,6 +197,48 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
     setCanvasPosition({ x, y });
   }
+
+  useEffect(() => {
+    if (!layerRef) return;
+
+    const ctx = layerRef.getContext('2d');
+
+    if (!ctx) return;
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, layerRef.width, layerRef.height);
+
+    history.undo.forEach(action => {
+      const { mode, x, y, width, height, layerId, color, drawStrength } = action;
+
+      if (layerId !== layerRef.id) return;
+
+      switch (mode) {
+        case "draw": {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = drawStrength;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + width, y + height);
+          ctx.stroke();
+          break;
+        }
+
+        case "erase": {
+          ctx.clearRect(x, y, width, height);
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
+    });
+
+  }, [history.undo, history.redo, layerRef]);
 
   return (
     <canvas

@@ -1,5 +1,6 @@
 // Lib
-import { useRef, useCallback } from "react";
+import { useAppSelector, useAppDispatch } from "./reduxHooks";
+import { useCallback } from "react";
 
 // Types
 
@@ -7,13 +8,11 @@ type HistoryAction = {
   mode: "draw" | "erase" | "shapes";
   x: number;
   y: number;
+  layerId: string;
+  color: string;
+  drawStrength: number;
   width: number;
   height: number;
-}
-
-type History = {
-  undo: HistoryAction[];
-  redo: HistoryAction[];
 }
 
 type HistoryUtils = {
@@ -30,37 +29,26 @@ type HistoryUtils = {
  */
 const useHistory = (): HistoryUtils => {
   // undo and redo utilize the Stack data structure.
-  const history = useRef<History>({ undo: [], redo: [] });
+  const { undo, redo } = useAppSelector(state => state.history);
+  const dispatch = useAppDispatch();
+
+  // console.log(history);
 
   const addHistory = useCallback((action: HistoryAction) => {
-    history.current.undo.push(action);
-
-    history.current.redo.length = 0; // Clear redo history
-  }, []);
+    dispatch({ type: 'SAVE_ACTION', payload: action });
+  }, [dispatch]);
 
   const undoAction = useCallback(() => {
-    const lastAction = history.current.undo.pop();
-
-    if (lastAction) {
-      history.current.redo.push(lastAction);
-    } else {
-      throw new Error("No more undo actions");
-    }
-  }, []);
+    dispatch({ type: 'UNDO' });
+  }, [dispatch]);
 
   const redoAction = useCallback(() => {
-    const lastAction = history.current.redo.pop();
-
-    if (lastAction) {
-      history.current.undo.push(lastAction);
-    } else {
-      throw new Error("No more redo actions");
-    }
-  }, []);
+    dispatch({ type: 'REDO' });
+  }, [dispatch]);
 
   return {
-    undo: history.current.undo,
-    redo: history.current.redo,
+    undo,
+    redo,
     addHistory,
     undoAction,
     redoAction

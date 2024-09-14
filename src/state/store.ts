@@ -1,12 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { canvasReducer } from "./reducers/canvasReducer";
-import { Color } from "../components/LeftToolbar/LeftToolbar.types";
-import { savedActionsReducer } from "./reducers/savedActionsReducer";
+import { historyReducer } from "./reducers/historyReducer";
 
 export const store = configureStore({
   reducer: {
     canvas: canvasReducer,
-    savedActions: savedActionsReducer
+    history: historyReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     immutableCheck: {

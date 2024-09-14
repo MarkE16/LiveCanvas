@@ -21,10 +21,10 @@ type ToolbarButtonProps = {
 
 const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) => {
   const mode = useAppSelector(state => state.canvas.mode);
-  // const { undo, redo } = useAppSelector(state => state.savedActions);
   const dispatch = useAppDispatch();
-  const { undoAction: undo, redoAction: redo } = useHistory();
+  const { undo, undoAction, redo, redoAction } = useHistory();
 
+  console.log(undo, redo);
   const isActive = mode === name;
 
   const onClick: MouseEventHandler<HTMLButtonElement> = useCallback((e: MouseEvent) => {
@@ -32,13 +32,13 @@ const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) =>
     e.stopPropagation();
 
     if (name === "undo") {
-      undo();
+      undoAction();
     } else if (name === "redo") {
-      redo();
+      redoAction();
     } else {
       dispatch({ type: 'SET_MODE', payload: name });
     }
-  }, [dispatch, name, undo, redo]);
+  }, [dispatch, name, undoAction, redoAction]);
 
   const tooltip = UTILS.capitalize(name).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
 

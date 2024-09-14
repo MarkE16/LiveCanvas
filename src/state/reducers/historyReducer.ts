@@ -1,22 +1,28 @@
-type SavedAction = {
-  base64: string;
-  type: 'undo' | 'redo';
+type HistoryAction = {
+  mode: "draw" | "erase" | "shapes";
+  x: number;
+  y: number;
+  layerId: string;
+  color: string;
+  drawStrength: number;
+  width: number;
+  height: number;
 }
 
-type SavedActionsState = {
-  undo: SavedAction[];
-  redo: SavedAction[];
+type History = {
+  undo: HistoryAction[];
+  redo: HistoryAction[];
 }
 
-const initState: SavedActionsState = {
+const initState: History = {
   undo: [],
   redo: [],
 }
 
-export const savedActionsReducer = (
-  state: SavedActionsState = initState,
+export const historyReducer = (
+  state: History = initState,
   action
-): SavedActionsState => {
+): History => {
   switch (action.type) {
     case 'UNDO': {
       const lastAction = state.undo[state.undo.length - 1];
