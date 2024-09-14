@@ -65,6 +65,10 @@
   border-bottom: 1px solid #007bff;
 }
 
+.layer-info-container > input[type="text"]::placeholder {
+  color: rgb(218, 218, 218);
+}
+
 .layer-info-container > .layer-info-actions > button,
 .layer-down,
 .layer-up {

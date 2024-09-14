@@ -5,8 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { PayloadAction, Reducer, UnknownAction } from '@reduxjs/toolkit';
 
 // Constants
-import { COLORS } from '../../state/store';
-import UTILS from "../../utils";
+import * as UTILS from "../../utils";
 
 type Layer = {
   name: string;
@@ -41,7 +40,7 @@ const initState: CanvasState = {
   width: 400,
   height: 400,
   mode: 'select',
-  color: '#000000',
+  color: '#FF0000',
   drawStrength: 5,
   eraserStrength: 3,
   shape: 'rectangle',
@@ -58,9 +57,7 @@ export const canvasReducer: Reducer<CanvasState, UnknownAction, CanvasState> = (
 ): CanvasState => {
   switch (action.type) {
     case 'SET_COLOR': {
-      const newColor = COLORS.find(c => c.name === action.payload);
-
-      return { ...state, color: newColor?.value ?? state.color };
+      return { ...state, color: action.payload as string };
     }
 
     case 'SET_RESOLUTION': {

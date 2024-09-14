@@ -21,19 +21,20 @@ const Main: FC = () => {
   const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
 
   useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      setShowMobileModal(true);
+      return;
+    }
+    
     const localStorage = window.localStorage;
-
     const agreed = localStorage.getItem("agreed") === "true";
 
     if (!agreed) {
       setShowAlphaModal(true);
     }
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      setShowMobileModal(true);
-    }
   }, []);
 
   return (

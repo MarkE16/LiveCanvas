@@ -1,6 +1,7 @@
 // Lib
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
+import useIndexed from '../../state/hooks/useIndexed';
 
 // Types
 import type { FC } from 'react';
@@ -12,7 +13,7 @@ import './Canvas.styles.css';
 // Components
 import CanvasLayer from '../CanvasLayer/CanvasLayer';
 import SelectionCanvasLayer from '../SelectionCanvasLayer/SelectionCanvasLayer';
-import { getAllEntries, getIndexedDB } from '../../state/idb';
+import { getAllEntries } from '../../state/idb';
 
 const Canvas: FC = () => {
   const state = useAppSelector(state => state.canvas);
@@ -24,10 +25,12 @@ const Canvas: FC = () => {
     layers,
   } = state;
 
-  const refsOfLayers = useRef<HTMLCanvasElement[]>([]);
+  const refsOfLayers = useRef<HTMLCanvasElement[]>(
+    new Array<HTMLCanvasElement>(layers.length)
+  );
   const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasPosition, setCanvasPosition] = useState<Coordinates>({ x: 0, y: 0 });
-
+  const { getDb } = useIndexed();
   const isSelecting = mode === "select" || mode === "shapes";
 
   /**
@@ -41,57 +44,53 @@ const Canvas: FC = () => {
       return refsOfLayers.current.find(ref => ref.id === id);
     }
 
-    return refsOfLayers.current.find(ref => ref.classList.contains('active'));
+    return refsOfLayers.current.find(ref => ref.classList.contains("active"));
   }, []);
 
-  // NOTE:
-  // This implementation is not ideal on loading the layers
-  // locally. This should be refactored.
-
-  // First, get all the layers from the database.
   useEffect(() => {
-    async function getLayers() {
+    async function updateLayers() {
       const entries = await getAllEntries("layers");
-      const newLayers = [];
 
-      entries.forEach((entry, i) => {
-        const [layerId, _] = entry;
-
-        newLayers.push({
-          name: `Layer ${i + 1}`,
-          id: layerId,
-          active: false,
-          hidden: false
-        });
-      });
-      if (newLayers.length === 0) {
-        return;
-      }
-
-      newLayers[0].active = true;
-      dispatch({ type: 'SET_LAYERS', payload: newLayers });
+      updateLayerState(entries).then(() => updateLayerContents(entries));
     }
 
-    getLayers();
-  }, [dispatch]);
+    function updateLayerState(entries) {
+      return new Promise<void>((resolve) => {
+        const newLayers = [];
 
-  // Then, update the contents of the layers.
-  useEffect(() => {
-    async function updateLayerContents() {
-      const entries = await getAllEntries("layers");
+        entries.forEach((entry, i) => {
+          const [layerId, _] = entry;
 
+          newLayers.push({
+            name: `Layer ${i + 1}`,
+            id: layerId,
+            active: false,
+            hidden: false
+          });
+        });
+
+        if (newLayers.length === 0) {
+          return;
+        }
+
+        newLayers[0].active = true;
+        dispatch({ type: 'SET_LAYERS', payload: newLayers });
+
+        resolve();
+      })
+    }
+
+    function updateLayerContents(entries) {
       entries.forEach((entry, i) => {
         const [_, blob] = entry;
         const canvas = refsOfLayers.current[i];
 
         if (!canvas) return;
-        // f
 
         const ctx = canvas.getContext('2d');
         const img = new Image();
 
         img.onload = () => {
-          console.log('Drawing image...');
           ctx!.drawImage(img, 0, 0);
           URL.revokeObjectURL(img.src);
         }
@@ -100,7 +99,8 @@ const Canvas: FC = () => {
       });
     }
 
-    updateLayerContents();
+    updateLayers();
+
   }, [dispatch]);
 
   return (

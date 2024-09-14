@@ -24,6 +24,9 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden, positionIndex
   const nameRef = useRef<HTMLSpanElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedName, setEditedName] = useState<string>(name);
+  const editingTooltipText = (isEditing && !editedName.length) ? "Layer name cannot be empty." :
+  (isEditing) ? "Done" : "Rename";
+
   let cn = "layer-info-container ";
 
   if (active) {
@@ -111,7 +114,7 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden, positionIndex
         isEditing ? (
           <input
             type="text"
-            defaultValue={name}
+            placeholder={name}
             value={editedName}
             onChange={(e) => {
               e.preventDefault();
@@ -126,7 +129,7 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden, positionIndex
         )
       }
       <div className="layer-info-actions">
-        <Tooltip title={isEditing ? "Done" : "Rename"} arrow placement="top">
+        <Tooltip title={editingTooltipText} arrow placement="top">
           <button className="layer-rename" onClick={onRename} disabled={editedName.length === 0}>
             <i className={`fas ${isEditing ? 'fa-check' : 'fa-pencil-alt'}`}></i>
           </button>

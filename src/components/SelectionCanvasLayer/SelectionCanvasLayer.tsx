@@ -1,7 +1,7 @@
 // Lib
 import { useRef, useEffect } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
-import UTILS from "../../utils";
+import * as UTILS from "../../utils";
 
 // Types
 import type { FC, MouseEventHandler, MouseEvent } from "react";

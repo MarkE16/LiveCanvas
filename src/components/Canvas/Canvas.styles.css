@@ -27,9 +27,9 @@
   opacity: 1;
 }
 
-.canvas.move:not(:has(.canvas.hidden)) ~ #background-canvas {
-  opacity: 1;
-}
+/* .canvas.move:not(:has(.canvas.hidden)) ~ #background-canvas {
+  opacity: 0.1;
+} */
 
 /* .canvas.hidden.move + #background-canvas {
   opacity: 1 !important;

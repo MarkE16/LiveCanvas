@@ -1,6 +1,6 @@
 // Lib
 import { useCallback, memo } from 'react';
-import UTILS from '../../utils';
+import * as UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { MODES } from '../../state/store';
 import { Tooltip } from '@mui/material';
@@ -10,6 +10,7 @@ import type { FC, MouseEvent, MouseEventHandler } from 'react';
 
 // Styles
 import './LeftToolbar.styles.css';
+import useHistory from '../../state/hooks/useHistory';
 
 
 type ToolbarButtonProps = {
@@ -20,8 +21,9 @@ type ToolbarButtonProps = {
 
 const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) => {
   const mode = useAppSelector(state => state.canvas.mode);
-  const { undo, redo } = useAppSelector(state => state.savedActions);
+  // const { undo, redo } = useAppSelector(state => state.savedActions);
   const dispatch = useAppDispatch();
+  const { undoAction: undo, redoAction: redo } = useHistory();
 
   const isActive = mode === name;
 
@@ -30,13 +32,13 @@ const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) =>
     e.stopPropagation();
 
     if (name === "undo") {
-      dispatch({ type: "UNDO" });
+      undo();
     } else if (name === "redo") {
-      dispatch({ type: "REDO" });
+      redo();
     } else {
       dispatch({ type: 'SET_MODE', payload: name });
     }
-  }, [dispatch, name]);
+  }, [dispatch, name, undo, redo]);
 
   const tooltip = UTILS.capitalize(name).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
 

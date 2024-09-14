@@ -77,11 +77,4 @@ const getCanvasPointerPosition = (e: MouseEvent<HTMLCanvasElement>, canvas: HTML
 }
 
 
-const UTILS = {
-  capitalize,
-  createLayer,
-  moveLayer,
-  getCanvasPointerPosition
-};
-
-export default UTILS;
+export { capitalize, createLayer, moveLayer, getCanvasPointerPosition };

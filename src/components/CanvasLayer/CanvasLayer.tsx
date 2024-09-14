@@ -1,13 +1,14 @@
 // Lib
 import { useAppSelector } from "../../state/hooks/reduxHooks";
+import useHistory from "../../state/hooks/useHistory";
 import { memo, useRef, forwardRef } from "react";
 import { getIndexedDB } from "../../state/idb";
-import UTILS from "../../utils";
+import * as UTILS from "../../utils";
 
 // Types
 import type { Ref, MouseEventHandler, MouseEvent } from "react";
-import { CanvasLayerProps } from "./CanvasLayer.types";
-import { Coordinates } from "../Canvas/Canvas.types";
+import type { CanvasLayerProps } from "./CanvasLayer.types";
+import type { Coordinates } from "../Canvas/Canvas.types";
 
 
 const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
@@ -30,6 +31,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     eraserStrength,
     show_all: showall
   } = useAppSelector((state) => state.canvas);
+  const history = useHistory();
 
   const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
   const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -152,7 +154,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     }
   }
 
-  const onMouseUp = () => {
+  const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     isDrawing.current = false;
 
     const ctx = layerRef!.getContext('2d');
@@ -162,6 +164,17 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     }
 
     const { x, y } = getCurrentTransformPosition()!;
+
+    const { x: dx, y: dy } = UTILS.getCanvasPointerPosition(e, layerRef!);
+
+    // Save the action to the history.
+    history.addHistory({
+      mode: mode as "draw" | "erase" | "shapes",
+      x: drawStartingPoint.current.x - x,
+      y: drawStartingPoint.current.y - y,
+      width: dx - drawStartingPoint.current.x,
+      height: dy - drawStartingPoint.current.y
+    });
 
     setCanvasPosition({ x, y });
 

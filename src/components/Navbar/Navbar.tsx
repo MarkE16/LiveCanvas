@@ -51,6 +51,8 @@ const Navbar: FC = () => {
 
         img.onload = () => {
           ctx!.drawImage(img, 0, 0, width, height);
+
+          URL.revokeObjectURL(img.src);
           resolve();
         };
       });
@@ -65,7 +67,6 @@ const Navbar: FC = () => {
       a.click();
   
       // Clean up
-      URL.revokeObjectURL(a.href);
       substituteCanvas.remove();
       a.remove();
 
@@ -74,25 +75,28 @@ const Navbar: FC = () => {
   };  
 
   return (
-    <nav id="navbar-container">
-      <section id="navbar-links-section">
-        <div id="navbar-logo-container">
-          <img id="navbar-logo" src={logo} alt="logo" />
-        </div>
-        <div id="navbar-links">
-          <button onClick={openSnackbar}>File</button>
-          <button onClick={openSnackbar}>Edit</button>
-          <button onClick={openSnackbar}>View</button>
-          <button onClick={openSnackbar}>Filter</button>
-          <button onClick={openSnackbar}>Admin</button>
-        </div>
-      </section>
-      <section id="navbar-buttons-section">
-        <button onClick={handleExport} disabled={exporting} aria-disabled={exporting}>
-          <span>Export Canvas</span>
-        </button>
-        {exporting && <CircularProgress size={20} />}
-      </section>
+    <header>
+      <nav id="navbar-container">
+        <section id="navbar-links-section">
+          <div id="navbar-logo-container">
+            <img id="navbar-logo" src={logo} alt="logo" />
+          </div>
+          <div id="navbar-links">
+            <button onClick={openSnackbar}>File</button>
+            <button onClick={openSnackbar}>Edit</button>
+            <button onClick={openSnackbar}>View</button>
+            <button onClick={openSnackbar}>Filter</button>
+            <button onClick={openSnackbar}>Admin</button>
+          </div>
+        </section>
+        <section id="navbar-buttons-section">
+          <button onClick={handleExport} disabled={exporting} aria-disabled={exporting}>
+            <span>Export Canvas</span>
+          </button>
+          {exporting && <CircularProgress size={20} />}
+        </section>
+
+      </nav>
 
       <Snackbar
         open={snackbarOpen}
@@ -101,7 +105,7 @@ const Navbar: FC = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         message="This feature is not yet implemented."
       />
-    </nav>
+    </header>
   );
 };
 
