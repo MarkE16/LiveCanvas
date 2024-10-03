@@ -1,6 +1,6 @@
 // Lib
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
-import { socket } from "../../server/socket";
+import { socket } from "../../_server/socket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Tooltip } from "@mui/material";
 

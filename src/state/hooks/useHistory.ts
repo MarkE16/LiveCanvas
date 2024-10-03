@@ -4,15 +4,17 @@ import { useCallback } from "react";
 
 // Types
 
-type HistoryAction = {
-  mode: "draw" | "erase" | "shapes";
+type Coordinates = {
   x: number;
   y: number;
+}
+
+type HistoryAction = {
+  mode: "draw" | "erase" | "shapes";
+  path: Coordinates[];
   layerId: string;
   color: string;
   drawStrength: number;
-  width: number;
-  height: number;
 }
 
 type HistoryUtils = {

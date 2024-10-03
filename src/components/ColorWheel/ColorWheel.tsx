@@ -19,7 +19,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
   const color = useAppSelector(state => state.canvas.color);
   const dispatch = useAppDispatch();
 
-  const onChangeEnd = (color: Color) => dispatch({ type: "SET_COLOR", payload: color.toString("hex") });
+  const onChange = (color: Color) => dispatch({ type: "SET_COLOR", payload: color.toString("hex") });
 
   return (
     <div id="color-wheel-container">
@@ -28,8 +28,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
         innerRadius={54}
         value={color}
         
-        // Preferred over `onChange` because the user shouldn't be trying to draw while changing the color.
-        onChange={onChangeEnd}
+        onChange={onChange}
 
         {...props}
       >

@@ -36,6 +36,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
   const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
   const isDrawing = useRef<boolean>(false);
+  const currentPath = useRef<Coordinates[]>([]);
+
   const ERASER_RADIUS = 7;
 
   const emitLayerState = () => {
@@ -98,6 +100,11 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     // Save the starting point of the drawing.
     drawStartingPoint.current = { x, y };
     clientPosition.current = { x: e.clientX, y: e.clientY };
+
+    // Save the current path.
+    currentPath.current.push({ x, y });
+
+    console.log(currentPath.current);
   }
 
   // Handler for when the mouse is moved on the canvas.
@@ -122,6 +129,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
         ctx!.lineTo(x, y);
         ctx!.stroke();
+
+        currentPath.current.push({ x, y });
 
         // emitLayerState(); // Not necessary to emit every time the mouse moves (at the moment)
         break;
@@ -156,28 +165,27 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
 
   const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     isDrawing.current = false;
-
+    
     const ctx = layerRef!.getContext('2d');
+    
+    const { x, y } = getCurrentTransformPosition()!;
 
     if (mode === "draw" || mode === "erase") {
       ctx!.closePath();
+
+      // Save the action to the history.
+      history.addHistory({
+        mode: mode as "draw" | "erase" | "shapes",
+        path: currentPath.current,
+        layerId: layerRef!.id,
+        color,
+        drawStrength
+      });
+
+      // Clear the current path.
+      currentPath.current = [];
     }
 
-    const { x, y } = getCurrentTransformPosition()!;
-
-    const { x: dx, y: dy } = UTILS.getCanvasPointerPosition(e, layerRef!);
-
-    // Save the action to the history.
-    history.addHistory({
-      mode: mode as "draw" | "erase" | "shapes",
-      x: drawStartingPoint.current.x - x,
-      y: drawStartingPoint.current.y - y,
-      width: dx - drawStartingPoint.current.x,
-      height: dy - drawStartingPoint.current.y,
-      layerId: layerRef!.id,
-      color,
-      drawStrength
-    });
 
     setCanvasPosition({ x, y });
 
@@ -198,46 +206,49 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     setCanvasPosition({ x, y });
   }
 
-  useEffect(() => {
+    useEffect(() => {
     if (!layerRef) return;
-
-    const ctx = layerRef.getContext('2d');
-
-    if (!ctx) return;
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, layerRef.width, layerRef.height);
-
+  
+    const layerCtx = layerRef.getContext('2d');
+    if (!layerCtx) return;
+  
+    const subCanvas = document.createElement('canvas');
+    subCanvas.width = layerRef.width;
+    subCanvas.height = layerRef.height;
+  
+    const subCtx = subCanvas.getContext('2d');
+    if (!subCtx) return;
+  
+    // Copy the existing content from the main canvas to the temporary canvas
+    subCtx.drawImage(layerRef, 0, 0);
+  
+    // Draw the history of the layer on the temporary canvas
     history.undo.forEach(action => {
-      const { mode, x, y, width, height, layerId, color, drawStrength } = action;
-
+      const { mode, path, layerId, color, drawStrength } = action;
       if (layerId !== layerRef.id) return;
-
-      switch (mode) {
-        case "draw": {
-          ctx.strokeStyle = color;
-          ctx.lineWidth = drawStrength;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-
-          ctx.beginPath();
-          ctx.moveTo(x, y);
-          ctx.lineTo(x + width, y + height);
-          ctx.stroke();
-          break;
+  
+      // Draw the path
+      subCtx.beginPath();
+      subCtx.strokeStyle = color;
+      subCtx.lineWidth = drawStrength;
+      subCtx.lineCap = 'round';
+      subCtx.lineJoin = 'round';
+  
+      path.forEach(({ x, y }, index) => {
+        if (index === 0) {
+          subCtx.moveTo(x, y);
+        } else {
+          subCtx.lineTo(x, y);
         }
-
-        case "erase": {
-          ctx.clearRect(x, y, width, height);
-          break;
-        }
-
-        default: {
-          break;
-        }
-      }
+      });
+      subCtx.stroke();
     });
 
+    subCtx.closePath();
+    // Draw the temporary canvas back onto the main canvas
+
+    layerCtx.clearRect(0, 0, layerRef.width, layerRef.height);
+    layerCtx.drawImage(subCanvas, 0, 0);
   }, [history.undo, history.redo, layerRef]);
 
   return (
