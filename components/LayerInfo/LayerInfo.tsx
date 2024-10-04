@@ -137,11 +137,15 @@ const LayerInfo: FC<LayerInfoProps> = ({ name, id, active, hidden, positionIndex
         {
           !isEditing && (
             <>
-              <Tooltip title="Delete" arrow placement="top">
-                <button className="layer-delete" onClick={onDelete}>
-                  <i className="fas fa-trash-alt"></i>
-                </button>
-              </Tooltip>
+              {
+                totalLayers > 1 && (
+                  <Tooltip title="Delete" arrow placement="top">
+                    <button className="layer-delete" onClick={onDelete}>
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  </Tooltip>
+                )
+              }
               <Tooltip title={hidden ? "Show" : "Hide"} arrow placement="top">
                 <button onClick={onToggleVisibility}>
                   <i className={`fas ${hidden ? 'fa-eye-slash' : 'fa-eye'}`}></i>

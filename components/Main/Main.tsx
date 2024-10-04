@@ -55,7 +55,7 @@ const Main: FC = () => {
       </div>
       <div id="right-side-pane">
         <LayerPane />
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </main>
   );

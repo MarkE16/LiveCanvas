@@ -1,17 +1,20 @@
 // Lib
 import { useEffect } from "react";
-import { MODES } from "./state/store";
-import { useAppDispatch } from "./state/hooks/reduxHooks";
-
-// Styles
-import "./App.css";
+import { MODES } from "../../state/store";
+import { useAppDispatch } from "../../state/hooks/reduxHooks";
+import { closeIndexedDB, getIndexedDB } from "../../state/idb";
 
 // Components
-import Navbar from "./components/Navbar/Navbar";
-import Main from "./components/Main/Main";
-import { closeIndexedDB, getIndexedDB } from "./state/idb";
+import Navbar from "../../components/Navbar/Navbar";
+import Main from "../../components/Main/Main";
 
-function App() {
+// The <head> tags
+export const documentProps = {
+  title: "IdeaDrawn", // <title>
+  desc: "A drawing canvas editor on the browser" // <meta name="description">
+};
+
+function Page() {
   const dispatch = useAppDispatch();
   
   // Add keyboard listeners for each mode.
@@ -109,4 +112,4 @@ function App() {
   );
 }
 
-export default App
+export { Page };

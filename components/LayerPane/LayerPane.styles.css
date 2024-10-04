@@ -3,7 +3,7 @@
   position: relative;
   /* top: 0; */
   right: 0;
-  height: 70vh;
+  height: 100vh;
   width: 300px;
   /* min-width: fit-content; */
   padding: 0.5em;
@@ -18,7 +18,7 @@
 }
 
 #layer-list {
-  height: 64vh;
+  height: 100vh;
   overflow-y: auto;
 }
 

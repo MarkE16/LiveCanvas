@@ -45,7 +45,7 @@ const Footer: FC = () => {
       <div id="footer-links">
         <a href="" className="footer-link">Privacy Policy</a>
         <a href="" className="footer-link">Terms of Service</a>
-        <a href={REPO_URL} className="footer-link" target="_blank">GitHub</a>
+        <a href={REPO_URL} className="footer-link" target="_blank" rel="noreferrer">GitHub</a>
         <a href="" className="footer-link">Release Notes</a>
       </div>
     </footer>

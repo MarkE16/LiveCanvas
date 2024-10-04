@@ -10,6 +10,7 @@ import type { FC } from "react";
 // Styles
 import "./Navbar.styles.css";
 import { getAllEntries } from "../../state/idb";
+import { Link } from "../../renderer/Link";
 
 const Navbar: FC = () => {
   const [exporting, setExporting] = useState<boolean>(false);
@@ -82,6 +83,7 @@ const Navbar: FC = () => {
             <img id="navbar-logo" src={logo} alt="logo" />
           </div>
           <div id="navbar-links">
+            <Link href="/about">About</Link>
             <button onClick={openSnackbar}>File</button>
             <button onClick={openSnackbar}>Edit</button>
             <button onClick={openSnackbar}>View</button>
