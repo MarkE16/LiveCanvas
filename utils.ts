@@ -26,7 +26,7 @@ const capitalize = (str: string): string => str.charAt(0).toUpperCase() + str.sl
  * @param name The name of the layer. Defaults to "New Layer".
  * @returns A new Layer object.
  */
-const createLayer = (name: string = "New Layer"): Layer => ({ name, id: uuidv4(), buffer: undefined, active: false, hidden: false });
+const createLayer = (name: string = "New Layer"): Layer => ({ name, id: uuidv4(), active: false, hidden: false });
 
 /**
  * Swaps the position of two Layer objects in an array. This is done by
@@ -65,13 +65,18 @@ const moveLayer = (layers: Layer[], from: number, to: number): Layer[] => {
  * @param canvas The canvas element.
  * @returns The position of the pointer on the canvas.
  */
-const getCanvasPointerPosition = (e: MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement): Coordinates => {
+const getCanvasPointerPosition = (
+  e: MouseEvent<HTMLCanvasElement>,
+  canvas: HTMLCanvasElement,
+  // dpi: number = window.devicePixelRatio
+): Coordinates => {
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
 
-  const x = (e.clientX - rect.left) * scaleX;
-  const y = (e.clientY - rect.top) * scaleY;
+  const x = ((e.clientX - rect.left) * scaleX);
+  const y = ((e.clientY - rect.top) * scaleY);
+
 
   return { x, y };
 }

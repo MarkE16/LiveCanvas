@@ -1,6 +1,11 @@
 #main-content {
   display: flex;
-  height: 100%;
+  /*
+  4rem is the height of the navbar.
+  Be sure to change this value if the navbar height changes.
+  Likewise, if this value changes, be sure to change the height of the navbar.
+  */
+  height: calc(100vh - 4rem);
 }
 
 #main-canvas-pane {
@@ -9,7 +14,7 @@
   justify-content: center;
   align-items: center;
   flex: 3;
-  height: 100vh;
+  /* height: 100%; */
   width: 100%;
 }
 
@@ -20,10 +25,10 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   /* border: 1px solid #000000; */
 }
 
-#right-side-pane {
+/* #right-side-pane {
   width: min-content;
-}
+} */

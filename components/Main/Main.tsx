@@ -20,22 +20,22 @@ const Main: FC = () => {
   const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
   const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
 
-  useEffect(() => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  // useEffect(() => {
+  //   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    if (isMobile) {
-      setShowMobileModal(true);
-      return;
-    }
+  //   if (isMobile) {
+  //     setShowMobileModal(true);
+  //     return;
+  //   }
     
-    const localStorage = window.localStorage;
-    const agreed = localStorage.getItem("agreed") === "true";
+  //   const localStorage = window.localStorage;
+  //   const agreed = localStorage.getItem("agreed") === "true";
 
-    if (!agreed) {
-      setShowAlphaModal(true);
-    }
+  //   if (!agreed) {
+  //     setShowAlphaModal(true);
+  //   }
 
-  }, []);
+  // }, []);
 
   return (
     <main id="main-content">
@@ -53,10 +53,10 @@ const Main: FC = () => {
           <Canvas />
         </div>
       </div>
-      <div id="right-side-pane">
-        <LayerPane />
+
+      {/* Right side pane */}
+      <LayerPane />
         {/* <Footer /> */}
-      </div>
     </main>
   );
 }

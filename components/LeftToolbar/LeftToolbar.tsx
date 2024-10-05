@@ -19,12 +19,11 @@ type ToolbarButtonProps = {
   shortcut: string;
 }
 
-const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) => {
+const ToolbarButton: FC<ToolbarButtonProps> = ({ icon, name, shortcut }) => {
   const mode = useAppSelector(state => state.canvas.mode);
   const dispatch = useAppDispatch();
   const { undo, undoAction, redo, redoAction } = useHistory();
 
-  console.log(undo, redo);
   const isActive = mode === name;
 
   const onClick: MouseEventHandler<HTMLButtonElement> = useCallback((e: MouseEvent) => {
@@ -53,14 +52,14 @@ const ToolbarButton: FC<ToolbarButtonProps> = memo(({ icon, name, shortcut }) =>
       </button>
     </Tooltip>
   );
-}, (prevProps, nextProps) => {
-  return prevProps.name === nextProps.name;
-});
+};
 
 
 const LeftToolbar: FC = () => {
   const renderedModes = MODES.map((m) => {
-    return <ToolbarButton {...m} key={m.name} />;
+    const Button = memo(ToolbarButton, (prev, next) => prev.name === next.name);
+
+    return <Button key={m.name} {...m} />;
   });
 
   return (

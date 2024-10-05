@@ -3,6 +3,7 @@ import * as UTILS from '../../utils';
 import { useAppSelector, useAppDispatch } from '../../state/hooks/reduxHooks';
 import { SHAPES } from '../../state/store';
 import { Tooltip } from '@mui/material';
+import { Fragment } from 'react';
 
 
 // Type
@@ -41,23 +42,25 @@ const DrawingToolbar: FC = () => {
     const isActive = shape === name;
     
     return (
-      <Tooltip title={UTILS.capitalize(name)} arrow placement="bottom">
+      <Fragment key={name}>
+        <Tooltip title={UTILS.capitalize(name)} arrow placement="bottom">
           <button
             key={name}
             className={`shape-option ${isActive ? 'active' : ''}`}
             onClick={() => handleShapeChange(name)}
           >
-          <i className={`fa ${icon}`} />
-        </button>
-      </Tooltip>
+            <i className={`fa ${icon}`} />
+          </button>
+        </Tooltip>
+      </Fragment>
     );
   });
 
   return (
     <div id="drawing-toolbar">
-      { mode === "shapes" && <div id="shapes">{renderedShapes}</div> }
-      {/* <div className="vertical-line"></div> */}
-      { (mode === "draw" || mode === "erase") && (
+      {
+       mode === "shapes" ? <div id="shapes">{renderedShapes}</div> :
+       (mode === "draw" || mode === "erase") ? (
         <div id="additional-settings">
           Strength: <input 
           name={`${mode}_strength`.toUpperCase()}
@@ -70,7 +73,8 @@ const DrawingToolbar: FC = () => {
           />
           <label>{strengthSettings.value}</label>
         </div>
-      )}
+      ) : <span id="draw-toolbar-no-actions">Choose a different tool for actions.</span>
+      }
     </div>
   );
 }

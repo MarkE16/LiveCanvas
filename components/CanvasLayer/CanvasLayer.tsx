@@ -11,7 +11,7 @@ import type { CanvasLayerProps } from "./CanvasLayer.types";
 import type { Coordinates } from "../Canvas/Canvas.types";
 
 
-const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
+const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function CanvasLayer({
   width,
   height,
   active = false,
@@ -22,7 +22,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
   yPosition,
   setCanvasPosition,
   ...rest
-}, ref: Ref<HTMLCanvasElement>) => {
+}, ref: Ref<HTMLCanvasElement>) {
   const { 
     mode, 
     scale,
@@ -206,58 +206,62 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(({
     setCanvasPosition({ x, y });
   }
 
-    useEffect(() => {
-    if (!layerRef) return;
-  
-    const layerCtx = layerRef.getContext('2d');
-    if (!layerCtx) return;
-  
-    const subCanvas = document.createElement('canvas');
-    subCanvas.width = layerRef.width;
-    subCanvas.height = layerRef.height;
-  
-    const subCtx = subCanvas.getContext('2d');
-    if (!subCtx) return;
-  
-    // Copy the existing content from the main canvas to the temporary canvas
-    subCtx.drawImage(layerRef, 0, 0);
-  
-    // Draw the history of the layer on the temporary canvas
-    history.undo.forEach(action => {
-      const { mode, path, layerId, color, drawStrength } = action;
-      if (layerId !== layerRef.id) return;
-  
-      // Draw the path
-      subCtx.beginPath();
-      subCtx.strokeStyle = color;
-      subCtx.lineWidth = drawStrength;
-      subCtx.lineCap = 'round';
-      subCtx.lineJoin = 'round';
-  
-      path.forEach(({ x, y }, index) => {
-        if (index === 0) {
-          subCtx.moveTo(x, y);
-        } else {
-          subCtx.lineTo(x, y);
-        }
-      });
-      subCtx.stroke();
-    });
+  //   useEffect(() => {
+  //     if (!layerRef) return;
+    
+  //     const layerCtx = layerRef.getContext('2d');
+  //     if (!layerCtx) return;
+    
+  //     const subCanvas = document.createElement('canvas');
+  //     subCanvas.width = layerRef.width;
+  //     subCanvas.height = layerRef.height;
+    
+  //     const subCtx = subCanvas.getContext('2d');
+  //     if (!subCtx) return;
+    
+  //     // Copy the existing content from the main canvas to the temporary canvas
+  //     subCtx.drawImage(layerRef, 0, 0);
+    
+  //     // Draw the history of the layer on the temporary canvas
+  //     history.undo.forEach(action => {
+  //       const { mode, path, layerId, color, drawStrength } = action;
+  //       if (layerId !== layerRef.id) return;
+    
+  //       // Draw the path
+  //       subCtx.beginPath();
+  //       subCtx.strokeStyle = color;
+  //       subCtx.lineWidth = drawStrength;
+  //       subCtx.lineCap = 'round';
+  //       subCtx.lineJoin = 'round';
+    
+  //       path.forEach(({ x, y }, index) => {
+  //         if (index === 0) {
+  //           subCtx.moveTo(x, y);
+  //         } else {
+  //           subCtx.lineTo(x, y);
+  //         }
+  //       });
+  //       subCtx.stroke();
+  //     });
 
-    subCtx.closePath();
-    // Draw the temporary canvas back onto the main canvas
+  //     subCtx.closePath();
+  //     // Draw the temporary canvas back onto the main canvas
 
-    layerCtx.clearRect(0, 0, layerRef.width, layerRef.height);
-    layerCtx.drawImage(subCanvas, 0, 0);
-  }, [history.undo, history.redo, layerRef]);
+  //     layerCtx.clearRect(0, 0, layerRef.width, layerRef.height);
+  //     layerCtx.drawImage(subCanvas, 0, 0);
+  // }, [history.undo, history.redo, layerRef]);
 
   return (
     <canvas
       ref={ref}
+      // These are the width and height via how many pixels the canvas has available to draw on.
       width={width}
       height={height}
       className={`canvas ${active || showall ? "active" : ""} ${mode} ${layerHidden ? "hidden" : ""}`}
       style={{
+        // These are the width and height of the canvas element visually.
+        width: `${width}px`,
+        height: `${height}px`,
         transform:
         `translate(
         ${xPosition}px, 

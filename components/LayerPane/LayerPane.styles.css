@@ -1,15 +1,14 @@
 #layer-manager-container {
-  display: block;
-  position: relative;
-  /* top: 0; */
-  right: 0;
-  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
   width: 300px;
   /* min-width: fit-content; */
   padding: 0.5em;
   background-color: rgb(36, 36, 36);
   border: 1px solid rgb(56, 55, 55);
-  overflow: hidden
+  /* overflow: hidden; */
 }
 
 #layers-title {
@@ -18,7 +17,7 @@
 }
 
 #layer-list {
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
 }
 
