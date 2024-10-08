@@ -29,7 +29,6 @@ const Canvas: FC = () => {
     new Array<HTMLCanvasElement>(layers.length)
   );
   const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [canvasPosition, setCanvasPosition] = useState<Coordinates>({ x: 0, y: 0 });
   const { getDb } = useIndexed();
   const isSelecting = mode === "select" || mode === "shapes";
 
@@ -47,6 +46,7 @@ const Canvas: FC = () => {
     return refsOfLayers.current.find(ref => ref.classList.contains("active"));
   }, []);
 
+  // TODO: Improve this implementation of updating the layers from the storage.
   useEffect(() => {
     async function updateLayers() {
       const entries = await getAllEntries("layers");
@@ -112,8 +112,8 @@ const Canvas: FC = () => {
             width={width}
             height={height}
             getActiveLayer={getLayer}
-            xPosition={canvasPosition.x}
-            yPosition={canvasPosition.y}
+            // xPosition={canvasPosition.x}
+            // yPosition={canvasPosition.y}
           />
         )
       }
@@ -132,9 +132,9 @@ const Canvas: FC = () => {
               layerHidden={layer.hidden}
               layerRef={refsOfLayers.current[i]}
               layerIndex={layer.active ? layers.length + 1 : i + 1}
-              xPosition={canvasPosition.x}
-              yPosition={canvasPosition.y}
-              setCanvasPosition={setCanvasPosition}
+              // xPosition={canvasPosition.x}
+              // yPosition={canvasPosition.y}
+              // setCanvasPosition={setCanvasPosition}
             />
           );
         })
@@ -148,9 +148,9 @@ const Canvas: FC = () => {
         active={false}
         layerIndex={0}
         layerRef={backgroundCanvasRef.current!}
-        setCanvasPosition={setCanvasPosition}
-        xPosition={canvasPosition.x}
-        yPosition={canvasPosition.y}
+        // setCanvasPosition={setCanvasPosition}
+        // xPosition={canvasPosition.x}
+        // yPosition={canvasPosition.y}
       />
     </>
   )

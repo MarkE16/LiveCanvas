@@ -3,6 +3,8 @@
   flex-direction: column;
   width: 3vw;
   min-width: 50px;
+  background-color: rgb(36, 36, 36);
+  border: 1px solid rgb(56, 55, 55);
   /* border: 1px solid #000000; */
 }
 
@@ -18,6 +20,16 @@
   transition: background-color 100ms;
 }
 
+.toolbar-option:first-child {
+  margin-top: 0;
+  border-radius: 0 0 5px 0;
+}
+
+.toolbar-option:last-child {
+  margin-bottom: 0;
+  border-radius: 0 5px 0 0;
+}
+
 .toolbar-option:hover {
   background-color: #3b3b3b;
 }
@@ -28,6 +40,10 @@
 }
 
 .toolbar-option:disabled {
-  background-color: #3b3b3b;
+  /* background-color: #3b3b3b; */
   cursor: not-allowed;
+}
+
+.toolbar-option:disabled:hover {
+  background-color: transparent;
 }

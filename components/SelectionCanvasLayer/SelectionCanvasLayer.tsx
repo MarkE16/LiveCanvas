@@ -10,14 +10,15 @@ import type { SelectionCanvasLayerProps, Coordinates } from "./SelectionCanvasLa
 const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
   width,
   height,
-  xPosition,
-  yPosition,
+  // xPosition,
+  // yPosition,
   getActiveLayer,
   ...rest
 }) => {
   const scale = useAppSelector(state => state.canvas.scale, (prev, next) => prev === next);
   const mode = useAppSelector(state => state.canvas.mode, (prev, next) => prev === next);
   const shape = useAppSelector(state => state.canvas.shape, (prev, next) => prev === next);
+  const { x: xPosition, y: yPosition } = useAppSelector(state => state.canvas.position, (prev, next) => prev === next);
   const isSelecting = useRef<boolean>(false);
   const selectionRef = useRef<HTMLCanvasElement>(null);
   const selectionRect = useRef({ x: 0, y: 0, width: 0, height: 0 });

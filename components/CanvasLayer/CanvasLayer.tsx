@@ -1,5 +1,5 @@
 // Lib
-import { useAppSelector } from "../../state/hooks/reduxHooks";
+import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useHistory from "../../state/hooks/useHistory";
 import { memo, useRef, forwardRef, useEffect } from "react";
 import { getIndexedDB } from "../../state/idb";
@@ -18,8 +18,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
   layerHidden = false,
   layerRef,
   layerIndex,
-  xPosition,
-  yPosition,
+  // xPosition,
+  // yPosition,
   setCanvasPosition,
   ...rest
 }, ref: Ref<HTMLCanvasElement>) {
@@ -29,8 +29,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
     color,
     drawStrength,
     eraserStrength,
-    show_all: showall
+    show_all: showall,
+    position: { x: xPosition, y: yPosition }
   } = useAppSelector((state) => state.canvas);
+  const dispatch = useAppDispatch();
   const history = useHistory();
 
   const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
@@ -111,9 +113,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
   // This should handle a majority of the drawing process.
   const onMouseMove: MouseEventHandler<HTMLCanvasElement> = (e: MouseEvent<HTMLCanvasElement>) => {
     // If the left mouse button is not pressed, then we should not draw.
-    if ((!isDrawing.current && e.buttons !== 1) || layerHidden) {
+    if ((e.buttons !== 1) || layerHidden) {
       return;
     }
+
 
     const ctx = layerRef!.getContext('2d');
 
@@ -149,11 +152,15 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
 
       case "move": {
         // Move the canvas.
+        const { x, y } = UTILS.getCanvasPointerPosition(e, layerRef!)!;
 
-        const dx = e.clientX - clientPosition.current.x;
-        const dy = e.clientY - clientPosition.current.y;
+        // const dx = e.clientX - clientPosition.current.x;
+        // const dy = e.clientY - clientPosition.current.y;
+        const dx = x - clientPosition.current.x;
+        const dy = y - clientPosition.current.y;
 
-        layerRef!.style.transform = `translate(${xPosition + dx}px, ${yPosition + dy}px) scale(${scale})`;
+        // layerRef!.style.transform = `translate(${xPosition + dx}px, ${yPosition + dy}px) scale(${scale})`;
+        dispatch({ type: "SET_POSITION", payload: { x: xPosition + dx, y: yPosition + dy } });
         break;
       }
 
@@ -187,7 +194,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
     }
 
 
-    setCanvasPosition({ x, y });
+    dispatch({ type: "SET_POSITION", payload: { x, y } });
 
     emitLayerState();
   }
@@ -203,7 +210,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(function Can
 
     const { x, y } = getCurrentTransformPosition()!;
 
-    setCanvasPosition({ x, y });
+    dispatch({ type: "SET_POSITION", payload: { x, y } });
   }
 
   //   useEffect(() => {

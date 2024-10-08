@@ -12,6 +12,10 @@ import "./Navbar.styles.css";
 import { getAllEntries } from "../../state/idb";
 import { Link } from "../../renderer/Link";
 
+function nav(href: string) {
+  window.location.href = href;
+}
+
 const Navbar: FC = () => {
   const [exporting, setExporting] = useState<boolean>(false);
   const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -84,7 +88,7 @@ const Navbar: FC = () => {
           </div>
           <div id="navbar-links">
             <Link href="/about">About</Link>
-            <button onClick={openSnackbar}>File</button>
+            <button onClick={() => nav("/about")}>File</button>
             <button onClick={openSnackbar}>Edit</button>
             <button onClick={openSnackbar}>View</button>
             <button onClick={openSnackbar}>Filter</button>

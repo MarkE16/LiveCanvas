@@ -3,6 +3,7 @@ import {
   ColorWheel as AriaColorWheel,
   ColorThumb as AriaColorThumb,
   ColorWheelTrack as AriaColorWheelTrack,
+  ColorArea as AriaColorArea,
 } from "react-aria-components";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 
@@ -16,17 +17,43 @@ import "./ColorWheel.styles.css";
 type ColorWheelProps = Omit<AriaColorWheelProps, "value" | "onChange" | "outerRadius" | "innerRadius">;
 
 const ColorWheel: FC<ColorWheelProps> = (props) => {
-  const color = useAppSelector(state => state.canvas.color);
+  const currentColor = useAppSelector(state => state.canvas.color);
   const dispatch = useAppDispatch();
 
-  const onChange = (color: Color) => dispatch({ type: "SET_COLOR", payload: color.toString("hex") });
+  const onChange = (color: Color) => {
+    const opacityValue = currentColor.slice(5, -1).split(",")[3];
+
+    const newColorAsArray = color.toString("hsla").split(",");
+
+    newColorAsArray[3] = `${opacityValue})`;
+
+    const newColor = newColorAsArray.join(",");
+
+    dispatch({ type: "SET_COLOR", payload: newColor });
+  }
+
+
+  /*
+  For some reason, the thumb is not visible with the default implementation given from the documentation.
+  (https://react-spectrum.adobe.com/react-aria/ColorWheel.html#example) This is a workaround to make it visible and look
+  almost identical to the original implementation. (See the styles in the CSS file for more information)
+  */
+  const thumb = <AriaColorThumb className="thumb" />;
+
+  const COLOR_WHEEL_OUTER_RADIUS = 80;
+  const COLOR_WHEEL_INNER_RADIUS = 65;
+
+  // The square goes over the circle a bit, so we subtract 5 to make it fit
+  const COLOR_AREA_WIDTH = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
+  const COLOR_AREA_HEIGHT = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
 
   return (
     <div id="color-wheel-container">
       <AriaColorWheel
-        outerRadius={80}
-        innerRadius={54}
-        value={color}
+        outerRadius={COLOR_WHEEL_OUTER_RADIUS}
+        innerRadius={COLOR_WHEEL_INNER_RADIUS}
+        value={currentColor}
+        className="color-wheel"
         
         onChange={onChange}
 
@@ -34,20 +61,26 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
       >
         <AriaColorWheelTrack />
 
-        {/*
-        For some reason, the thumb is not visible with the default implementation given from the documentation.
-        (https://react-spectrum.adobe.com/react-aria/ColorWheel.html#example) This is a workaround to make it visible and look
-        almost identical to the original implementation.
-        */}
-        <AriaColorThumb style={{
-          outline: "1px solid black",
-          border: "3px solid white",
-          borderRadius: "50%",
-          width: "20px",
-          height: "20px",
-        }}
-        />
+        {thumb}
       </AriaColorWheel>
+      {/**
+       * Note: The ColorArea component implmentation of the xChannel and yChannel only works if the color value is in HSL/HSLA format.
+       * If the errors occur, check the format that the color is in.
+       */}
+      <AriaColorArea 
+        value={currentColor}
+        onChange={onChange}
+        className="color-area"
+        style={{
+          width: `${COLOR_AREA_WIDTH}px`,
+          height: `${COLOR_AREA_HEIGHT}px`,
+          position: "absolute",
+        }}
+        xChannel="saturation"
+        yChannel="lightness"
+      >
+        {thumb}
+      </AriaColorArea>
     </div>
   );
 }

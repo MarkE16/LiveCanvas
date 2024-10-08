@@ -8,11 +8,9 @@ import type { FC } from "react";
 import "./Main.styles.css";
 
 // Components
+import CanvasPane from "../CanvasPane/CanvasPane";
 import LeftToolbar from "../LeftToolbar/LeftToolbar";
-import Canvas from "../Canvas/Canvas";
-import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import LayerPane from "../LayerPane/LayerPane";
-import Footer from "../Footer/Footer";
 import AlphaSoftwareAgreementModal from "../AlphaSoftwareAgreementModal/AlphaSoftwareAgreementModal";
 import MobileNotSupportedModal from "../MobileNotSupportedModal/MobileNotSupportedModal";
 
@@ -47,16 +45,10 @@ const Main: FC = () => {
       <MobileNotSupportedModal open={showMobileModal} />
       <LeftToolbar />
       
-      <div id="main-canvas-pane">
-        <DrawingToolbar />
-        <div id="canvas-container">
-          <Canvas />
-        </div>
-      </div>
+      <CanvasPane />
 
       {/* Right side pane */}
       <LayerPane />
-        {/* <Footer /> */}
     </main>
   );
 }

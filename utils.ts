@@ -37,7 +37,7 @@ const createLayer = (name: string = "New Layer"): Layer => ({ name, id: uuidv4()
  * @param layers An array of Layer objects.
  * @param from The index of the layer to move.
  * @param to The new index of the moving layer.
- * @returns The modified array of Layer objects.
+ * @returns The modified array of Layer objects, if indices are valid.
  */
 const moveLayer = (layers: Layer[], from: number, to: number): Layer[] => {
 
@@ -79,6 +79,29 @@ const getCanvasPointerPosition = (
 
 
   return { x, y };
+}
+
+/**
+ * Navigate to a new route. This function is a wrapper around `window.location.href`, mainly
+ * for convenience and readability.
+ * @param href - The route to navigate to.
+ * @returns void
+ * 
+ * @example
+ * navigateTo("/home"); // => https://example.com/home
+ * 
+ * navigateTo("about"); // => https://example.com/about
+ * 
+ * navigateTo("/nested/route"); // => https://example.com/nested/route
+ */
+const navigateTo = (href: string) => {
+  let r = href;
+
+  if (!href.startsWith("/")) {
+    r = `/${href}`;
+  }
+
+  window.location.href = r;
 }
 
 

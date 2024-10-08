@@ -1,5 +1,6 @@
 // Lib
 import { v4 as uuidv4 } from 'uuid';
+// import { parseColor } from 'react-aria-components';
 
 // Types
 import { PayloadAction, Reducer, UnknownAction } from '@reduxjs/toolkit';
@@ -27,6 +28,7 @@ type CanvasState = {
   layers: Layer[];
   scale: number;
   show_all: boolean;
+  position: { x: number, y: number };
 }
 
 type Resolution = 'width' | 'height';
@@ -36,11 +38,16 @@ type ResolutionAction = {
   value: number;
 }
 
+type PositionAction = {
+  x: number;
+  y: number;
+}
+
 const initState: CanvasState = {
   width: 400,
   height: 400,
   mode: 'select',
-  color: '#FF0000',
+  color: 'hsla(0, 0%, 0%, 1)', // TODO: Convert to using react-aria's parseColor
   drawStrength: 5,
   eraserStrength: 3,
   shape: 'rectangle',
@@ -49,11 +56,12 @@ const initState: CanvasState = {
   ],
   scale: 1,
   show_all: false,
+  position: { x: 0, y: 0 }
 }
 
 export const canvasReducer: Reducer<CanvasState, UnknownAction, CanvasState> = (
   state: CanvasState = initState,
-  action: PayloadAction<string | ResolutionAction | number | Mode | boolean | Layer[] | Layer>
+  action: PayloadAction<string | ResolutionAction | number | Mode | boolean | Layer[] | Layer | PositionAction>
 ): CanvasState => {
   switch (action.type) {
     case 'SET_COLOR': {
@@ -193,6 +201,15 @@ export const canvasReducer: Reducer<CanvasState, UnknownAction, CanvasState> = (
     case 'SHOW_ALL_LAYERS':
       return { ...state, show_all: action.payload as boolean };
     
+    case 'SET_POSITION':
+      return {
+        ...state,
+        position: {
+          ...state.position,
+          ...action.payload as PositionAction
+        }
+      };
+
     default:
       return state;
   }
