@@ -30,7 +30,6 @@ type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> &
 		setCanvasPosition: Dispatch<SetStateAction<{ x: number; y: number }>>;
 	};
 
-
 const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 	function CanvasLayer(
 		{

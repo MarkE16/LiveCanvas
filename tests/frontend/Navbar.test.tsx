@@ -31,7 +31,9 @@ describe("Navbar functionality", () => {
 			// Wait for the snackbar to appear
 			waitFor(
 				() => {
-					const snackbar = screen.getByText(/This feature is not yet implemented/i);
+					const snackbar = screen.getByText(
+						/This feature is not yet implemented/i
+					);
 					expect(snackbar).not.toBeNull();
 
 					// Close the snackbar

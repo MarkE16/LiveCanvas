@@ -53,7 +53,7 @@ const canvasSlice = createSlice({
 		},
 		createLayer: (
 			state,
-			action: PayloadAction<{ name?: string; id?: string; } | undefined>
+			action: PayloadAction<{ name?: string; id?: string } | undefined>
 		) => {
 			const newLayer = UTILS.createLayer(
 				action.payload?.name,

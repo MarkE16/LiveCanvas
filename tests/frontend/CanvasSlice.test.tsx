@@ -39,7 +39,7 @@ describe("Test dimensions", () => {
 	});
 
 	// TODO: Add more tests.
-  it.todo("should properly update the width and height");
+	it.todo("should properly update the width and height");
 });
 
 describe("Test mode", () => {
@@ -75,8 +75,12 @@ describe("Test color", () => {
 	});
 
 	it("should properly update the color", () => {
-		const colors = ["hsla(0, 0%, 0%, 0.5)", "hsla(120, 100%, 50%, 1)", "hsla(240, 100%, 50%, 1)"];
-		
+		const colors = [
+			"hsla(0, 0%, 0%, 0.5)",
+			"hsla(120, 100%, 50%, 1)",
+			"hsla(240, 100%, 50%, 1)"
+		];
+
 		for (const color of colors) {
 			const state = reducer(undefined, changeColor(color));
 
@@ -279,14 +283,14 @@ describe("Test scale", () => {
 	it("should increase the scale by 0.1", () => {
 		const state = reducer(undefined, increaseScale());
 
-    expect(state.scale).not.toBe(1);
+		expect(state.scale).not.toBe(1);
 		expect(state.scale).toBe(1.1);
 	});
 
 	it("should decrease the scale by 0.1", () => {
 		const state = reducer(undefined, decreaseScale());
 
-    expect(state.scale).not.toBe(1);
+		expect(state.scale).not.toBe(1);
 		expect(state.scale).toBe(0.9);
 	});
 

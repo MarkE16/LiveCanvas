@@ -22,12 +22,15 @@ const capitalize = (str: string): string =>
  *
  * @example
  * createLayer(); // => { name: "New Layer", id: "1234-5678-9012-3456", active: false, hidden: false }
- * 
+ *
  * createLayer("Background"); // => { name: "Background", id: "1234-5678-9012-3456", active: false, hidden: false }
  *
  * createLayer("Foreground", "9876-5432-1098-7654"); // => { name: "Foreground", id: "9876-5432-1098-7654", active: false, hidden: false }
  */
-const createLayer = (name: string = "New Layer", id: string = uuidv4()): Layer => ({
+const createLayer = (
+	name: string = "New Layer",
+	id: string = uuidv4()
+): Layer => ({
 	name,
 	id,
 	active: false,

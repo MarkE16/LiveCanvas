@@ -5,7 +5,6 @@ import { useCallback } from "react";
 // Types
 import type { HistoryAction, HistoryUtils } from "../../types";
 
-
 // TODO: This hook *technically* works, but the issue is trying to mess around with the Canvas API
 // to get the undo and redo actions to work. It's a bit more complicated than I thought it would be.
 // This may need to be refactored or rethought.
