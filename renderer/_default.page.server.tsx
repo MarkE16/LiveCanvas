@@ -36,7 +36,7 @@ async function render(pageContext: PageContextServer) {
         <title>${title}</title>
       </head>
       <body>
-        <div id="react-root">${dangerouslySkipEscape(pageHtml)}</div>
+        <div id="entry">${dangerouslySkipEscape(pageHtml)}</div>
       </body>
     </html>`
 

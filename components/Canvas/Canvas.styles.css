@@ -1,30 +1,31 @@
-.canvas, #background-canvas {
-  position: absolute;
-  /* top: 0;
+.canvas,
+#background-canvas {
+	position: absolute;
+	/* top: 0;
   left: 0; */
-  background-color: transparent;
-  opacity: 0.1;
-  cursor: crosshair;
-  border: 1px solid gray;
+	background-color: transparent;
+	opacity: 0.1;
+	cursor: crosshair;
+	border: 1px solid gray;
 }
 
 #background-canvas {
-  background-color: white;
-  opacity: 1;
+	background-color: white;
+	opacity: 1;
 }
 
 .canvas.hidden {
-  opacity: 0 !important;
+	opacity: 0 !important;
 }
 
 .canvas.active {
-  background-color: rgba(255, 255, 255, 0.1);
-  opacity: 1;
+	background-color: rgba(255, 255, 255, 0.1);
+	opacity: 1;
 }
 
 .canvas.active.move {
-  background-color: white;
-  opacity: 1;
+	background-color: white;
+	opacity: 1;
 }
 
 /* .canvas.move:not(:has(.canvas.hidden)) ~ #background-canvas {
@@ -36,26 +37,26 @@
 } */
 
 .canvas.move {
-  opacity: 0;
+	opacity: 0;
 }
 
 .canvas.selection {
-  opacity: 1;
-  cursor: default;
-  z-index: 99;
+	opacity: 1;
+	cursor: default;
+	z-index: 99;
 }
 
 .canvas.zoom_in {
-  cursor: zoom-in;
+	cursor: zoom-in;
 }
 
 .canvas.zoom_out {
-  cursor: zoom-out;
+	cursor: zoom-out;
 }
 
 #clear-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 100;
 }

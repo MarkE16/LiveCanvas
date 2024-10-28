@@ -15,42 +15,45 @@ import AlphaSoftwareAgreementModal from "../AlphaSoftwareAgreementModal/AlphaSof
 import MobileNotSupportedModal from "../MobileNotSupportedModal/MobileNotSupportedModal";
 
 const Main: FC = () => {
-  const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
-  const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
+	const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
+	const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
 
-  // useEffect(() => {
-  //   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-  //   if (isMobile) {
-  //     setShowMobileModal(true);
-  //     return;
-  //   }
-    
-  //   const localStorage = window.localStorage;
-  //   const agreed = localStorage.getItem("agreed") === "true";
+	// useEffect(() => {
+	//   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  //   if (!agreed) {
-  //     setShowAlphaModal(true);
-  //   }
+	//   if (isMobile) {
+	//     setShowMobileModal(true);
+	//     return;
+	//   }
 
-  // }, []);
+	//   const localStorage = window.localStorage;
+	//   const agreed = localStorage.getItem("agreed") === "true";
 
-  return (
-    <main id="main-content">
-      <AlphaSoftwareAgreementModal open={showAlphaModal} onClose={() => {
-        setShowAlphaModal(false);
-        window.localStorage.setItem("agreed", "true");
-      }} />
+	//   if (!agreed) {
+	//     setShowAlphaModal(true);
+	//   }
 
-      <MobileNotSupportedModal open={showMobileModal} />
-      <LeftToolbar />
-      
-      <CanvasPane />
+	// }, []);
 
-      {/* Right side pane */}
-      <LayerPane />
-    </main>
-  );
-}
+	return (
+		<main id="main-content">
+			<AlphaSoftwareAgreementModal
+				open={showAlphaModal}
+				onClose={() => {
+					setShowAlphaModal(false);
+					window.localStorage.setItem("agreed", "true");
+				}}
+			/>
+			<MobileNotSupportedModal open={showMobileModal} />
+
+			<LeftToolbar />
+
+			<CanvasPane />
+
+			{/* Right side pane */}
+			<LayerPane />
+		</main>
+	);
+};
 
 export default Main;

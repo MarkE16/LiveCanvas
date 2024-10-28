@@ -1,49 +1,49 @@
 #left-toolbar-container {
-  display: flex;
-  flex-direction: column;
-  width: 3vw;
-  min-width: 50px;
-  background-color: rgb(36, 36, 36);
-  border: 1px solid rgb(56, 55, 55);
-  /* border: 1px solid #000000; */
+	display: flex;
+	flex-direction: column;
+	width: 3vw;
+	min-width: 50px;
+	background-color: rgb(36, 36, 36);
+	border: 1px solid rgb(56, 55, 55);
+	/* border: 1px solid #000000; */
 }
 
 .toolbar-option {
-  width: 100%;
-  min-height: 50px;
-  border-radius: 0 5px 5px 0;
-  border: none;
-  margin: 0.2em 0;
-  font-size: large;
-  background-color: transparent;
-  cursor: pointer;
-  transition: background-color 100ms;
+	width: 100%;
+	min-height: 50px;
+	border-radius: 0 5px 5px 0;
+	border: none;
+	margin: 0.2em 0;
+	font-size: large;
+	background-color: transparent;
+	cursor: pointer;
+	transition: background-color 100ms;
 }
 
 .toolbar-option:first-child {
-  margin-top: 0;
-  border-radius: 0 0 5px 0;
+	margin-top: 0;
+	border-radius: 0 0 5px 0;
 }
 
 .toolbar-option:last-child {
-  margin-bottom: 0;
-  border-radius: 0 5px 0 0;
+	margin-bottom: 0;
+	border-radius: 0 5px 0 0;
 }
 
 .toolbar-option:hover {
-  background-color: #3b3b3b;
+	background-color: #3b3b3b;
 }
 
 .toolbar-option.active {
-  background-color: #d1836a;
-  border: 1px solid #d1603a;
+	background-color: #d1836a;
+	border: 1px solid #d1603a;
 }
 
 .toolbar-option:disabled {
-  /* background-color: #3b3b3b; */
-  cursor: not-allowed;
+	/* background-color: #3b3b3b; */
+	cursor: not-allowed;
 }
 
 .toolbar-option:disabled:hover {
-  background-color: transparent;
+	background-color: transparent;
 }

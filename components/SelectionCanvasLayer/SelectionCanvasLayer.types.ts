@@ -1,14 +1,14 @@
-import { HTMLAttributes } from 'react';
+import { HTMLAttributes } from "react";
 
 export type SelectionCanvasLayerProps = HTMLAttributes<HTMLCanvasElement> & {
-  width: number;
-  height: number;
-  getActiveLayer: () => HTMLCanvasElement | undefined
-  xPosition?: number;
-  yPosition?: number;
+	width: number;
+	height: number;
+	getActiveLayer: () => HTMLCanvasElement | undefined;
+	xPosition?: number;
+	yPosition?: number;
 };
 
 export type Coordinates = {
-  x: number;
-  y: number;
+	x: number;
+	y: number;
 };
