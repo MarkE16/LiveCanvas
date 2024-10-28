@@ -2,9 +2,10 @@ name: Run Frontend Tests
 
 # Run tests on every commit on any branch
 on:
-  push:
+  pull_request:
+    types: [opened, reopened]
     branches:
-      - "*"
+      - main
 
 jobs:
   test:
@@ -17,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
 
       - name: Install pnpm
         run: npm install -g pnpm
