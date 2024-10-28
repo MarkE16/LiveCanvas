@@ -3,7 +3,7 @@
 		"dev": "npm run server:dev",
 		"prod": "npm run lint && npm run build && npm run server:prod",
 		"build": "vite build",
-		"test": "vitest --run --silent --reporter=verbose && pytest .\\tests\\backend -v",
+		"test": "vitest --run --silent --reporter=verbose",
 		"coverage": "vitest --coverage",
 		"server": "node --loader ts-node/esm ./server/index.ts",
 		"server:dev": "npm run server",
