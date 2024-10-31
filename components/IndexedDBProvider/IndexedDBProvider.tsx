@@ -1,35 +1,29 @@
-// Lib
 import { useEffect, createContext, useRef, useCallback, useMemo } from "react";
-
-// Types
 import { FC, PropsWithChildren } from "react";
 
 const STORES = ["layers"];
 const VERSION = 1; // Bump this up when the schema changes.
 
 type GetOptions = {
-	// The key to get data for. If not provided, all data is returned from the store.
 	key?: string;
-
-	// Whether to return the data as entries or not (key, value pairs)
 	asEntries: boolean;
 };
 
 type IndexedUtils = {
 	/**
-	 * A function to get data from a store in the database.
-	 * @param store - The store to get data from.
-	 * @param key - The key to get data for. If not provided, all data is returned from the store.
-	 * @returns A promise that resolves with the data from the store.
+	 * Get data from the database.
+	 * @param store The store to get data from.
+	 * @param options Options for the get operation.
+	 * @returns A promise that resolves with the data.
 	 */
 	get: <T>(store: string, options: GetOptions) => Promise<T>;
 
 	/**
-	 * A function to set data in a store in the database.
-	 * @param store A function to set data in a store in the database.
-	 * @param key A key to set the data for.
-	 * @param value A value to set in the store.
-	 * @returns A void promise that resolves when the data is set in the store.
+	 * Set data in the database.
+	 * @param store The store to set data in.
+	 * @param key The key to set the data under.
+	 * @param value The value to set.
+	 * @returns A promise that resolves when the data is set.
 	 */
 	set: (store: string, key: string, value: unknown) => Promise<void>;
 };
@@ -38,21 +32,51 @@ export const IndexedDBContext = createContext<IndexedUtils | null>(null);
 
 export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	const database = useRef<IDBDatabase | null>(null);
+	const dbOpenPromise = useRef<Promise<IDBDatabase> | null>(null);
+
+	const openDatabase = useCallback(() => {
+		if (dbOpenPromise.current) {
+			return dbOpenPromise.current;
+		}
+
+		dbOpenPromise.current = new Promise((resolve, reject) => {
+			const request = indexedDB.open("canvas", VERSION);
+
+			request.onsuccess = () => {
+				database.current = request.result;
+				resolve(request.result);
+			};
+
+			request.onerror = () => {
+				console.error(request.error);
+				reject(request.error);
+			};
+
+			request.onupgradeneeded = () => {
+				const db = request.result;
+
+				for (const store of STORES) {
+					if (!db.objectStoreNames.contains(store)) {
+						db.createObjectStore(store);
+					}
+				}
+
+				database.current = db;
+			};
+		});
+
+		return dbOpenPromise.current;
+	}, []);
 
 	const get = useCallback(
-		<T,>(
+		async <T,>(
 			store: string,
 			options: GetOptions = { asEntries: false }
 		): Promise<T> => {
-			if (!database.current) {
-				throw new Error("Database connection not established.");
-			}
+			const db = database.current ?? (await openDatabase());
 
 			return new Promise((resolve, reject) => {
-				const transaction = (database.current as IDBDatabase).transaction(
-					store,
-					"readonly"
-				);
+				const transaction = db.transaction(store, "readonly");
 				const objectStore = transaction.objectStore(store);
 
 				let request: IDBRequest;
@@ -65,65 +89,47 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 
 				request.onsuccess = () => {
 					if (options.asEntries) {
-						resolve(Object.entries(request.result) as unknown as T);
+						resolve(Object.entries(request.result) as T);
+					} else {
+						resolve(request.result);
 					}
-
-					resolve(request.result);
 				};
 
 				request.onerror = () => reject(request.error);
 			});
 		},
-		[]
+		[openDatabase]
 	);
 
-	const set = useCallback((store: string, key: string, value: unknown) => {
-		if (!database.current) {
-			throw new Error("Database connection not established.");
-		}
+	const set = useCallback(
+		async (store: string, key: string, value: unknown) => {
+			const db = database.current ?? (await openDatabase());
 
-		return new Promise<void>((resolve, reject) => {
-			const transaction = (database.current as IDBDatabase).transaction(
-				store,
-				"readwrite"
-			);
-			const objectStore = transaction.objectStore(store);
+			return new Promise<void>((resolve, reject) => {
+				const transaction = db.transaction(store, "readwrite");
+				const objectStore = transaction.objectStore(store);
 
-			const request = objectStore.put(value, key);
+				const request = objectStore.put(value, key);
 
-			request.onsuccess = () => resolve();
-
-			request.onerror = () => reject(request.error);
-		});
-	}, []);
+				request.onsuccess = () => resolve();
+				request.onerror = () => reject(request.error);
+			});
+		},
+		[openDatabase]
+	);
 
 	useEffect(() => {
-		if (database.current) {
+		// Check if the browser supports IndexedDB.
+
+		if (!window.indexedDB) {
+			console.error(
+				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
+			);
 			return;
 		}
 
-		const request = indexedDB.open("canvas", VERSION);
-
-		request.onsuccess = () => {
-			database.current = request.result;
-		};
-
-		request.onerror = () => {
-			console.error(request.error);
-		};
-
-		request.onupgradeneeded = () => {
-			const db = request.result;
-
-			for (const store of STORES) {
-				if (!db.objectStoreNames.contains(store)) {
-					db.createObjectStore(store);
-				}
-			}
-
-			database.current = db;
-		};
-	}, []);
+		openDatabase();
+	}, [openDatabase]);
 
 	const value = useMemo(() => ({ get, set }), [get, set]);
 

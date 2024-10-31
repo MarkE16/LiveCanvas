@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { MODES } from "../../state/store";
 import { useAppDispatch } from "../../state/hooks/reduxHooks";
-import { closeIndexedDB, getIndexedDB } from "../../state/idb";
 
 // Components
 import Navbar from "../../components/Navbar/Navbar";
@@ -86,21 +85,8 @@ function Page() {
 			}
 		}
 
-		// Check if the browser supports IndexedDB.
-
-		if (!window.indexedDB) {
-			console.error(
-				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
-			);
-			return;
-		}
-
 		// Check if the database persists.
-		checkStoragePersistency().then(() => getIndexedDB());
-
-		return () => {
-			closeIndexedDB();
-		};
+		checkStoragePersistency();
 	}, []);
 
 	return (

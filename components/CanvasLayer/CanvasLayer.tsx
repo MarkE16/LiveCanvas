@@ -1,8 +1,8 @@
 // Lib
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useHistory from "../../state/hooks/useHistory";
+import useIndexed from "../../state/hooks/useIndexed";
 import { memo, useRef, forwardRef, useEffect } from "react";
-import { getIndexedDB } from "../../state/idb";
 import * as UTILS from "../../utils";
 
 // Types
@@ -57,6 +57,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 		} = useAppSelector((state) => state.canvas);
 		const dispatch = useAppDispatch();
 		const history = useHistory();
+		const { set } = useIndexed();
 
 		const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
 		const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -76,12 +77,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			layerRef.toBlob((blob) => {
 				if (!blob) return;
 
-				getIndexedDB().then((db) => {
-					const tx = db.transaction("layers", "readwrite");
-					const store = tx.objectStore("layers");
-
-					store.put(blob, layerRef.id);
-				});
+				set("layers", layerRef.id, blob);
 			});
 			// dispatch({
 			//   type: "SAVE_ACTION",
@@ -301,7 +297,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 					width: `${width}px`,
 					height: `${height}px`,
 					transform: `translate(
-        ${xPosition}px, 
+        ${xPosition}px,
         ${yPosition}px
         ) scale(${scale})`,
 					zIndex: !layerHidden ? layerIndex : -2 // Layers from the top of the list are drawn first.

@@ -3,20 +3,21 @@ import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
 import { Snackbar, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
+import { Link } from "../../renderer/Link";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
 import type { FC } from "react";
 
 // Styles
 import "./Navbar.styles.css";
-import { getAllEntries } from "../../state/idb";
-import { Link } from "../../renderer/Link";
 
 const Navbar: FC = () => {
 	const [exporting, setExporting] = useState<boolean>(false);
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
 	const width = useAppSelector((state) => state.canvas.width);
 	const height = useAppSelector((state) => state.canvas.height);
+	const { get } = useIndexed();
 
 	const openSnackbar = () => {
 		setSnackbarOpen(true);
@@ -41,7 +42,7 @@ const Navbar: FC = () => {
 		ctx!.fillStyle = "white";
 		ctx!.fillRect(0, 0, width, height);
 
-		const layers = await getAllEntries("layers");
+		const layers = await get<[string, Blob][]>("layers", { asEntries: true });
 
 		const promises = layers.toReversed().map((layer) => {
 			return new Promise<void>((resolve) => {
