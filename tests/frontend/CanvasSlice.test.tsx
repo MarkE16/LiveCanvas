@@ -1,3 +1,4 @@
+import { parseColor } from "react-aria-components";
 import { describe, it, expect, vi } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import reducer, {
@@ -18,7 +19,7 @@ const mockState = {
 	width: 400,
 	height: 400,
 	mode: "select" as Mode,
-	color: "hsla(0, 0%, 0%, 1)", // TODO: Convert to using react-aria's parseColor
+	color: parseColor("hsla(0, 0%, 0%, 1)").toString(), // TODO: Convert to using react-aria's parseColor
 	drawStrength: 5,
 	eraserStrength: 3,
 	shape: "rectangle" as Shape,
@@ -88,7 +89,19 @@ describe("Test color", () => {
 		}
 	});
 
-	it.todo("should not allow any other format that is not hsl/a");
+	it("should not allow any other format that is not hsl/a", () => {
+		const error =
+			"Invalid color format passed into state. Pass in a valid HSL color string, not rgb.";
+		expect(() => reducer(undefined, changeColor("rgb(0, 0, 0)"))).toThrow(
+			error
+		);
+
+		expect(() => reducer(undefined, changeColor("rgba(0, 0, 0, 0.5)"))).toThrow(
+			error
+		);
+
+		expect(() => reducer(undefined, changeColor("#000"))).toThrow(error);
+	});
 });
 
 describe("Test draw strength", () => {
@@ -107,12 +120,10 @@ describe("Test draw strength", () => {
 	it("should not allow the draw strength to be outside 1-15", () => {
 		const state = reducer(undefined, changeDrawStrength(20));
 
-		expect(state.drawStrength).not.toBe(20);
 		expect(state.drawStrength).toBe(15);
 
 		const state2 = reducer(undefined, changeDrawStrength(0));
 
-		expect(state2.drawStrength).not.toBe(0);
 		expect(state2.drawStrength).toBe(1);
 	});
 });
@@ -133,12 +144,10 @@ describe("Test eraser strength", () => {
 	it("should not allow the eraser strength to be outside 3-10", () => {
 		const state = reducer(undefined, changeEraserStrength(20));
 
-		expect(state.eraserStrength).not.toBe(20);
 		expect(state.eraserStrength).toBe(10);
 
 		const state2 = reducer(undefined, changeEraserStrength(2));
 
-		expect(state2.eraserStrength).not.toBe(2);
 		expect(state2.eraserStrength).toBe(3);
 	});
 });
@@ -302,7 +311,6 @@ describe("Test scale", () => {
 
 		const state = reducer(tempMockState, increaseScale());
 
-		expect(state.scale).not.toBe(3.1);
 		expect(state.scale).toBe(3);
 
 		tempMockState = {
@@ -312,7 +320,6 @@ describe("Test scale", () => {
 
 		const state2 = reducer(tempMockState, decreaseScale());
 
-		expect(state2.scale).not.toBe(0);
 		expect(state2.scale).toBe(0.1);
 	});
 });

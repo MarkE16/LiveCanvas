@@ -1,9 +1,14 @@
 // Lib
 import { useAppSelector, useAppDispatch } from "./reduxHooks";
+import {
+	redo as performRedo,
+	undo as performUndo,
+	saveAction
+} from "../slices/historySlice";
 import { useCallback } from "react";
 
 // Types
-import type { HistoryAction, HistoryUtils } from "../../types";
+import type { HistoryUtils, HistoryAction } from "../../types";
 
 // TODO: This hook *technically* works, but the issue is trying to mess around with the Canvas API
 // to get the undo and redo actions to work. It's a bit more complicated than I thought it would be.
@@ -20,17 +25,17 @@ const useHistory = (): HistoryUtils => {
 
 	const addHistory = useCallback(
 		(action: HistoryAction) => {
-			dispatch({ type: "SAVE_ACTION", payload: action });
+			dispatch(saveAction(action));
 		},
 		[dispatch]
 	);
 
 	const undoAction = useCallback(() => {
-		dispatch({ type: "UNDO" });
+		dispatch(performUndo());
 	}, [dispatch]);
 
 	const redoAction = useCallback(() => {
-		dispatch({ type: "REDO" });
+		dispatch(performRedo());
 	}, [dispatch]);
 
 	return {

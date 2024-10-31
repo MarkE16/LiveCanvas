@@ -5,7 +5,7 @@
 	position: absolute;
 	top: 10px;
 	width: 80%;
-	min-height: 50px;
+	min-height: 20px;
 	border-radius: 25px;
 	background-color: #303744;
 	padding: 0.5em;
@@ -14,10 +14,7 @@
 }
 
 #colors,
-#shapes {
-	display: inline-flex;
-}
-
+#shapes,
 #additional-settings {
 	display: inline-flex;
 }

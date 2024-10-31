@@ -1,7 +1,8 @@
-import type { PayloadAction } from "@reduxjs/toolkit";
+import { parseColor } from "react-aria-components";
 import { createSlice } from "@reduxjs/toolkit";
 import * as UTILS from "../../utils";
 import { v4 as uuidv4 } from "uuid";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Mode, Shape, Layer, Coordinates } from "../../types";
 
 type CanvasState = {
@@ -22,7 +23,7 @@ const initialState: CanvasState = {
 	width: 400,
 	height: 400,
 	mode: "select",
-	color: "hsla(0, 0%, 0%, 1)", // TODO: Convert to using react-aria's parseColor
+	color: "hsla(0, 0%, 0%, 1)",
 	drawStrength: 5,
 	eraserStrength: 3,
 	shape: "rectangle",
@@ -37,6 +38,14 @@ const canvasSlice = createSlice({
 	initialState,
 	reducers: {
 		changeColor: (state, action: PayloadAction<string>) => {
+			const space = parseColor(action.payload).getColorSpace();
+
+			if (!space.includes("hsl")) {
+				throw new Error(
+					`Invalid color format passed into state. Pass in a valid HSL color string, not ${space}.`
+				);
+			}
+
 			state.color = action.payload;
 		},
 		changeMode: (state, action: PayloadAction<Mode>) => {

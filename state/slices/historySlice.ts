@@ -1,25 +1,5 @@
+import { History } from "../../types";
 import { createSlice } from "@reduxjs/toolkit";
-
-type Coordinates = {
-	x: number;
-	y: number;
-};
-
-type HistoryAction = {
-	mode: "draw" | "erase" | "shapes";
-	x: number;
-	y: number;
-	layerId: string;
-	color: string;
-	drawStrength: number;
-	width: number;
-	height: number;
-};
-
-type History = {
-	undo: HistoryAction[];
-	redo: HistoryAction[];
-};
 
 const initialState: History = {
 	undo: [],

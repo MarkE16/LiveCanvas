@@ -217,13 +217,7 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 		document.addEventListener("keydown", handleKeyboardActions);
 
 		return () => document.removeEventListener("keydown", handleKeyboardActions);
-
-		// Dependency error says that `getActiveLayer` is missing from the dependency array,
-		// and that it should be added, or the function should be wrapped in a useCallback.
-		// However, it __is__ wrapped in a useCallback in the parent component.
-		// Not sure why it still gives a warning.
-		// eslint-disable-next-line
-	}, []);
+	}, [getActiveLayer]);
 
 	return (
 		<canvas
@@ -233,7 +227,7 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 			className="canvas selection"
 			style={{
 				transform: `translate(
-        ${xPosition}px, 
+        ${xPosition}px,
         ${yPosition}px
         ) scale(${scale})`
 			}}

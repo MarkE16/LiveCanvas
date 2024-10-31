@@ -6,6 +6,13 @@ export type HistoryAction = {
 	layerId: string;
 	color: string;
 	drawStrength: number;
+	width: number;
+	height: number;
+};
+
+export type History = {
+	undo: HistoryAction[];
+	redo: HistoryAction[];
 };
 
 export type HistoryUtils = {

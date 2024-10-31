@@ -9,6 +9,11 @@ const rootReducer = combineReducers({
 	history: historySliceReducer
 });
 
+/**
+ * Creates a Redux store with the given preloaded state.
+ * @param preloadedState The preloaded state to initialize the store with.
+ * @returns A Redux store.
+ */
 export const createStore = (preloadedState?: Partial<RootState>) => {
 	return configureStore({
 		reducer: rootReducer,

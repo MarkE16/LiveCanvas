@@ -2,13 +2,14 @@
 import { useRef, useCallback, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useIndexed from "../../state/hooks/useIndexed";
+// import { getAllEntries } from "../../state/idb";
 
 // Redux Actions
 import { setLayers } from "../../state/slices/canvasSlice";
 
 // Types
 import type { FC } from "react";
-import type { Coordinates } from "../../types";
+import type { Layer } from "../../types";
 
 // Styles
 import "./Canvas.styles.css";
@@ -16,7 +17,6 @@ import "./Canvas.styles.css";
 // Components
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
 import SelectionCanvasLayer from "../SelectionCanvasLayer/SelectionCanvasLayer";
-import { getAllEntries } from "../../state/idb";
 
 const Canvas: FC = () => {
 	const state = useAppSelector((state) => state.canvas);
@@ -27,7 +27,7 @@ const Canvas: FC = () => {
 		new Array<HTMLCanvasElement>(layers.length)
 	);
 	const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
-	const { getDb } = useIndexed();
+	const { get } = useIndexed();
 	const isSelecting = mode === "select" || mode === "shapes";
 
 	/**
@@ -36,7 +36,7 @@ const Canvas: FC = () => {
 	 * @param id The ID of the layer to get.
 	 * @returns The layer with the specified ID, or the active layer.
 	 */
-	const getLayer = useCallback((id?: string): HTMLCanvasElement | undefined => {
+	const getLayer = useCallback((id?: string) => {
 		if (id) {
 			return refsOfLayers.current.find((ref) => ref.id === id);
 		}
@@ -45,60 +45,62 @@ const Canvas: FC = () => {
 	}, []);
 
 	// TODO: Improve this implementation of updating the layers from the storage.
-	useEffect(() => {
-		async function updateLayers() {
-			const entries = await getAllEntries("layers");
+	// useEffect(() => {
+	// 	async function updateLayers() {
+	// 		// const entries = await getAllEntries("layers");
+	//      const entries = await get<[string, Blob][]>("layers", { asEntries: true });
 
-			updateLayerState(entries).then(() => updateLayerContents(entries));
-		}
+	//      await updateLayerState(entries);
+	//      updateLayerContents(entries);
+	// 	}
 
-		function updateLayerState(entries) {
-			return new Promise<void>((resolve) => {
-				const newLayers = [];
+	// 	function updateLayerState(entries: [string, Blob][]) {
+	// 		return new Promise<void>((resolve) => {
+	// 			const newLayers: Layer[] = [];
 
-				entries.forEach((entry, i) => {
-					const [layerId, _] = entry;
+	// 			entries.forEach((entry, i) => {
+	// 				const [layerId, _] = entry;
 
-					newLayers.push({
-						name: `Layer ${i + 1}`,
-						id: layerId,
-						active: false,
-						hidden: false
-					});
-				});
+	// 				newLayers.push({
+	// 					name: `Layer ${i + 1}`,
+	// 					id: layerId,
+	// 					active: false,
+	// 					hidden: false
+	// 				});
+	// 			});
 
-				if (newLayers.length === 0) {
-					return;
-				}
+	// 			if (newLayers.length === 0) {
+	// 				return;
+	// 			}
 
-				newLayers[0].active = true;
-				dispatch(setLayers(newLayers));
+	// 			newLayers[0].active = true;
+	// 			dispatch(setLayers(newLayers));
 
-				resolve();
-			});
-		}
+	// 			resolve();
+	// 		});
+	// 	}
 
-		function updateLayerContents(entries) {
-			entries.forEach((entry, i) => {
-				const [_, blob] = entry;
-				const canvas = refsOfLayers.current[i];
+	// 	function updateLayerContents(entries: [string, Blob][]) {
+	// 		entries.forEach((entry, i) => {
+	// 			const [_, blob] = entry;
+	// 			const canvas = refsOfLayers.current[i];
 
-				if (!canvas) return;
+	// 			if (!canvas) return;
 
-				const ctx = canvas.getContext("2d");
-				const img = new Image();
+	// 			const ctx = canvas.getContext("2d");
+	// 			const img = new Image();
 
-				img.onload = () => {
-					ctx!.drawImage(img, 0, 0);
-					URL.revokeObjectURL(img.src);
-				};
+	// 			img.onload = () => {
+	// 				ctx!.drawImage(img, 0, 0);
+	// 				URL.revokeObjectURL(img.src);
+	// 			};
 
-				img.src = URL.createObjectURL(blob);
-			});
-		}
+	// 			img.src = URL.createObjectURL(blob);
+	// 		});
+	// 	}
 
-		updateLayers();
-	}, [dispatch]);
+	// 	updateLayers();
+	// }, [dispatch, get]);
 
 	return (
 		<>
