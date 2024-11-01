@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import Main from "../../components/Main/Main";
 
 // The <head> tags
+// eslint-disable-next-line
 export const documentProps = {
 	title: "IdeaDrawn", // <title>
 	desc: "A drawing canvas editor on the browser" // <meta name="description">

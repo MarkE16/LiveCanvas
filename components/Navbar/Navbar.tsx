@@ -1,10 +1,7 @@
 // Lib
 import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
-import { Snackbar, CircularProgress } from "@mui/material";
+import { Snackbar } from "@mui/material";
 import { useState } from "react";
-import { useAppSelector } from "../../state/hooks/reduxHooks";
-import { Link } from "../../renderer/Link";
-import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
 import type { FC } from "react";
@@ -12,12 +9,12 @@ import type { FC } from "react";
 // Styles
 import "./Navbar.styles.css";
 
+// Components
+import ExportCanvasButton from "../ExportCanvasButton/ExportCanvasButton";
+import { Link } from "../../renderer/Link";
+
 const Navbar: FC = () => {
-	const [exporting, setExporting] = useState<boolean>(false);
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-	const width = useAppSelector((state) => state.canvas.width);
-	const height = useAppSelector((state) => state.canvas.height);
-	const { get } = useIndexed();
 
 	const openSnackbar = () => {
 		setSnackbarOpen(true);
@@ -25,55 +22,6 @@ const Navbar: FC = () => {
 
 	const closeSnackbar = () => {
 		setSnackbarOpen(false);
-	};
-
-	const handleExport = async () => {
-		setExporting(true);
-		const substituteCanvas = document.createElement("canvas");
-
-		// Set the canvas size (assuming all layers have the same dimensions)
-		substituteCanvas.width = width; // Set to your canvas width
-		substituteCanvas.height = height; // Set to your canvas height
-
-		const ctx = substituteCanvas.getContext("2d");
-
-		// Before drawing the images,
-		// let's give the canvas a white background, as by default it's transparent.
-		ctx!.fillStyle = "white";
-		ctx!.fillRect(0, 0, width, height);
-
-		const layers = await get<[string, Blob][]>("layers", { asEntries: true });
-
-		const promises = layers.toReversed().map((layer) => {
-			return new Promise<void>((resolve) => {
-				const [_, blob] = layer;
-
-				const img = new Image();
-				img.src = URL.createObjectURL(blob);
-
-				img.onload = () => {
-					ctx!.drawImage(img, 0, 0, width, height);
-
-					URL.revokeObjectURL(img.src);
-					resolve();
-				};
-			});
-		});
-
-		Promise.all(promises).then(() => {
-			const image = substituteCanvas.toDataURL("image/jpeg", 1.0);
-			const a = document.createElement("a");
-
-			a.href = image;
-			a.download = "canvas.jpg";
-			a.click();
-
-			// Clean up
-			substituteCanvas.remove();
-			a.remove();
-
-			setExporting(false);
-		});
 	};
 
 	return (
@@ -97,14 +45,7 @@ const Navbar: FC = () => {
 					</div>
 				</section>
 				<section id="navbar-buttons-section">
-					<button
-						onClick={handleExport}
-						disabled={exporting}
-						aria-disabled={exporting}
-					>
-						<span>Export Canvas</span>
-					</button>
-					{exporting && <CircularProgress size={20} />}
+					<ExportCanvasButton />
 				</section>
 			</nav>
 

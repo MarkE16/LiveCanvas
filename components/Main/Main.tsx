@@ -1,5 +1,5 @@
 // Lib
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // Types
 import type { FC } from "react";
@@ -16,7 +16,7 @@ import MobileNotSupportedModal from "../MobileNotSupportedModal/MobileNotSupport
 
 const Main: FC = () => {
 	const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
-	const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
+	// const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
 
 	// useEffect(() => {
 	//   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -44,7 +44,7 @@ const Main: FC = () => {
 					window.localStorage.setItem("agreed", "true");
 				}}
 			/>
-			<MobileNotSupportedModal open={showMobileModal} />
+			<MobileNotSupportedModal open={false} />
 
 			<LeftToolbar />
 

@@ -19,10 +19,12 @@ async function render(pageContext: PageContextClient) {
 	// See https://redux.js.org/usage/server-rendering#the-client-side
 	// for how to pass the initial Redux state from the server to the client.
 	// For more information about how window.__PRELOADED_STATE__ is set, see _default.page.server.tsx
+	// eslint-disable-next-line
 	// @ts-ignore
 	const store = createStore(window.__PRELOADED_STATE__);
 
 	// To be garbage collected
+	// eslint-disable-next-line
 	// @ts-ignore
 	delete window.__PRELOADED_STATE__;
 

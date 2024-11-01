@@ -13,8 +13,6 @@ import type {
 const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 	width,
 	height,
-	// xPosition,
-	// yPosition,
 	getActiveLayer,
 	...rest
 }) => {

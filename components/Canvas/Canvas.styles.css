@@ -23,21 +23,8 @@
 	opacity: 1;
 }
 
-.canvas.active.move {
-	background-color: white;
-	opacity: 1;
-}
-
-/* .canvas.move:not(:has(.canvas.hidden)) ~ #background-canvas {
-  opacity: 0.1;
-} */
-
-/* .canvas.hidden.move + #background-canvas {
-  opacity: 1 !important;
-} */
-
 .canvas.move {
-	opacity: 0;
+	cursor: inherit;
 }
 
 .canvas.selection {
@@ -52,11 +39,4 @@
 
 .canvas.zoom_out {
 	cursor: zoom-out;
-}
-
-#clear-btn {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	z-index: 100;
 }
