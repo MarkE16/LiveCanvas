@@ -21,23 +21,31 @@ const CanvasPane: FC = () => {
 		(prev, next) => prev === next
 	);
 	const dispatch = useAppDispatch();
-	const isMoving = useRef<boolean>(false);
+	const shiftKey = useRef<boolean>(false);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
+	const canMove = mode === "move" || shiftKey.current;
 
+	// Effect is getting ugly... Might be a good idea to split
+	// this into multiple effects.
 	useEffect(() => {
 		const canvasSpace = canvasSpaceRef.current;
-		if (!canvasSpace || mode !== "move") return;
+		if (!canvasSpace) return;
 
 		function handleMouseDown(e: MouseEvent) {
+			if (e.button !== 0) return;
 			clientPosition.current = { x: e.clientX, y: e.clientY };
-			isMoving.current = true;
 			setIsGrabbing(true);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1 || !isMoving.current) return;
+			if (
+				e.buttons !== 1 ||
+				(mode !== "move" && !shiftKey.current) ||
+				!isGrabbing
+			)
+				return;
 
 			const dx = e.clientX - clientPosition.current.x;
 			const dy = e.clientY - clientPosition.current.y;
@@ -51,8 +59,19 @@ const CanvasPane: FC = () => {
 
 		function handleMouseUp() {
 			clientPosition.current = { x: 0, y: 0 };
-			isMoving.current = false;
 			setIsGrabbing(false);
+		}
+
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key === "Shift") {
+				shiftKey.current = true;
+			}
+		}
+
+		function handleKeyUp(e: KeyboardEvent) {
+			if (e.key === "Shift") {
+				shiftKey.current = false;
+			}
 		}
 
 		canvasSpace.addEventListener("mousedown", handleMouseDown);
@@ -63,24 +82,22 @@ const CanvasPane: FC = () => {
 		// We consider this to be the same as releasing the mouse inside the canvas space.
 		canvasSpace.addEventListener("mouseleave", handleMouseUp);
 
+		// Handle shift key press
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+
 		return () => {
 			canvasSpace.removeEventListener("mousedown", handleMouseDown);
 			canvasSpace.removeEventListener("mousemove", handleMouseMove);
 			canvasSpace.removeEventListener("mouseup", handleMouseUp);
 			canvasSpace.removeEventListener("mouseleave", handleMouseUp);
+
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
 		};
-	}, [dispatch, mode]);
+	}, [dispatch, mode, isGrabbing]);
 
 	const resetPosition = () => dispatch(setPosition({ x: 0, y: 0 }));
-
-	const ResetPositionButton = () => (
-		<button
-			style={{ position: "absolute", bottom: 10, left: 10 }}
-			onClick={resetPosition}
-		>
-			Reset Position
-		</button>
-	);
 
 	return (
 		<div id="canvas-pane">
@@ -89,13 +106,18 @@ const CanvasPane: FC = () => {
 			<div
 				id="canvas-container"
 				ref={canvasSpaceRef}
-				data-moving={mode === "move"}
-				data-grabbing={isGrabbing}
+				data-moving={canMove}
+				data-grabbing={canMove && isGrabbing}
 			>
 				<Canvas />
 			</div>
 
-			<ResetPositionButton />
+			<button
+				style={{ position: "absolute", bottom: 10, left: 10 }}
+				onClick={resetPosition}
+			>
+				Reset Position
+			</button>
 		</div>
 	);
 };
