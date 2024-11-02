@@ -11,7 +11,6 @@ import "./Navbar.styles.css";
 
 // Components
 import ExportCanvasButton from "../ExportCanvasButton/ExportCanvasButton";
-import { Link } from "../../renderer/Link";
 
 const Navbar: FC = () => {
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -36,7 +35,6 @@ const Navbar: FC = () => {
 						/>
 					</div>
 					<div id="navbar-links">
-						<Link href="/">Home</Link>
 						<button onClick={openSnackbar}>File</button>
 						<button onClick={openSnackbar}>Edit</button>
 						<button onClick={openSnackbar}>View</button>

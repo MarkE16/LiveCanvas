@@ -2,7 +2,7 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useRef, useEffect, useState } from "react";
 
-import { setPosition } from "../../state/slices/canvasSlice";
+import { changeX, changeY, setPosition } from "../../state/slices/canvasSlice";
 
 // Components
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
@@ -16,15 +16,12 @@ import type { Coordinates } from "../../types";
 import "./CanvasPane.styles.css";
 
 const CanvasPane: FC = () => {
-	const { position } = useAppSelector(
-		(state) => state.canvas,
-		(prev, next) => Object.is(prev.position, next.position)
-	);
 	const mode = useAppSelector(
 		(state) => state.canvas.mode,
 		(prev, next) => prev === next
 	);
 	const dispatch = useAppDispatch();
+	const isMoving = useRef<boolean>(false);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
@@ -35,23 +32,26 @@ const CanvasPane: FC = () => {
 
 		function handleMouseDown(e: MouseEvent) {
 			clientPosition.current = { x: e.clientX, y: e.clientY };
+			isMoving.current = true;
 			setIsGrabbing(true);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1) return;
+			if (e.buttons !== 1 || !isMoving.current) return;
 
 			const dx = e.clientX - clientPosition.current.x;
 			const dy = e.clientY - clientPosition.current.y;
 
 			// Update the canvas position in the Redux state
-			dispatch(setPosition({ x: position.x + dx, y: position.y + dy }));
+			dispatch(changeX(dx));
+			dispatch(changeY(dy));
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
 		function handleMouseUp() {
 			clientPosition.current = { x: 0, y: 0 };
+			isMoving.current = false;
 			setIsGrabbing(false);
 		}
 
@@ -59,24 +59,43 @@ const CanvasPane: FC = () => {
 		canvasSpace.addEventListener("mousemove", handleMouseMove);
 		canvasSpace.addEventListener("mouseup", handleMouseUp);
 
+		// Handle the case where the user moves the mouse outside the canvas space.
+		// We consider this to be the same as releasing the mouse inside the canvas space.
+		canvasSpace.addEventListener("mouseleave", handleMouseUp);
+
 		return () => {
 			canvasSpace.removeEventListener("mousedown", handleMouseDown);
 			canvasSpace.removeEventListener("mousemove", handleMouseMove);
 			canvasSpace.removeEventListener("mouseup", handleMouseUp);
+			canvasSpace.removeEventListener("mouseleave", handleMouseUp);
 		};
-	}, [dispatch, position.x, position.y, mode]);
+	}, [dispatch, mode]);
+
+	const resetPosition = () => dispatch(setPosition({ x: 0, y: 0 }));
+
+	const ResetPositionButton = () => (
+		<button
+			style={{ position: "absolute", bottom: 10, left: 10 }}
+			onClick={resetPosition}
+		>
+			Reset Position
+		</button>
+	);
 
 	return (
-		<div
-			id="canvas-pane"
-			ref={canvasSpaceRef}
-			data-moving={mode === "move"}
-			data-grabbing={isGrabbing}
-		>
+		<div id="canvas-pane">
 			<DrawingToolbar />
-			<div id="canvas-container">
+
+			<div
+				id="canvas-container"
+				ref={canvasSpaceRef}
+				data-moving={mode === "move"}
+				data-grabbing={isGrabbing}
+			>
 				<Canvas />
 			</div>
+
+			<ResetPositionButton />
 		</div>
 	);
 };

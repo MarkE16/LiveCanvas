@@ -7,11 +7,11 @@
 	width: 100%;
 }
 
-#canvas-pane[data-moving="true"] {
+#canvas-container[data-moving="true"] {
 	cursor: grab;
 }
 
-#canvas-pane[data-grabbing="true"] {
+#canvas-container[data-grabbing="true"] {
 	cursor: grabbing;
 }
 

@@ -154,6 +154,12 @@ const canvasSlice = createSlice({
 		},
 		setPosition: (state, action: PayloadAction<Partial<Coordinates>>) => {
 			state.position = { ...state.position, ...action.payload };
+		},
+		changeX: (state, action: PayloadAction<number>) => {
+			state.position.x += action.payload;
+		},
+		changeY: (state, action: PayloadAction<number>) => {
+			state.position.y += action.payload;
 		}
 	}
 });
@@ -175,7 +181,9 @@ export const {
 	toggleVisibility,
 	increaseScale,
 	decreaseScale,
-	setPosition
+	setPosition,
+	changeX,
+	changeY
 } = canvasSlice.actions;
 
 export default canvasSlice.reducer;
