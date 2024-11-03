@@ -1,0 +1,27 @@
+#canvas-pane {
+	display: flex;
+	position: relative;
+	justify-content: center;
+	align-items: center;
+	flex: 3;
+	width: 100%;
+}
+
+#canvas-container[data-moving="true"] {
+	cursor: grab;
+}
+
+#canvas-container[data-grabbing="true"] {
+	cursor: grabbing;
+}
+
+#canvas-container {
+	display: flex;
+	justify-content: center;
+	position: relative;
+	align-items: center;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	/* border: 1px solid #000000; */
+}
