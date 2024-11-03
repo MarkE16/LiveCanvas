@@ -9,18 +9,19 @@ import { Fragment } from "react";
 import {
 	changeShape,
 	changeDrawStrength,
-	changeEraserStrength
+	changeEraserStrength,
+	changeColor
 } from "../../state/slices/canvasSlice";
 
 // Type
-import type { FC } from "react";
+import type { FC, ChangeEvent } from "react";
 import type { Shape } from "../../types";
 
 // Styles
 import "./DrawingToolbar.styles.css";
 
 const DrawingToolbar: FC = () => {
-	const { drawStrength, eraserStrength, mode, shape } = useAppSelector(
+	const { drawStrength, eraserStrength, mode, shape, color } = useAppSelector(
 		(state) => state.canvas
 	);
 	const dispatch = useAppDispatch();
@@ -52,6 +53,17 @@ const DrawingToolbar: FC = () => {
 		dispatch(changeShape(shape));
 	};
 
+	// Looks ugly. Might need to refactor
+	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+
+		const currentColorAsArray = color.slice(5, -1).split(",");
+
+		const newColor = `hsla(${currentColorAsArray[0]}, ${currentColorAsArray[1]}, ${currentColorAsArray[2]}, ${value})`;
+
+		dispatch(changeColor(newColor));
+	};
+
 	const renderedShapes = SHAPES.map((s) => {
 		const { icon, name } = s;
 
@@ -76,24 +88,61 @@ const DrawingToolbar: FC = () => {
 		);
 	});
 
+	const renderedStrength = (
+		<>
+			Strength:{" "}
+			<input
+				name={`${mode}_strength`.toUpperCase()}
+				type="range"
+				min={strengthSettings.min}
+				max={strengthSettings.max}
+				step="1"
+				value={strengthSettings.value}
+				onChange={handleStrengthChange}
+			/>
+			<label>{strengthSettings.value}</label>
+		</>
+	);
+
+	const renderedBrush = (
+		<>
+			<i className="fa fa-paint-brush"></i>
+			<input
+				type="range"
+				id="brush-size"
+				defaultValue={1}
+				min={0.01}
+				max={1}
+				step={0.01}
+				onChange={onBrushChange}
+			/>
+		</>
+	);
+
+	const additionalSettings = [
+		renderedStrength,
+		mode === "draw" ? renderedBrush : null
+	].filter(Boolean);
+
+	// Now insert a break between each setting.
+	additionalSettings.forEach((setting, index) => {
+		if (index % 2 !== 0) {
+			additionalSettings.splice(
+				index,
+				0,
+				<span
+					style={{ margin: "0 15px", border: "1px solid gray", height: "100%" }}
+				/>
+			);
+		}
+	});
+
 	return (
 		<div id="drawing-toolbar">
 			{mode === "shapes" ? (
-				<div id="shapes">{renderedShapes}</div>
+				renderedShapes
 			) : mode === "draw" || mode === "erase" ? (
-				<div id="additional-settings">
-					Strength:{" "}
-					<input
-						name={`${mode}_strength`.toUpperCase()}
-						type="range"
-						min={strengthSettings.min}
-						max={strengthSettings.max}
-						step="1"
-						value={strengthSettings.value}
-						onChange={handleStrengthChange}
-					/>
-					<label>{strengthSettings.value}</label>
-				</div>
+				additionalSettings
 			) : (
 				<span id="draw-toolbar-no-actions">
 					Choose a different tool for actions.

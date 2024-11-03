@@ -27,16 +27,10 @@ Next, install all the required packages (see [prerequisites](https://github.com/
 $ pnpm install
 ```
 
-Almost done! All that's left now is to run the client and the WebSocket server. To start up the client:
+Almost done! All that's left now is to run the project. To start up the project:
 
 ```bash
 $ pnpm run dev
-```
-
-Finally, open another terminal and navigate to `./src/server`. From there, run the following to start up the WebSocket server:
-
-```bash
-$ node server.js
 ```
 
 You're all set!

@@ -20,9 +20,10 @@
 
 body {
 	min-height: 100vh;
-	overflow: hidden;
+	/* overflow: hidden; */
 }
-/* 
+
+/*
 a {
   font-weight: 500;
   color: #646cff;

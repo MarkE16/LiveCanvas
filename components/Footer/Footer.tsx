@@ -1,6 +1,6 @@
 // Lib
-import logo from "../../assets/logo.jpg";
-import { useState, useEffect } from "react";
+import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
+import { useState } from "react";
 import Skeleton from "@mui/material/Skeleton";
 
 // Types
@@ -10,7 +10,7 @@ import type { FC } from "react";
 import "./Footer.styles.css";
 
 const Footer: FC = () => {
-	const [VERSION, setVERSION] = useState<string | null>(() => "hello");
+	const [VERSION] = useState<string | null>("v1.0.0");
 
 	const MAINTAINER_URL = "https://github.com/MarkE16";
 	const REPO_URL = MAINTAINER_URL + "/LiveCanvas";
@@ -32,6 +32,7 @@ const Footer: FC = () => {
 
 	return (
 		<footer id="footer-container">
+			<hr />
 			<img
 				id="footer-logo"
 				src={logo}
@@ -47,7 +48,6 @@ const Footer: FC = () => {
 					/>
 				)}
 			</span>
-			<hr />
 			<span id="footer-text">
 				Made with ❤️ by{" "}
 				<a

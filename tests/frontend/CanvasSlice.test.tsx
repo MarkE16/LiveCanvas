@@ -10,7 +10,10 @@ import reducer, {
 	createLayer,
 	removeLayer,
 	increaseScale,
-	decreaseScale
+	decreaseScale,
+	setPosition,
+	changeX,
+	changeY
 } from "../../state/slices/canvasSlice";
 
 import type { Mode, Shape } from "../../types";
@@ -321,5 +324,47 @@ describe("Test scale", () => {
 		const state2 = reducer(tempMockState, decreaseScale());
 
 		expect(state2.scale).toBe(0.1);
+	});
+});
+
+describe("Test position", () => {
+	it("should return the initial position", () => {
+		const state = reducer(undefined, { type: "unknown" });
+
+		expect(state.position).toEqual({ x: 0, y: 0 });
+	});
+
+	it("should update the position", () => {
+		const state = reducer(undefined, setPosition({ x: 10, y: 10 }));
+
+		expect(state.position).toEqual({ x: 10, y: 10 });
+	});
+
+	describe("Test changing X position", () => {
+		it("should increase the X position by 5", () => {
+			const state = reducer(undefined, changeX(5));
+
+			expect(state.position).toEqual({ x: 5, y: 0 });
+		});
+
+		it("should decrease the X position by 5", () => {
+			const state = reducer(undefined, changeX(-5));
+
+			expect(state.position).toEqual({ x: -5, y: 0 });
+		});
+	});
+
+	describe("Test changing Y position", () => {
+		it("should increase the Y position by 5", () => {
+			const state = reducer(undefined, changeY(5));
+
+			expect(state.position).toEqual({ x: 0, y: 5 });
+		});
+
+		it("should decrease the Y position by 5", () => {
+			const state = reducer(undefined, changeY(-5));
+
+			expect(state.position).toEqual({ x: 0, y: -5 });
+		});
 	});
 });

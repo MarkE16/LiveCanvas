@@ -1,17 +1,15 @@
 // Lib
-import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
-import useHistory from "../../state/hooks/useHistory";
+import { useAppSelector } from "../../state/hooks/reduxHooks";
+// import useHistory from "../../state/hooks/useHistory";
 import useIndexed from "../../state/hooks/useIndexed";
-import { memo, useRef, forwardRef, useEffect } from "react";
+import { useRef, forwardRef } from "react";
 import * as UTILS from "../../utils";
 
 // Types
 import type {
-	Dispatch,
 	HTMLAttributes,
 	MouseEventHandler,
 	Ref,
-	SetStateAction,
 	RefAttributes,
 	MouseEvent
 } from "react";
@@ -25,9 +23,7 @@ type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> &
 		layerHidden?: boolean;
 		layerRef: HTMLCanvasElement | undefined;
 		layerIndex?: number; // z-index essentially.
-		xPosition: number;
-		yPosition: number;
-		setCanvasPosition: Dispatch<SetStateAction<{ x: number; y: number }>>;
+		isGrabbing: boolean;
 	};
 
 const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
@@ -39,9 +35,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			layerHidden = false,
 			layerRef,
 			layerIndex,
-			// xPosition,
-			// yPosition,
-			setCanvasPosition,
+			isGrabbing,
 			...rest
 		},
 		ref: Ref<HTMLCanvasElement>
@@ -55,12 +49,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			show_all: showall,
 			position: { x: xPosition, y: yPosition }
 		} = useAppSelector((state) => state.canvas);
-		const dispatch = useAppDispatch();
-		const history = useHistory();
+		// const history = useHistory();
 		const { set } = useIndexed();
 
 		const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
-		const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 		const isDrawing = useRef<boolean>(false);
 		const currentPath = useRef<Coordinates[]>([]);
 
@@ -88,27 +80,14 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			// })
 		};
 
-		const getCurrentTransformPosition = (): Coordinates | undefined => {
-			const transformRegex =
-				/translate\(\s*(-?\d+(\.\d+)?)px,\s*(-?\d+(\.\d+)?)px\)/;
-
-			if (!layerRef) return undefined;
-
-			const match = layerRef.style.transform.match(transformRegex);
-
-			if (!match) return undefined;
-
-			const [, tx, , ty] = match;
-
-			// The `+` operator converts the string to a number.
-			return { x: +tx, y: +ty };
-		};
-
 		// Handler for when the mouse is pressed down on the canvas.
 		// This should initiate the drawing process.
 		const onMouseDown: MouseEventHandler<HTMLCanvasElement> = (
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
+			if (isGrabbing) {
+				return;
+			}
 			isDrawing.current = true;
 
 			const ctx = layerRef!.getContext("2d");
@@ -123,7 +102,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 			// Save the starting point of the drawing.
 			drawStartingPoint.current = { x, y };
-			clientPosition.current = { x: e.clientX, y: e.clientY };
 
 			// Save the current path.
 			currentPath.current.push({ x, y });
@@ -137,7 +115,9 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
 			// If the left mouse button is not pressed, then we should not draw.
-			if (e.buttons !== 1 || layerHidden) {
+			// If the layer is hidden, we should not draw.
+			// If the user is grabbing the canvas (for moving), we should not draw.
+			if (e.buttons !== 1 || layerHidden || isGrabbing) {
 				return;
 			}
 
@@ -173,53 +153,33 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 					break;
 				}
 
-				case "move": {
-					// Move the canvas.
-					const { x, y } = UTILS.getCanvasPointerPosition(e, layerRef!)!;
-
-					// const dx = e.clientX - clientPosition.current.x;
-					// const dy = e.clientY - clientPosition.current.y;
-					const dx = x - clientPosition.current.x;
-					const dy = y - clientPosition.current.y;
-
-					// layerRef!.style.transform = `translate(${xPosition + dx}px, ${yPosition + dy}px) scale(${scale})`;
-					dispatch({
-						type: "SET_POSITION",
-						payload: { x: xPosition + dx, y: yPosition + dy }
-					});
-					break;
-				}
-
 				default: {
 					break;
 				}
 			}
 		};
 
-		const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
+		const onMouseUp = () => {
+			if (isGrabbing) return;
 			isDrawing.current = false;
 
 			const ctx = layerRef!.getContext("2d");
-
-			const { x, y } = getCurrentTransformPosition()!;
 
 			if (mode === "draw" || mode === "erase") {
 				ctx!.closePath();
 
 				// Save the action to the history.
-				history.addHistory({
-					mode: mode as "draw" | "erase" | "shapes",
-					path: currentPath.current,
-					layerId: layerRef!.id,
-					color,
-					drawStrength
-				});
+				// history.addHistory({
+				// 	mode: mode as "draw" | "erase" | "shapes",
+				// 	path: currentPath.current,
+				// 	layerId: layerRef!.id,
+				// 	color,
+				// 	drawStrength
+				// });
 
 				// Clear the current path.
 				currentPath.current = [];
 			}
-
-			dispatch({ type: "SET_POSITION", payload: { x, y } });
 
 			emitLayerState();
 		};
@@ -234,10 +194,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 		const onMouseLeave = () => {
 			isDrawing.current = false;
-
-			const { x, y } = getCurrentTransformPosition()!;
-
-			dispatch({ type: "SET_POSITION", payload: { x, y } });
 		};
 
 		//   useEffect(() => {
@@ -313,6 +269,4 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 	}
 );
 
-const MemoizedCanvasLayer = memo(CanvasLayer);
-
-export default MemoizedCanvasLayer as typeof CanvasLayer;
+export default CanvasLayer;

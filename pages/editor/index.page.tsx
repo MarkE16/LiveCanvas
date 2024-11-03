@@ -3,6 +3,14 @@ import { useEffect } from "react";
 import { MODES } from "../../state/store";
 import { useAppDispatch } from "../../state/hooks/reduxHooks";
 
+// Redux Actions
+import {
+	changeMode,
+	increaseScale,
+	decreaseScale
+} from "../../state/slices/canvasSlice";
+import { undo, redo } from "../../state/slices/historySlice";
+
 // Components
 import Navbar from "../../components/Navbar/Navbar";
 import Main from "../../components/Main/Main";
@@ -33,11 +41,11 @@ function Page() {
 			if (mode) {
 				e.preventDefault();
 				if (mode.name === "undo") {
-					dispatch({ type: "UNDO" });
+					dispatch(undo());
 				} else if (mode.name === "redo") {
-					dispatch({ type: "REDO" });
+					dispatch(redo());
 				} else {
-					dispatch({ type: "SET_MODE", payload: mode.name });
+					dispatch(changeMode(mode.name));
 				}
 			}
 		}
@@ -47,9 +55,9 @@ function Page() {
 				if (!e.shiftKey) return;
 
 				if (e.deltaY > 0) {
-					dispatch({ type: "DECREASE_SCALE" });
+					dispatch(increaseScale());
 				} else {
-					dispatch({ type: "INCREASE_SCALE" });
+					dispatch(decreaseScale());
 				}
 
 				// On click.

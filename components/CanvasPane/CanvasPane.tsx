@@ -26,6 +26,7 @@ const CanvasPane: FC = () => {
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const canMove = mode === "move" || shiftKey.current;
+	const isMoving = canMove && isGrabbing;
 
 	// Effect is getting ugly... Might be a good idea to split
 	// this into multiple effects.
@@ -101,7 +102,7 @@ const CanvasPane: FC = () => {
 				data-moving={canMove}
 				data-grabbing={canMove && isGrabbing}
 			>
-				<Canvas />
+				<Canvas isGrabbing={isMoving} />
 			</div>
 		</div>
 	);

@@ -2,6 +2,7 @@ import type { PropsWithChildren, ReactNode } from "react";
 import type { RenderOptions, RenderResult } from "@testing-library/react";
 import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
+import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
 
 //!! See https://redux.js.org/usage/writing-tests#setting-up-a-reusable-test-render-function
 //!! for more information on how to set up a Redux store for testing.
@@ -23,7 +24,9 @@ export function renderWithProviders(
 	}: ExtendedRenderOptions = {}
 ): RenderResult {
 	const Wrapper = ({ children }: PropsWithChildren) => (
-		<Provider store={store}>{children}</Provider>
+		<IndexedDBProvider>
+			<Provider store={store}>{children}</Provider>
+		</IndexedDBProvider>
 	);
 
 	return render(ui, { wrapper: Wrapper, ...renderOptions });

@@ -17,7 +17,11 @@ import "./Canvas.styles.css";
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
 import SelectionCanvasLayer from "../SelectionCanvasLayer/SelectionCanvasLayer";
 
-const Canvas: FC = () => {
+type CanvasProps = {
+	isGrabbing: boolean;
+};
+
+const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	const state = useAppSelector((state) => state.canvas);
 	const dispatch = useAppDispatch();
 	const { width, height, mode, layers } = state;
@@ -60,7 +64,7 @@ const Canvas: FC = () => {
 				const newLayers: Layer[] = [];
 
 				entries.forEach((entry, i) => {
-					const [layerId, _] = entry;
+					const [layerId] = entry;
 
 					newLayers.push({
 						name: `Layer ${i + 1}`,
@@ -83,7 +87,7 @@ const Canvas: FC = () => {
 
 		function updateLayerContents(entries: [string, Blob][]) {
 			entries.forEach((entry, i) => {
-				const [_, blob] = entry;
+				const [, blob] = entry;
 				const canvas = refsOfLayers.current[i];
 
 				if (!canvas) return;
@@ -116,32 +120,31 @@ const Canvas: FC = () => {
 					width={width}
 					height={height}
 					getActiveLayer={getLayer}
-					// xPosition={canvasPosition.x}
-					// yPosition={canvasPosition.y}
 				/>
 			)}
 
 			{/* The main canvas. */}
-			{layers.toReversed().map((layer, i) => {
-				return (
-					<CanvasLayer
-						key={layer.id}
-						id={layer.id}
-						width={width}
-						ref={(element: HTMLCanvasElement) =>
-							(refsOfLayers.current[i] = element)
-						}
-						height={height}
-						active={layer.active}
-						layerHidden={layer.hidden}
-						layerRef={refsOfLayers.current[i]}
-						layerIndex={layer.active ? layers.length + 1 : i + 1}
-						// xPosition={canvasPosition.x}
-						// yPosition={canvasPosition.y}
-						// setCanvasPosition={setCanvasPosition}
-					/>
-				);
-			})}
+			{layers
+				.slice()
+				.reverse()
+				.map((layer, i) => {
+					return (
+						<CanvasLayer
+							key={layer.id}
+							id={layer.id}
+							width={width}
+							ref={(element: HTMLCanvasElement) =>
+								(refsOfLayers.current[i] = element)
+							}
+							height={height}
+							active={layer.active}
+							layerHidden={layer.hidden}
+							layerRef={refsOfLayers.current[i]}
+							layerIndex={layer.active ? layers.length + 1 : i + 1}
+							isGrabbing={isGrabbing}
+						/>
+					);
+				})}
 
 			<CanvasLayer
 				id="background-canvas"
@@ -151,9 +154,7 @@ const Canvas: FC = () => {
 				active={false}
 				layerIndex={0}
 				layerRef={backgroundCanvasRef.current!}
-				// setCanvasPosition={setCanvasPosition}
-				// xPosition={canvasPosition.x}
-				// yPosition={canvasPosition.y}
+				isGrabbing={isGrabbing}
 			/>
 		</>
 	);

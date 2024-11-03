@@ -142,7 +142,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					placeholder={name}
 					value={editedName}
 					onChange={(e) => {
-						e.preventDefault();
+						e.nativeEvent.stopImmediatePropagation();
 						e.stopPropagation();
 
 						setEditedName(e.target.value);
