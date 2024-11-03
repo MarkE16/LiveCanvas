@@ -2,7 +2,7 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useRef, useEffect, useState } from "react";
 
-import { changeX, changeY, setPosition } from "../../state/slices/canvasSlice";
+import { changeX, changeY } from "../../state/slices/canvasSlice";
 
 // Components
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
@@ -62,15 +62,9 @@ const CanvasPane: FC = () => {
 			setIsGrabbing(false);
 		}
 
-		function handleKeyDown(e: KeyboardEvent) {
+		function handleShifyKeyChange(e: KeyboardEvent) {
 			if (e.key === "Shift") {
-				shiftKey.current = true;
-			}
-		}
-
-		function handleKeyUp(e: KeyboardEvent) {
-			if (e.key === "Shift") {
-				shiftKey.current = false;
+				shiftKey.current = e.type === "keydown";
 			}
 		}
 
@@ -83,8 +77,8 @@ const CanvasPane: FC = () => {
 		canvasSpace.addEventListener("mouseleave", handleMouseUp);
 
 		// Handle shift key press
-		window.addEventListener("keydown", handleKeyDown);
-		window.addEventListener("keyup", handleKeyUp);
+		window.addEventListener("keydown", handleShifyKeyChange);
+		window.addEventListener("keyup", handleShifyKeyChange);
 
 		return () => {
 			canvasSpace.removeEventListener("mousedown", handleMouseDown);
@@ -92,12 +86,10 @@ const CanvasPane: FC = () => {
 			canvasSpace.removeEventListener("mouseup", handleMouseUp);
 			canvasSpace.removeEventListener("mouseleave", handleMouseUp);
 
-			window.removeEventListener("keydown", handleKeyDown);
-			window.removeEventListener("keyup", handleKeyUp);
+			window.removeEventListener("keydown", handleShifyKeyChange);
+			window.removeEventListener("keyup", handleShifyKeyChange);
 		};
 	}, [dispatch, mode, isGrabbing]);
-
-	const resetPosition = () => dispatch(setPosition({ x: 0, y: 0 }));
 
 	return (
 		<div id="canvas-pane">
@@ -111,13 +103,6 @@ const CanvasPane: FC = () => {
 			>
 				<Canvas />
 			</div>
-
-			<button
-				style={{ position: "absolute", bottom: 10, left: 10 }}
-				onClick={resetPosition}
-			>
-				Reset Position
-			</button>
 		</div>
 	);
 };

@@ -1,12 +1,12 @@
 // Lib
-import { useCallback, memo } from "react";
+import { memo } from "react";
 import * as UTILS from "../../utils";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { MODES } from "../../state/store";
 import { Tooltip } from "@mui/material";
 
 // Redux Actions
-import { changeMode } from "../../state/slices/canvasSlice";
+import { changeMode, setPosition } from "../../state/slices/canvasSlice";
 
 // Types
 import type { Mode } from "../../types";
@@ -79,8 +79,28 @@ const LeftToolbar: FC = () => {
 			/>
 		);
 	});
+	const dispatch = useAppDispatch();
 
-	return <aside id="left-toolbar-container">{renderedModes}</aside>;
+	return (
+		<aside id="left-toolbar-container">
+			<div>{renderedModes}</div>
+			<div>
+				{/* Temporary. This may be moved somewhere else, or not implemented at all. */}
+				<Tooltip
+					title="Reset Position"
+					arrow
+					placement="right"
+				>
+					<button
+						className="toolbar-option"
+						onClick={() => dispatch(setPosition({ x: 0, y: 0 }))}
+					>
+						<i className="fas fa-sync" />
+					</button>
+				</Tooltip>
+			</div>
+		</aside>
+	);
 };
 
 export default LeftToolbar;
