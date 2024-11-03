@@ -141,10 +141,13 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					type="text"
 					placeholder={name}
 					value={editedName}
+					/**
+					We add this keydown event so that we prevent the keydown event attached on the
+					window object from firing (for listening to keyboard shortcuts related to tools)
+					when we are editing the layer name.
+				  */
+					onKeyDown={(e) => e.stopPropagation()}
 					onChange={(e) => {
-						e.nativeEvent.stopImmediatePropagation();
-						e.stopPropagation();
-
 						setEditedName(e.target.value);
 					}}
 					onBlur={onRename}
