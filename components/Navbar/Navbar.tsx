@@ -11,6 +11,7 @@ import "./Navbar.styles.css";
 
 // Components
 import ExportCanvasButton from "../ExportCanvasButton/ExportCanvasButton";
+import SaveCanvasButton from "../SaveCanvasButton/SaveCanvasButton";
 
 const Navbar: FC = () => {
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -43,6 +44,7 @@ const Navbar: FC = () => {
 					</div>
 				</section>
 				<section id="navbar-buttons-section">
+					<SaveCanvasButton />
 					<ExportCanvasButton />
 				</section>
 			</nav>

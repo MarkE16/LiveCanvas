@@ -26,6 +26,8 @@ function Page() {
 	const dispatch = useAppDispatch();
 
 	// Add keyboard listeners for each mode.
+	// TODO: Move this effect somewhere else (ideally in the ToolbarButton component) to
+	// clean up this component.
 	useEffect(() => {
 		function listenToKeyboard(e: KeyboardEvent) {
 			let shortcut = "";
@@ -74,7 +76,6 @@ function Page() {
 		};
 	}, [dispatch]);
 
-	// Open the database of IndexedDB.
 	useEffect(() => {
 		async function checkStoragePersistency() {
 			if (!navigator.storage || !navigator.storage.persist) return;

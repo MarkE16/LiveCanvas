@@ -1,5 +1,5 @@
 // Lib
-import { useRef, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useIndexed from "../../state/hooks/useIndexed";
 
@@ -16,9 +16,16 @@ import "./Canvas.styles.css";
 // Components
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
 import SelectionCanvasLayer from "../SelectionCanvasLayer/SelectionCanvasLayer";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 type CanvasProps = {
 	isGrabbing: boolean;
+};
+
+type DBLayer = {
+	image: Blob;
+	name: string;
+	position: number;
 };
 
 const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
@@ -26,10 +33,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	const dispatch = useAppDispatch();
 	const { width, height, mode, layers } = state;
 
-	const refsOfLayers = useRef<HTMLCanvasElement[]>(
-		new Array<HTMLCanvasElement>(layers.length)
-	);
-	const backgroundCanvasRef = useRef<HTMLCanvasElement | null>(null);
+	const refsOfLayers = useLayerReferences();
 	const { get } = useIndexed();
 	const isSelecting = mode === "select" || mode === "shapes";
 
@@ -39,35 +43,37 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	 * @param id The ID of the layer to get.
 	 * @returns The layer with the specified ID, or the active layer.
 	 */
-	const getLayer = useCallback((id?: string) => {
-		if (id) {
-			return refsOfLayers.current.find((ref) => ref.id === id);
-		}
+	const getLayer = useCallback(
+		(id?: string) => {
+			if (id) {
+				return refsOfLayers.find((ref) => ref.id === id);
+			}
 
-		return refsOfLayers.current.find((ref) => ref.classList.contains("active"));
-	}, []);
+			return refsOfLayers.find((ref) => ref.classList.contains("active"));
+		},
+		[refsOfLayers]
+	);
 
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
 		async function updateLayers() {
-			// const entries = await getAllEntries("layers");
-			const entries = await get<[string, Blob][]>("layers", {
-				asEntries: true
-			});
+			const entries = await get<[string, DBLayer][]>("layers");
 
-			await updateLayerState(entries);
-			updateLayerContents(entries);
+			const newEntries = await updateLayerState(entries);
+			updateLayerContents(newEntries);
 		}
 
-		function updateLayerState(entries: [string, Blob][]) {
-			return new Promise<void>((resolve) => {
+		function updateLayerState(entries: [string, DBLayer][]) {
+			return new Promise<[string, DBLayer][]>((resolve) => {
 				const newLayers: Layer[] = [];
 
-				entries.forEach((entry, i) => {
-					const [layerId] = entry;
+				const sorted = entries.sort((a, b) => b[1].position - a[1].position); // Sort by position, where the highest position is the top layer.
+
+				sorted.forEach((entry) => {
+					const [layerId, layer] = entry;
 
 					newLayers.push({
-						name: `Layer ${i + 1}`,
+						name: layer.name,
 						id: layerId,
 						active: false,
 						hidden: false
@@ -81,14 +87,14 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 				newLayers[0].active = true;
 				dispatch(setLayers(newLayers));
 
-				resolve();
+				resolve(sorted);
 			});
 		}
 
-		function updateLayerContents(entries: [string, Blob][]) {
-			entries.forEach((entry, i) => {
-				const [, blob] = entry;
-				const canvas = refsOfLayers.current[i];
+		function updateLayerContents(entries: [string, DBLayer][]) {
+			entries.forEach((entry) => {
+				const [, layer] = entry;
+				const canvas = refsOfLayers[layer.position];
 
 				if (!canvas) return;
 
@@ -100,12 +106,12 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					URL.revokeObjectURL(img.src);
 				};
 
-				img.src = URL.createObjectURL(blob);
+				img.src = URL.createObjectURL(layer.image);
 			});
 		}
 
 		updateLayers();
-	}, [dispatch, get]);
+	}, [dispatch, get, refsOfLayers]);
 
 	return (
 		<>
@@ -133,27 +139,27 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 							key={layer.id}
 							id={layer.id}
 							width={width}
-							ref={(element: HTMLCanvasElement) =>
-								(refsOfLayers.current[i] = element)
-							}
+							ref={(element: HTMLCanvasElement) => (refsOfLayers[i] = element)}
+							name={layer.name}
 							height={height}
 							active={layer.active}
 							layerHidden={layer.hidden}
-							layerRef={refsOfLayers.current[i]}
-							layerIndex={layer.active ? layers.length + 1 : i + 1}
+							layerRef={refsOfLayers[i]}
+							layerIndex={layer.active ? layers.length : layers.length - i - 1}
 							isGrabbing={isGrabbing}
 						/>
 					);
 				})}
 
+			{/*eslint-disable-next-line*/}
+			{/*@ts-ignore */}
 			<CanvasLayer
 				id="background-canvas"
-				ref={backgroundCanvasRef}
 				width={width}
+				name="Background"
 				height={height}
 				active={false}
 				layerIndex={0}
-				layerRef={backgroundCanvasRef.current!}
 				isGrabbing={isGrabbing}
 			/>
 		</>

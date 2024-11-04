@@ -1,7 +1,6 @@
 // Lib
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 // import useHistory from "../../state/hooks/useHistory";
-import useIndexed from "../../state/hooks/useIndexed";
 import { useRef, forwardRef } from "react";
 import * as UTILS from "../../utils";
 
@@ -17,6 +16,7 @@ import type { Coordinates } from "../../types";
 
 type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> &
 	RefAttributes<HTMLCanvasElement> & {
+		name: string;
 		width: number;
 		height: number;
 		active?: boolean;
@@ -29,6 +29,7 @@ type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> &
 const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 	function CanvasLayer(
 		{
+			name,
 			width,
 			height,
 			active = false,
@@ -50,35 +51,12 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			position: { x: xPosition, y: yPosition }
 		} = useAppSelector((state) => state.canvas);
 		// const history = useHistory();
-		const { set } = useIndexed();
 
 		const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
 		const isDrawing = useRef<boolean>(false);
 		const currentPath = useRef<Coordinates[]>([]);
 
 		const ERASER_RADIUS = 7;
-
-		const emitLayerState = () => {
-			if (!layerRef) {
-				console.error("Can't update layer over socket: Layer does not exist.");
-				return;
-			}
-
-			console.log("Emitting canvas update...");
-
-			layerRef.toBlob((blob) => {
-				if (!blob) return;
-
-				set("layers", layerRef.id, blob);
-			});
-			// dispatch({
-			//   type: "SAVE_ACTION",
-			//   payload: {
-			//     type: "undo",
-			//     base64: base64Buffer
-			//   }
-			// })
-		};
 
 		// Handler for when the mouse is pressed down on the canvas.
 		// This should initiate the drawing process.
@@ -180,8 +158,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				// Clear the current path.
 				currentPath.current = [];
 			}
-
-			emitLayerState();
 		};
 
 		const onMouseEnter: MouseEventHandler<HTMLCanvasElement> = (
@@ -263,6 +239,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				onMouseUp={onMouseUp}
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
+				data-name={name}
+				data-layer-index={layerIndex}
 				{...rest}
 			/>
 		);

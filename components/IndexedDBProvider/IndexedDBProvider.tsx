@@ -4,19 +4,14 @@ import { FC, PropsWithChildren } from "react";
 const STORES = ["layers"];
 const VERSION = 1; // Bump this up when the schema changes.
 
-type GetOptions = {
-	key?: string;
-	asEntries: boolean;
-};
-
 type IndexedUtils = {
 	/**
 	 * Get data from the database.
 	 * @param store The store to get data from.
-	 * @param options Options for the get operation.
+	 * @param key An optional key to get the data under.
 	 * @returns A promise that resolves with the data.
 	 */
-	get: <T>(store: string, options: GetOptions) => Promise<T>;
+	get: <T>(store: string, key?: string) => Promise<T>;
 
 	/**
 	 * Set data in the database.
@@ -26,6 +21,14 @@ type IndexedUtils = {
 	 * @returns A promise that resolves when the data is set.
 	 */
 	set: (store: string, key: string, value: unknown) => Promise<void>;
+
+	/**
+	 * Remove data from the database.
+	 * @param store The store to remove data from.
+	 * @param key The key to remove the data under.
+	 * @returns A promise that resolves when the data is removed.
+	 */
+	remove: (store: string, key: string) => Promise<void>;
 };
 
 export const IndexedDBContext = createContext<IndexedUtils | null>(null);
@@ -69,33 +72,38 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	}, []);
 
 	const get = useCallback(
-		async <T,>(
-			store: string,
-			options: GetOptions = { asEntries: false }
-		): Promise<T> => {
+		async <T,>(store: string, key?: string): Promise<T> => {
 			const db = database.current ?? (await openDatabase());
 
 			return new Promise((resolve, reject) => {
 				const transaction = db.transaction(store, "readonly");
 				const objectStore = transaction.objectStore(store);
 
-				let request: IDBRequest;
+				if (key) {
+					const request = objectStore.get(key);
 
-				if (options.key) {
-					request = objectStore.get(options.key);
-				} else {
-					request = objectStore.getAll();
-				}
-
-				request.onsuccess = () => {
-					if (options.asEntries) {
-						resolve(Object.entries(request.result) as T);
-					} else {
+					request.onsuccess = () => {
 						resolve(request.result);
-					}
-				};
+					};
 
-				request.onerror = () => reject(request.error);
+					request.onerror = () => {
+						reject(request.error);
+					};
+				} else {
+					const entries: [string, unknown][] = [];
+					const request = objectStore.openCursor();
+
+					request.onsuccess = () => {
+						const cursor = request.result;
+						if (cursor) {
+							entries.push([cursor.key, cursor.value] as [string, unknown]);
+							cursor.continue();
+						} else {
+							console.log(entries);
+							resolve(entries as T);
+						}
+					};
+				}
 			});
 		},
 		[openDatabase]
@@ -118,6 +126,23 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 		[openDatabase]
 	);
 
+	const remove = useCallback(
+		async (store: string, key: string) => {
+			const db = database.current ?? (await openDatabase());
+
+			return new Promise<void>((resolve, reject) => {
+				const transaction = db.transaction(store, "readwrite");
+				const objectStore = transaction.objectStore(store);
+
+				const request = objectStore.delete(key);
+
+				request.onsuccess = () => resolve();
+				request.onerror = () => reject(request.error);
+			});
+		},
+		[openDatabase]
+	);
+
 	useEffect(() => {
 		// Check if the browser supports IndexedDB.
 
@@ -131,7 +156,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 		openDatabase();
 	}, [openDatabase]);
 
-	const value = useMemo(() => ({ get, set }), [get, set]);
+	const value = useMemo(() => ({ get, set, remove }), [get, set, remove]);
 
 	return (
 		<IndexedDBContext.Provider value={value}>

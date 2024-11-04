@@ -13,6 +13,7 @@ import {
 	moveLayerUp,
 	renameLayer
 } from "../../state/slices/canvasSlice";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
 import type { FC } from "react";
@@ -35,6 +36,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	const totalLayers = useAppSelector((state) => state.canvas.layers.length);
 	const dispatch = useAppDispatch();
 	const nameRef = useRef<HTMLSpanElement>(null);
+	const { remove } = useIndexed();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =
@@ -63,6 +65,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 			return;
 
 		dispatch(removeLayer(id));
+		remove("layers", id);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {
@@ -109,57 +112,67 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				onChange={onToggle}
 			/>
 			<div className="layer-info-mover">
-				<Tooltip
-					title="Move Up"
-					arrow
-					placement="left"
-				>
-					<button
-						className="layer-up"
-						onClick={() => onMoveLayer("up")}
-						disabled={positionIndex === 0}
+				<div className="layer-move-actions">
+					<Tooltip
+						title="Move Up"
+						arrow
+						placement="left"
 					>
-						<i className="fas fa-angle-up"></i>
-					</button>
-				</Tooltip>
-				<Tooltip
-					title="Move Down"
-					arrow
-					placement="left"
-				>
-					<button
-						className="layer-down"
-						onClick={() => onMoveLayer("down")}
-						disabled={positionIndex === totalLayers - 1}
+						<button
+							className="layer-up"
+							onClick={() => onMoveLayer("up")}
+							disabled={positionIndex === 0}
+						>
+							<i className="fas fa-angle-up"></i>
+						</button>
+					</Tooltip>
+					<Tooltip
+						title="Move Down"
+						arrow
+						placement="left"
 					>
-						<i className="fas fa-angle-down"></i>
-					</button>
-				</Tooltip>
+						<button
+							className="layer-down"
+							onClick={() => onMoveLayer("down")}
+							disabled={positionIndex === totalLayers - 1}
+						>
+							<i className="fas fa-angle-down"></i>
+						</button>
+					</Tooltip>
+				</div>
+				{isEditing ? (
+					<input
+						type="text"
+						placeholder={name}
+						value={editedName}
+						/**
+						We add this keydown event so that we prevent the keydown event attached on the
+						window object from firing (for listening to keyboard shortcuts related to tools)
+						when we are editing the layer name.
+					  */
+						onKeyDown={(e) => {
+							e.stopPropagation();
+
+							if (e.key === "Enter" && isEditing) {
+								onRename();
+							} else if (e.key === "Escape" && isEditing) {
+								setIsEditing(false);
+							}
+						}}
+						onChange={(e) => {
+							setEditedName(e.target.value);
+						}}
+						onBlur={onRename}
+					/>
+				) : (
+					<span
+						className="layer-info-name"
+						ref={nameRef}
+					>
+						{name}
+					</span>
+				)}
 			</div>
-			{isEditing ? (
-				<input
-					type="text"
-					placeholder={name}
-					value={editedName}
-					/**
-					We add this keydown event so that we prevent the keydown event attached on the
-					window object from firing (for listening to keyboard shortcuts related to tools)
-					when we are editing the layer name.
-				  */
-					onKeyDown={(e) => e.stopPropagation()}
-					onChange={(e) => {
-						setEditedName(e.target.value);
-					}}
-					onBlur={onRename}
-				/>
-			) : (
-				<span
-					className="layer-info-name"
-					ref={nameRef}
-				>
-					{name}
-				</span>
-			)}
 			<div className="layer-info-actions">
 				<Tooltip
 					title={editingTooltipText}
