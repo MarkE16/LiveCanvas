@@ -4,6 +4,9 @@ import { UserConfig } from "vite";
 
 const config: UserConfig = {
 	plugins: [react(), ssr()],
+	build: {
+		outDir: "dist"
+	}
 };
 
 export default config;
