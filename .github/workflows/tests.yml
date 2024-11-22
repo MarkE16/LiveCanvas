@@ -1,4 +1,4 @@
-name: CI / Frontend Tests
+name: Tests
 
 # Run tests on every commit on any branch
 on:
