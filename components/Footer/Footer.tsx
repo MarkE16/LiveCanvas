@@ -1,7 +1,6 @@
 // Lib
 import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
 import { useState } from "react";
-import Skeleton from "@mui/material/Skeleton";
 
 // Types
 import type { FC } from "react";
@@ -10,7 +9,7 @@ import type { FC } from "react";
 import "./Footer.styles.css";
 
 const Footer: FC = () => {
-	const [VERSION] = useState<string | null>("v1.0.0");
+	const [VERSION] = useState<string | null>("v0.0.1");
 
 	const MAINTAINER_URL = "https://github.com/MarkE16";
 	const REPO_URL = MAINTAINER_URL + "/LiveCanvas";
@@ -39,15 +38,7 @@ const Footer: FC = () => {
 				alt="logo"
 			/>
 			<span id="site-name">IdeaDrawn | Live Canvas</span>
-			<span id="version">
-				{VERSION ?? (
-					<Skeleton
-						sx={{ bgcolor: "grey.800" }}
-						variant="text"
-						width={50}
-					/>
-				)}
-			</span>
+			<span id="version">{VERSION}</span>
 			<span id="footer-text">
 				Made with ❤️ by{" "}
 				<a
