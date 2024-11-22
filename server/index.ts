@@ -65,6 +65,7 @@ async function startServer() {
       res.status(statusCode)
       // For HTTP streams use httpResponse.pipe() instead, see https://vite-plugin-ssr.com/stream
       res.send(body)
+      // httpResponse.pipe(res);
     }
   })
 

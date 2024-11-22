@@ -26,3 +26,8 @@ export type ShapeMode = {
 	icon: string;
 };
 export type Shapes = ShapeMode[];
+export type Modes = {
+	name: Mode;
+	icon: string;
+	shortcut: string;
+}[];

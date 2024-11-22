@@ -10,7 +10,7 @@ vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
 }));
 
-const mockState = {
+const canvas = {
 	width: 400,
 	height: 400,
 	mode: "select" as Mode,
@@ -26,11 +26,10 @@ const mockState = {
 	drawStrength: 5,
 	eraserStrength: 3
 };
-const preloadedState = { canvas: mockState };
 
 describe("LayerPane functionality", () => {
 	it("should render the LayerPane component", () => {
-		renderWithProviders(<LayerPane />, { preloadedState: preloadedState });
+		renderWithProviders(<LayerPane />, { preloadedState: canvas });
 
 		expect(screen.getByText("Layer 1")).not.toBeNull();
 		expect(screen.getByText("Layer 2")).not.toBeNull();
@@ -39,22 +38,17 @@ describe("LayerPane functionality", () => {
 	it("should render the LayerPane component with active layer", () => {
 		// Get the active layer by grabbing the label element
 
-		renderWithProviders(<LayerPane />, { preloadedState: preloadedState });
-		// const { canvas } = mockStore.getState();
-		// const [l1, l2] = canvas.layers;
+		renderWithProviders(<LayerPane />, { preloadedState: canvas });
 
 		const layer1 = screen.getAllByLabelText("Layer 1")[1];
 		const layer2 = screen.getAllByLabelText("Layer 2")[1];
 
 		expect(layer1.classList.contains("active")).toBe(true);
 		expect(layer2.classList.contains("active")).toBe(false);
-
-		// expect(l1.active).toBe(true);
-		// expect(l2.active).toBe(false);
 	});
 
 	it("should switch active layer on click", () => {
-		renderWithProviders(<LayerPane />, { preloadedState: preloadedState });
+		renderWithProviders(<LayerPane />, { preloadedState: canvas });
 
 		const layer1 = screen.getAllByLabelText("Layer 1")[1];
 		const layer2 = screen.getAllByLabelText("Layer 2")[1];

@@ -63,6 +63,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 		const onMouseDown: MouseEventHandler<HTMLCanvasElement> = (
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
+			e.preventDefault();
 			if (isGrabbing) {
 				return;
 			}

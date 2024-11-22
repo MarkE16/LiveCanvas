@@ -38,8 +38,8 @@ describe("Test dimensions", () => {
 	it("should return the initial state", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.width).toBe(400);
-		expect(state.height).toBe(400);
+		expect(state.width).toBe(mockState.width);
+		expect(state.height).toBe(mockState.height);
 	});
 
 	// TODO: Add more tests.
@@ -50,7 +50,7 @@ describe("Test mode", () => {
 	it("should return the initial mode", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.mode).toBe("select");
+		expect(state.mode).toBe(mockState.mode);
 	});
 
 	it("should properly update to all existing modes", () => {
@@ -75,7 +75,7 @@ describe("Test color", () => {
 	it("should return the initial color", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.color).toBe("hsla(0, 0%, 0%, 1)");
+		expect(state.color).toBe(mockState.color);
 	});
 
 	it("should properly update the color", () => {
@@ -111,7 +111,7 @@ describe("Test draw strength", () => {
 	it("should return the initial draw strength", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.drawStrength).toBe(5);
+		expect(state.drawStrength).toBe(mockState.drawStrength);
 	});
 
 	it("should properly update the draw strength", () => {
@@ -135,7 +135,7 @@ describe("Test eraser strength", () => {
 	it("should return the initial eraser strength", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.eraserStrength).toBe(3);
+		expect(state.eraserStrength).toBe(mockState.eraserStrength);
 	});
 
 	it("should properly update the eraser strength", () => {
@@ -159,7 +159,7 @@ describe("Test shape", () => {
 	it("should return the initial shape", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.shape).toBe("rectangle");
+		expect(state.shape).toBe(mockState.shape);
 	});
 
 	it("should properly update the shape", () => {
@@ -177,14 +177,7 @@ describe("Test layer", () => {
 	it("should return the initial layer", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.layers).toEqual([
-			{
-				name: "Layer 1",
-				id: "1234-5678-9123-4567",
-				active: true,
-				hidden: false
-			}
-		]);
+		expect(state.layers).toEqual(mockState.layers);
 	});
 
 	it("should create a new layer", () => {
@@ -331,13 +324,14 @@ describe("Test position", () => {
 	it("should return the initial position", () => {
 		const state = reducer(undefined, { type: "unknown" });
 
-		expect(state.position).toEqual({ x: 0, y: 0 });
+		expect(state.position).toEqual(mockState.position);
 	});
 
 	it("should update the position", () => {
-		const state = reducer(undefined, setPosition({ x: 10, y: 10 }));
+		const newPosition = { x: 10, y: 10 };
+		const state = reducer(undefined, setPosition(newPosition));
 
-		expect(state.position).toEqual({ x: 10, y: 10 });
+		expect(state.position).toEqual(newPosition);
 	});
 
 	describe("Test changing X position", () => {

@@ -2,7 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import canvasSliceReducer from "./slices/canvasSlice";
 import historySliceReducer from "./slices/historySlice";
 
-import type { Mode, Shapes } from "../types";
+import type { Modes, Shapes } from "../types";
 
 const rootReducer = combineReducers({
 	canvas: canvasSliceReducer,
@@ -21,11 +21,7 @@ export const createStore = (preloadedState?: Partial<RootState>) => {
 	});
 };
 
-export const MODES: {
-	name: Mode;
-	icon: string;
-	shortcut: string;
-}[] = [
+export const MODES: Modes = [
 	{ name: "select", icon: "fa-mouse-pointer", shortcut: "s" },
 	{ name: "draw", icon: "fa-pen-nib", shortcut: "d" },
 	{ name: "erase", icon: "fa-eraser", shortcut: "e" },

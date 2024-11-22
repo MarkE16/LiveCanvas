@@ -95,6 +95,7 @@ const getCanvasPointerPosition = (
  * @returns void
  *
  * @example
+ * // Assume the base URL is https://example.com/
  * navigateTo("/home"); // => https://example.com/home
  *
  * navigateTo("about"); // => https://example.com/about

@@ -8,12 +8,14 @@ import type { FC } from "react";
 import { Tooltip } from "@mui/material";
 
 const SaveCanvasButton: FC = () => {
+	const [upToDate, setUpToDate] = useState<boolean>(true);
 	const [saved, setSaved] = useState<boolean>(false);
-	const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 	const layerReferences = useLayerReferences();
 	const { set } = useIndexed();
 
 	const saveCanvas = useCallback(() => {
+		setUpToDate(false);
 		layerReferences.forEach((canvas, index) => {
 			if (!canvas) return;
 
@@ -35,13 +37,16 @@ const SaveCanvasButton: FC = () => {
 		// Update the UI to indicate that the canvas has been saved
 		setSaved(true);
 		clearTimeout(timeout.current);
-		timeout.current = setTimeout(() => setSaved(false), 1000);
+		timeout.current = setTimeout(() => {
+			setSaved(false);
+			setUpToDate(true);
+		}, 1000);
 	}, [layerReferences, set]);
 
 	useEffect(() => {
 		function handleKeyboardSave(e: KeyboardEvent) {
 			if (e.key === "s" && e.ctrlKey) {
-				e.preventDefault(); // Prevent the browser from opening the save dialog
+				e.preventDefault(); // Prevent the browser from opening the save dialog.
 				saveCanvas();
 			}
 		}
@@ -54,18 +59,31 @@ const SaveCanvasButton: FC = () => {
 	}, [saveCanvas]);
 
 	return (
-		<Tooltip
-			arrow
-			placement="bottom"
-			title={saved ? "Saved!" : "Save Canvas (CTRL + S)"}
-		>
-			<button
-				id="save-btn"
-				onClick={saveCanvas}
+		<>
+			<Tooltip
+				placement="bottom"
+				title={upToDate ? "Canvas Up to date" : "Saving"}
 			>
-				<i className={`fas fa-${saved ? "check" : "save"}`}></i>
-			</button>
-		</Tooltip>
+				<button>
+					{upToDate ? (
+						<i className="fas fa-check"></i>
+					) : (
+						<i className="fas fa-cloud-upload-alt"></i>
+					)}
+				</button>
+			</Tooltip>
+			<Tooltip
+				placement="bottom"
+				title={saved ? "Saved!" : "Save Canvas (CTRL + S)"}
+			>
+				<button
+					id="save-btn"
+					onClick={saveCanvas}
+				>
+					<i className={`fas fa-${saved ? "check" : "save"}`}></i>
+				</button>
+			</Tooltip>
+		</>
 	);
 };
 

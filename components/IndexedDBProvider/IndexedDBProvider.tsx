@@ -1,5 +1,8 @@
+// Lib
 import { useEffect, createContext, useRef, useCallback, useMemo } from "react";
-import { FC, PropsWithChildren } from "react";
+
+// Types
+import type { FC, PropsWithChildren } from "react";
 
 const STORES = ["layers"];
 const VERSION = 1; // Bump this up when the schema changes.
@@ -38,6 +41,13 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	const dbOpenPromise = useRef<Promise<IDBDatabase> | null>(null);
 
 	const openDatabase = useCallback(() => {
+		// Check if the browser supports IndexedDB.
+
+		if (!indexedDB) {
+			console.error(
+				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
+			);
+		}
 		if (dbOpenPromise.current) {
 			return dbOpenPromise.current;
 		}
@@ -144,15 +154,6 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	);
 
 	useEffect(() => {
-		// Check if the browser supports IndexedDB.
-
-		if (!window.indexedDB) {
-			console.error(
-				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
-			);
-			return;
-		}
-
 		openDatabase();
 	}, [openDatabase]);
 

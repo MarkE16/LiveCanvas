@@ -112,44 +112,44 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				onChange={onToggle}
 			/>
 			<div className="layer-info-mover">
-				<div className="layer-move-actions">
-					<Tooltip
-						title="Move Up"
-						arrow
-						placement="left"
+				<Tooltip
+					title="Move Up"
+					arrow
+					placement="left"
+				>
+					<button
+						className="layer-up"
+						onClick={() => onMoveLayer("up")}
+						disabled={positionIndex === 0}
 					>
-						<button
-							className="layer-up"
-							onClick={() => onMoveLayer("up")}
-							disabled={positionIndex === 0}
-						>
-							<i className="fas fa-angle-up"></i>
-						</button>
-					</Tooltip>
-					<Tooltip
-						title="Move Down"
-						arrow
-						placement="left"
+						<i className="fas fa-angle-up"></i>
+					</button>
+				</Tooltip>
+				<Tooltip
+					title="Move Down"
+					arrow
+					placement="left"
+				>
+					<button
+						className="layer-down"
+						onClick={() => onMoveLayer("down")}
+						disabled={positionIndex === totalLayers - 1}
 					>
-						<button
-							className="layer-down"
-							onClick={() => onMoveLayer("down")}
-							disabled={positionIndex === totalLayers - 1}
-						>
-							<i className="fas fa-angle-down"></i>
-						</button>
-					</Tooltip>
-				</div>
+						<i className="fas fa-angle-down"></i>
+					</button>
+				</Tooltip>
+			</div>
+			<div className="layer-info-actions">
 				{isEditing ? (
 					<input
 						type="text"
 						placeholder={name}
 						value={editedName}
 						/**
-						We add this keydown event so that we prevent the keydown event attached on the
-						window object from firing (for listening to keyboard shortcuts related to tools)
-						when we are editing the layer name.
-					  */
+					We add this keydown event so that we prevent the keydown event attached on the
+					window object from firing (for listening to keyboard shortcuts related to tools)
+					when we are editing the layer name.
+				  */
 						onKeyDown={(e) => {
 							e.stopPropagation();
 
@@ -172,50 +172,52 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						{name}
 					</span>
 				)}
-			</div>
-			<div className="layer-info-actions">
-				<Tooltip
-					title={editingTooltipText}
-					arrow
-					placement="top"
-				>
-					<button
-						className="layer-rename"
-						onClick={onRename}
-						disabled={!editedName.length}
+				<div>
+					<Tooltip
+						title={editingTooltipText}
+						arrow
+						placement="top"
 					>
-						<i
-							className={`fas ${isEditing ? "fa-check" : "fa-pencil-alt"}`}
-						></i>
-					</button>
-				</Tooltip>
-				{!isEditing && (
-					<>
-						{totalLayers > 1 && (
+						<button
+							className="layer-rename"
+							onClick={onRename}
+							disabled={!editedName.length}
+						>
+							<i
+								className={`fas ${isEditing ? "fa-check" : "fa-pencil-alt"}`}
+							></i>
+						</button>
+					</Tooltip>
+					{!isEditing && (
+						<>
+							{totalLayers > 1 && (
+								<Tooltip
+									title="Delete"
+									arrow
+									placement="top"
+								>
+									<button
+										className="layer-delete"
+										onClick={onDelete}
+									>
+										<i className="fas fa-trash-alt"></i>
+									</button>
+								</Tooltip>
+							)}
 							<Tooltip
-								title="Delete"
+								title={hidden ? "Show" : "Hide"}
 								arrow
 								placement="top"
 							>
-								<button
-									className="layer-delete"
-									onClick={onDelete}
-								>
-									<i className="fas fa-trash-alt"></i>
+								<button onClick={onToggleVisibility}>
+									<i
+										className={`fas ${hidden ? "fa-eye-slash" : "fa-eye"}`}
+									></i>
 								</button>
 							</Tooltip>
-						)}
-						<Tooltip
-							title={hidden ? "Show" : "Hide"}
-							arrow
-							placement="top"
-						>
-							<button onClick={onToggleVisibility}>
-								<i className={`fas ${hidden ? "fa-eye-slash" : "fa-eye"}`}></i>
-							</button>
-						</Tooltip>
-					</>
-				)}
+						</>
+					)}
+				</div>
 			</div>
 		</label>
 	);
