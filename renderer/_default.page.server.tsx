@@ -5,7 +5,7 @@ export const passToClient = ["pageProps", "urlPathname"];
 import ReactDOMServer from "react-dom/server";
 import { PageShell } from "./PageShell";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
-import logo from "../assets/logo.jpg";
+import logo from "../assets/icons/IdeaDrawnNewLogo.png";
 import { Provider } from "react-redux";
 import { createStore } from "../state/store";
 import type { PageContextServer } from "./types";
@@ -29,7 +29,7 @@ async function render(pageContext: PageContextServer) {
 
 	// See https://vite-plugin-ssr.com/head
 	const { documentProps } = pageContext.exports;
-	const title = (documentProps && documentProps.title) || "Vite SSR app";
+	const title = (documentProps && documentProps.title) || "Live Canvas";
 	const desc =
 		(documentProps && documentProps.description) ||
 		"App using Vite + vite-plugin-ssr";
