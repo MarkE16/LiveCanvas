@@ -1,0 +1,12 @@
+node_modules/*
+dist/*
+renderer/*
+server/*
+assets/*
+
+*.config.ts
+*.yaml
+*.yml
+*.json
+*.md
+*.cjs

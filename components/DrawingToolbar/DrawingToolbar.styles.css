@@ -1,0 +1,93 @@
+#drawing-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	top: 10px;
+	width: 80%;
+	min-height: 46px;
+	border-radius: 25px;
+	background-color: #303744;
+	padding: 0.5em;
+	overflow: auto;
+	z-index: 100;
+}
+
+#colors,
+#shapes,
+#additional-settings {
+	display: inline-flex;
+	align-items: center;
+}
+
+.color-option,
+.shape-option {
+	border: none;
+	background-color: transparent;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	margin: 0 0.5em;
+	cursor: pointer;
+	transition: background-color 100ms;
+}
+
+.color-option:hover,
+.shape-option:hover {
+	background-color: #505050;
+}
+
+.color-option.active,
+.shape-option.active {
+	background-color: #505050;
+	outline: 2px solid #7e83da;
+	outline-offset: 2px;
+	outline-width: 3px;
+}
+
+.color-option.red {
+	/* Add a tint of white to the top
+  of the color, to make it look like a
+  a shiny button */
+	background-color: red;
+}
+
+.color-option.green {
+	background-color: green;
+}
+
+.color-option.blue {
+	background-color: blue;
+}
+
+.color-option.black {
+	background-color: black;
+}
+
+.color-option.white {
+	background-color: white;
+}
+
+.color-option.yellow {
+	background-color: yellow;
+}
+
+.color-option.cyan {
+	background-color: cyan;
+}
+
+.color-option.magenta {
+	background-color: magenta;
+}
+
+.vertical-line {
+	border-left: 1px solid rgb(99, 99, 99);
+	height: 30px;
+	/* width: 1px; */
+	margin: 0 0.5em;
+}
+
+#drawing-toolbar > #draw-toolbar-no-actions {
+	color: gray;
+	font-size: medium;
+}

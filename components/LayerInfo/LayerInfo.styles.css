@@ -1,0 +1,98 @@
+.layer-info-container {
+	display: flex;
+
+	align-items: center;
+	width: 100%;
+	max-width: 100%;
+	/* height: 0vh; */
+	padding: 0 0.5rem;
+	background-color: rgb(36, 36, 36);
+	white-space: nowrap;
+	border: 1px solid rgb(56, 55, 55);
+}
+
+.layer-info-container.active {
+	background-color: #d1836a;
+}
+
+.layer-info-name {
+	color: white;
+	font-size: 1em;
+	font-weight: bold;
+	margin: 0 10px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	/* cursor: text; */
+}
+
+.layer-info-container:last-child {
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.layer-info-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+}
+
+.layer-down,
+.layer-up {
+	display: block !important;
+	/* position: absolute; */
+	opacity: 1 !important;
+	font-size: 1rem !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+.layer-info-container > input[type="radio"] {
+	display: none;
+}
+
+.layer-info-container > .layer-info-mover > input[type="text"] {
+	margin: 0 5px;
+	outline: none;
+	width: 100%;
+	border: none;
+	border-bottom: 1px solid white;
+	background-color: transparent;
+}
+
+.layer-info-container > .layer-info-mover > input[type="text"]:focus {
+	border-bottom: 1px solid #007bff;
+}
+
+.layer-info-container > .layer-info-mover > input[type="text"]::placeholder {
+	color: rgb(218, 218, 218);
+}
+
+.layer-info-container > .layer-info-actions > div > button,
+.layer-down,
+.layer-up {
+	opacity: 0;
+	background-color: transparent;
+	margin: 0 1px;
+	padding: 0.4em;
+	font-size: small;
+	border: none;
+	border-radius: 50%;
+	transition: opacity 100ms;
+}
+
+.layer-info-container > .layer-info-actions > div > button:last-child {
+	margin-right: 0;
+}
+
+.layer-info-container:hover > .layer-info-actions > div > button,
+.layer-info-container.active > .layer-info-actions > div > button,
+.layer-info-container.editing > .layer-info-actions > div > button {
+	opacity: 1;
+}
+.layer-info-container > .layer-info-actions > div > button:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+}

@@ -1,50 +1,48 @@
-# React + TypeScript + Vite
+# IdeaDrawn | LiveCanvas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An open-source web based canvas editor.
 
-Currently, two official plugins are available:
+> Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Setup
 
-## Expanding the ESLint configuration
+> **Prerequisites**
+>
+> - Install [Node.js](https://nodejs.org/)
+> - Install [`pnpm`](https://pnpm.io/), as this project uses this package manager instead of the usual `npm` provided by [Node.js](https://nodejs.org/).
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+To run the application locally, start by cloning the repo and navigating into the directory:
 
-- Configure the top-level `parserOptions` property like this:
+```bash
+$ git clone https://github.com/MarkE16/LiveCanvas
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+... cloning ...
+
+$ cd LiveCanvas # after clone is complete.
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Next, install all the required packages (see [prerequisites](https://github.com/MarkE16/LiveCanvas#prerequisites) if you don't have `pnpm` installed).
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+$ pnpm install
 ```
+
+Almost done! All that's left now is to run the project. To start up the project:
+
+```bash
+$ pnpm run dev
+```
+
+You're all set!
+
+## Discord Community
+
+Feel free to join [IdeaDrawn Discord community](https://discord.gg/ideas) to find a place to connect with others. Anyone is welcome to strike a conversation, lurk, or give suggestions.
+
+## Contribution
+
+> Note: We are actively looking for talented web developers who are interested in working together
+> to maintain the project! If you are interested, please contact @MarkE16.
+
+In case you haven't already noticed, this project is **open-source**, meaning anyone can contribute to help build this project from the ground up. If you are interested in
+taking the time to propose code implementation, feel free to fork the repo and make a pull request.
