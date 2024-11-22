@@ -37,7 +37,7 @@ You're all set!
 
 ## Discord Community
 
-Feel free to join [IdeaDrawn Discord community](https://discord.gg/ideas) to find a place to connect with others. Anyone is welcome to strike a conversation, lurk, or give suggestions.
+Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) to find a place to connect with others. Anyone is welcome to strike a conversation, lurk, or give suggestions.
 
 ## Contribution
 

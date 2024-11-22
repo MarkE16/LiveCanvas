@@ -1,8 +1,19 @@
 {
-  "rewrites": [
-    {
-      "source": "/((?!assets/).*",
-      "destination": "vercel/ssr.js"
-    }
-  ]
+	"version": 2,
+	"builds": [
+		{
+			"src": "api/ssr.js",
+			"use": "@vercel/node"
+		},
+		{
+			"src": "dist/client/**",
+			"use": "@vercel/static"
+		}
+	],
+	"routes": [
+		{
+			"src": "/(?!assets/).*",
+			"dest": "/api/ssr.js"
+		}
+	]
 }
