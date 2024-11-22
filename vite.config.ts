@@ -3,7 +3,10 @@ import ssr from "vite-plugin-ssr/plugin";
 import { UserConfig } from "vite";
 
 const config: UserConfig = {
-	plugins: [react(), ssr()]
+	plugins: [react(), ssr()],
+	build: {
+		outDir: "dist"
+	}
 };
 
 export default config;
