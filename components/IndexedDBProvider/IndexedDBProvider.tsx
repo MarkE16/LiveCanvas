@@ -41,19 +41,12 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	const dbOpenPromise = useRef<Promise<IDBDatabase> | null>(null);
 
 	const openDatabase = useCallback(() => {
-		// Check if the browser supports IndexedDB.
-
-		if (!window.indexedDB) {
-			console.error(
-				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
-			);
-		}
 		if (dbOpenPromise.current) {
 			return dbOpenPromise.current;
 		}
 
 		dbOpenPromise.current = new Promise((resolve, reject) => {
-			const request = window.indexedDB.open("canvas", VERSION);
+			const request = indexedDB.open("canvas", VERSION);
 
 			request.onsuccess = () => {
 				database.current = request.result;
@@ -154,6 +147,13 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	);
 
 	useEffect(() => {
+		// Check if the browser supports IndexedDB.
+
+		if (!indexedDB) {
+			console.error(
+				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
+			);
+		}
 		openDatabase();
 	}, [openDatabase]);
 
