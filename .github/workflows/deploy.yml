@@ -14,13 +14,13 @@ jobs:
 
       - name: Install pnpm
         run: npm install -g pnpm
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Build Project
         run: pnpm run build
-      
+
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
         with:
