@@ -43,7 +43,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	const openDatabase = useCallback(() => {
 		// Check if the browser supports IndexedDB.
 
-		if (!indexedDB) {
+		if (!window.indexedDB) {
 			console.error(
 				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
 			);
@@ -53,7 +53,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 		}
 
 		dbOpenPromise.current = new Promise((resolve, reject) => {
-			const request = indexedDB.open("canvas", VERSION);
+			const request = window.indexedDB.open("canvas", VERSION);
 
 			request.onsuccess = () => {
 				database.current = request.result;

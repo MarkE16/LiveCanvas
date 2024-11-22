@@ -1,7 +1,7 @@
 import { screen, fireEvent } from "@testing-library/react";
-import { renderWithProviders } from "../test-utils";
+import { renderWithProviders } from "./test-utils";
 import { describe, it, expect, beforeEach } from "vitest";
-import SaveCanvasButton from "../../components/SaveCanvasButton/SaveCanvasButton";
+import SaveCanvasButton from "../components/SaveCanvasButton/SaveCanvasButton";
 
 describe("SaveCanvasButton functionality", () => {
 	beforeEach(() => {

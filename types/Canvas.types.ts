@@ -1,5 +1,19 @@
 import { v4 as uuidv4 } from "uuid";
 
+export type CanvasState = {
+	width: number;
+	height: number;
+	mode: Mode;
+	color: string;
+	drawStrength: number;
+	eraserStrength: number;
+	shape: Shape;
+	layers: Layer[];
+	scale: number;
+	show_all: boolean;
+	position: Coordinates;
+};
+
 export type Mode =
 	| "select"
 	| "draw"

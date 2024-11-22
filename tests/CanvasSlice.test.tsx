@@ -14,18 +14,18 @@ import reducer, {
 	setPosition,
 	changeX,
 	changeY
-} from "../../state/slices/canvasSlice";
+} from "../state/slices/canvasSlice";
 
-import type { Mode, Shape } from "../../types";
+import type { CanvasState, Mode, Shape } from "../types";
 
-const mockState = {
+const mockState: CanvasState = {
 	width: 400,
 	height: 400,
-	mode: "select" as Mode,
+	mode: "select",
 	color: parseColor("hsla(0, 0%, 0%, 1)").toString(), // TODO: Convert to using react-aria's parseColor
 	drawStrength: 5,
 	eraserStrength: 3,
-	shape: "rectangle" as Shape,
+	shape: "rectangle",
 	layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 	scale: 1,
 	show_all: false,
