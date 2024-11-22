@@ -20,7 +20,7 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: pnpm build
+        run: pnpm run build
 
       - name: Deploy to Vercel
         uses: BetaHuhn/deploy-to-vercel-action@v1
