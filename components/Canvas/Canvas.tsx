@@ -1,5 +1,5 @@
 // Lib
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useIndexed from "../../state/hooks/useIndexed";
 
@@ -15,8 +15,8 @@ import "./Canvas.styles.css";
 
 // Components
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
-import SelectionCanvasLayer from "../SelectionCanvasLayer/SelectionCanvasLayer";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import InteractiveCanvasLayer from "../InteractiveCanvasLayer/InteractiveCanvasLayer";
 
 type CanvasProps = {
 	isGrabbing: boolean;
@@ -35,24 +35,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 
 	const refsOfLayers = useLayerReferences();
 	const { get } = useIndexed();
-	const isSelecting = mode === "select" || mode === "shapes";
-
-	/**
-	 * Get the layer with the specified ID. If no ID is provided,
-	 * the active layer is returned.
-	 * @param id The ID of the layer to get.
-	 * @returns The layer with the specified ID, or the active layer.
-	 */
-	const getLayer = useCallback(
-		(id?: string) => {
-			if (id) {
-				return refsOfLayers.find((ref) => ref.id === id);
-			}
-
-			return refsOfLayers.find((ref) => ref.classList.contains("active"));
-		},
-		[refsOfLayers]
-	);
+	const isSelecting = mode === "shapes";
 
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
@@ -121,11 +104,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			*/}
 
 			{isSelecting && (
-				<SelectionCanvasLayer
-					id="selection-canvas"
+				<InteractiveCanvasLayer
+					id="interactive_canvas"
 					width={width}
 					height={height}
-					getActiveLayer={getLayer}
 				/>
 			)}
 

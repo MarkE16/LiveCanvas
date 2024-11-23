@@ -64,7 +64,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
 			e.preventDefault();
-			if (isGrabbing) {
+			if (isGrabbing || mode === "select" || mode === "move") {
 				return;
 			}
 			isDrawing.current = true;
@@ -72,7 +72,11 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			const ctx = layerRef!.getContext("2d");
 
 			// Calculate the position of the mouse relative to the canvas.
-			const { x, y } = UTILS.getCanvasPointerPosition(e, layerRef!);
+			const { x, y } = UTILS.getCanvasPointerPosition(
+				e.clientX,
+				e.clientY,
+				layerRef!
+			);
 
 			if (mode === "draw") {
 				ctx!.beginPath();
@@ -103,7 +107,11 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			const ctx = layerRef!.getContext("2d");
 
 			// Calculate the position of the mouse relative to the canvas.
-			const { x, y } = UTILS.getCanvasPointerPosition(e, layerRef!);
+			const { x, y } = UTILS.getCanvasPointerPosition(
+				e.clientX,
+				e.clientY,
+				layerRef!
+			);
 
 			switch (mode) {
 				case "draw": {
@@ -242,6 +250,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				onMouseLeave={onMouseLeave}
 				data-name={name}
 				data-layer-index={layerIndex}
+				data-scale={scale}
 				{...rest}
 			/>
 		);

@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { MouseEvent } from "react";
 import type { Layer, Coordinates } from "./types";
 
 /**
@@ -74,7 +73,8 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
  * @returns The position of the pointer on the canvas.
  */
 const getCanvasPointerPosition = (
-	e: MouseEvent<HTMLCanvasElement>,
+	x: number,
+	y: number,
 	canvas: HTMLCanvasElement
 	// dpi: number = window.devicePixelRatio
 ): Coordinates => {
@@ -82,10 +82,10 @@ const getCanvasPointerPosition = (
 	const scaleX = canvas.width / rect.width;
 	const scaleY = canvas.height / rect.height;
 
-	const x = (e.clientX - rect.left) * scaleX;
-	const y = (e.clientY - rect.top) * scaleY;
+	const computedX = (x - rect.left) * scaleX;
+	const computedY = (y - rect.top) * scaleY;
 
-	return { x, y };
+	return { x: computedX, y: computedY };
 };
 
 /**

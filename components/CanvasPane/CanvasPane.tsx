@@ -14,6 +14,7 @@ import {
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import Canvas from "../Canvas/Canvas";
 import CanvasPointerMarker from "../CanvasPointerMarker/CanvasPointerMarker";
+import CanvasPointerSelection from "../CanvasPointerSelection/CanvasPointerSelection";
 
 // Types
 import type { FC } from "react";
@@ -55,8 +56,6 @@ const CanvasPane: FC = () => {
 				!isGrabbing
 			)
 				return;
-
-			console.log("Moving");
 
 			const dx = e.clientX - clientPosition.current.x;
 			const dy = e.clientY - clientPosition.current.y;
@@ -135,6 +134,9 @@ const CanvasPane: FC = () => {
 		<div id="canvas-pane">
 			{mode === "draw" || mode === "erase" ? (
 				<CanvasPointerMarker canvasSpaceReference={canvasSpaceRef.current} />
+			) : null}
+			{mode === "select" ? (
+				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef.current} />
 			) : null}
 			<DrawingToolbar />
 

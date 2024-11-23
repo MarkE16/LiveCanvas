@@ -7,7 +7,7 @@ import type { FC } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerMarker = {
-	canvasSpaceReference: HTMLCanvasElement | null;
+	canvasSpaceReference: HTMLDivElement | null;
 };
 
 //
@@ -72,12 +72,13 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 	return (
 		<div
+			id="canvas-pointer-marker"
 			style={{
 				position: "absolute",
 				// Remove pointer events so the pointer doesn't interfere with the canvas.
 				pointerEvents: "none",
 				borderRadius: mode === "draw" ? "50%" : "0%",
-				backgroundColor: "rgba(0, 0, 0, 0.3)",
+				backgroundColor: "black",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
 				transform: `translate(${position.x}px, ${position.y}px)`,

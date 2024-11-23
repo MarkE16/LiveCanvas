@@ -1,48 +1,43 @@
 // Lib
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 import * as UTILS from "../../utils";
 
 // Types
-import type { FC, MouseEventHandler, MouseEvent } from "react";
-import type {
-	SelectionCanvasLayerProps,
-	Coordinates
-} from "./SelectionCanvasLayer.types";
+import type { FC, MouseEventHandler, MouseEvent, HTMLAttributes } from "react";
+import type { Coordinates } from "../../types";
 
-const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
+type InteractiveCanvasLayerProps = HTMLAttributes<HTMLCanvasElement> & {
+	width: number;
+	height: number;
+};
+
+const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 	width,
 	height,
-	getActiveLayer,
 	...rest
 }) => {
-	const scale = useAppSelector(
-		(state) => state.canvas.scale,
-		(prev, next) => prev === next
-	);
-	const mode = useAppSelector(
-		(state) => state.canvas.mode,
-		(prev, next) => prev === next
-	);
-	const shape = useAppSelector(
-		(state) => state.canvas.shape,
-		(prev, next) => prev === next
-	);
+	const { scale, mode, shape, color } = useAppSelector((state) => state.canvas);
 	const { x: xPosition, y: yPosition } = useAppSelector(
-		(state) => state.canvas.position,
-		(prev, next) => prev === next
+		(state) => state.canvas.position
 	);
 	const isSelecting = useRef<boolean>(false);
 	const selectionRef = useRef<HTMLCanvasElement>(null);
 	const selectionRect = useRef({ x: 0, y: 0, width: 0, height: 0 });
 	const selectionStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
+	const references = useLayerReferences();
 
 	const onMouseDown: MouseEventHandler<HTMLCanvasElement> = (
 		e: MouseEvent<HTMLCanvasElement>
 	) => {
 		isSelecting.current = true;
 
-		const { x, y } = UTILS.getCanvasPointerPosition(e, selectionRef.current!);
+		const { x, y } = UTILS.getCanvasPointerPosition(
+			e.clientX,
+			e.clientY,
+			selectionRef.current!
+		);
 
 		const ctx = selectionRef.current!.getContext("2d");
 
@@ -66,7 +61,11 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 
 		const ctx = selectionRef.current!.getContext("2d");
 
-		const { x, y } = UTILS.getCanvasPointerPosition(e, selectionRef.current!);
+		const { x, y } = UTILS.getCanvasPointerPosition(
+			e.clientX,
+			e.clientY,
+			selectionRef.current!
+		);
 		const { x: startX, y: startY } = selectionStartingPoint.current;
 
 		const rectWidth = x - startX;
@@ -80,20 +79,12 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 			selectionRef.current!.height
 		);
 
-		if (mode === "select") {
-			ctx!.strokeStyle = "rgba(43, 184, 227)";
+		if (mode === "shapes") {
 			ctx!.lineWidth = 2;
-			ctx!.fillStyle = "rgba(103, 181, 230, 0.1)";
-
-			ctx!.fillRect(startX, startY, rectWidth, rectHeight);
-			ctx!.strokeRect(startX, startY, rectWidth, rectHeight);
-		} else if (mode === "shapes") {
+			ctx!.fillStyle = color;
+			ctx!.strokeStyle = color;
 			switch (shape) {
 				case "rectangle": {
-					ctx!.strokeStyle = "rgba(43, 184, 227)";
-					ctx!.lineWidth = 2;
-					ctx!.fillStyle = "rgba(103, 181, 230, 0.1)";
-
 					if (e.shiftKey) {
 						// Make all the sides equal.
 						const side = Math.min(rectWidth, rectHeight);
@@ -111,17 +102,12 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 
 					const radius = Math.sqrt(rectWidth ** 2 + rectHeight ** 2);
 
-					ctx!.strokeStyle = "rgba(43, 184, 227)";
-					ctx!.lineWidth = 2;
 					ctx!.arc(startX, startY, radius, 0, 2 * Math.PI);
 					ctx!.stroke();
 					break;
 				}
 
 				case "triangle": {
-					ctx!.strokeStyle = "rgba(43, 184, 227)";
-					ctx!.lineWidth = 2;
-
 					ctx!.beginPath();
 
 					if (e.shiftKey) {
@@ -155,10 +141,12 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 	const onMouseUp: MouseEventHandler<HTMLCanvasElement> = () => {
 		isSelecting.current = false;
 
-		const activeLayer = getActiveLayer();
+		const activeLayer = references.find((ref) =>
+			ref.classList.contains("active")
+		);
 
 		if (!activeLayer) {
-			const err = "`SelectionCanvasLayer`: No active layer found to select.";
+			const err = "`InteractiveCanvasLayer`: No active layer found to select.";
 			console.error(err);
 			alert(err);
 			return;
@@ -177,45 +165,6 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 			);
 		}
 	};
-
-	useEffect(() => {
-		function handleKeyboardActions(e: KeyboardEvent) {
-			const { width: canvasWidth, height: canvasHeight } =
-				selectionRef.current!;
-
-			if (e.key === "Escape") {
-				const ctx = selectionRef.current!.getContext("2d");
-				ctx!.clearRect(0, 0, canvasWidth, canvasHeight);
-			} else if (e.key === "Delete" || e.key === "Backspace") {
-				// Delete the selection.
-
-				const activeLayer = getActiveLayer();
-
-				if (!activeLayer) {
-					const err =
-						"`SelectionCanvasLayer`: No active layer found to delete.";
-					console.error(err);
-					alert(err);
-					return;
-				}
-
-				const ctx = activeLayer.getContext("2d");
-				const selectCtx = selectionRef.current!.getContext("2d");
-
-				ctx!.clearRect(
-					selectionRect.current.x,
-					selectionRect.current.y,
-					selectionRect.current.width,
-					selectionRect.current.height
-				);
-				selectCtx!.clearRect(0, 0, canvasWidth, canvasHeight);
-			}
-		}
-
-		document.addEventListener("keydown", handleKeyboardActions);
-
-		return () => document.removeEventListener("keydown", handleKeyboardActions);
-	}, [getActiveLayer]);
 
 	return (
 		<canvas
@@ -237,4 +186,4 @@ const SelectionCanvasLayer: FC<SelectionCanvasLayerProps> = ({
 	);
 };
 
-export default SelectionCanvasLayer;
+export default InteractiveCanvasLayer;

@@ -52,7 +52,7 @@ async function render(pageContext: PageContextServer) {
       </head>
       <body>
         <div id="entry">${dangerouslySkipEscape(pageHtml)}</div>
-        <script>
+        <script id="__preloaded_state__">
           window.__PRELOADED_STATE__ = ${dangerouslySkipEscape(jsonState)}
         </script>
       </body>

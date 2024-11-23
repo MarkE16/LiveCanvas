@@ -29,6 +29,12 @@ async function render(pageContext: PageContextClient) {
 	// @ts-ignore
 	delete window.__PRELOADED_STATE__;
 
+	const script = document.getElementById("__preloaded_state__");
+
+	if (script) {
+		script.remove();
+	}
+
 	hydrateRoot(
 		root,
 		<PageShell pageContext={pageContext}>

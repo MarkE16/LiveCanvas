@@ -5,7 +5,7 @@
   left: 0; */
 	background-color: transparent;
 	opacity: 0.1;
-	cursor: crosshair;
+	cursor: default;
 	border: 1px solid gray;
 }
 
@@ -21,6 +21,12 @@
 .canvas.active {
 	background-color: rgba(255, 255, 255, 0.1);
 	opacity: 1;
+}
+
+.canvas.draw,
+.canvas.erase,
+.canvas.shapes {
+	cursor: crosshair;
 }
 
 .canvas.move {

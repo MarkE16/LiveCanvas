@@ -7,6 +7,18 @@
 	width: 100%;
 }
 
+/* #canvas-pointer-marker is from the component CanvasPointerMarker */
+
+#canvas-pane:not(:hover) > #canvas-pointer-marker {
+	opacity: 0;
+	transition: opacity 200ms;
+}
+
+#canvas-pane:hover > #canvas-pointer-marker {
+	opacity: 0.3;
+	transition: opacity 200ms;
+}
+
 #canvas-container[data-moving="true"] {
 	cursor: grab;
 }
