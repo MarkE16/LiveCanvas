@@ -13,6 +13,7 @@ import {
 // Components
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import Canvas from "../Canvas/Canvas";
+import CanvasPointerMarker from "../CanvasPointerMarker/CanvasPointerMarker";
 
 // Types
 import type { FC } from "react";
@@ -132,6 +133,9 @@ const CanvasPane: FC = () => {
 
 	return (
 		<div id="canvas-pane">
+			{mode === "draw" || mode === "erase" ? (
+				<CanvasPointerMarker canvasSpaceReference={canvasSpaceRef.current} />
+			) : null}
 			<DrawingToolbar />
 
 			<div
