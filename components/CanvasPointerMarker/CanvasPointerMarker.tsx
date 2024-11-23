@@ -61,10 +61,12 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 			setPosition({ x: newX, y: newY });
 		}
 
-		window.addEventListener("mousemove", onMouseMove);
+		if (!canvasSpaceReference) return;
+
+		canvasSpaceReference.addEventListener("mousemove", onMouseMove);
 
 		return () => {
-			window.removeEventListener("mousemove", onMouseMove);
+			canvasSpaceReference.removeEventListener("mousemove", onMouseMove);
 		};
 	}, [canvasSpaceReference, POINTER_SIZE]);
 
