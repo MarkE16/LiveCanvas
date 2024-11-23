@@ -135,7 +135,7 @@ const CanvasPane: FC = () => {
 			{mode === "draw" || mode === "erase" ? (
 				<CanvasPointerMarker canvasSpaceReference={canvasSpaceRef.current} />
 			) : null}
-			{mode === "select" ? (
+			{mode === "select" && !isMoving ? (
 				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef.current} />
 			) : null}
 			<DrawingToolbar />
