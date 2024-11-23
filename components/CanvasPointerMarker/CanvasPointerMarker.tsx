@@ -15,14 +15,14 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 	canvasSpaceReference
 }) => {
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
-	const { mode, drawStrength, eraserStrength } = useAppSelector(
+	const { mode, drawStrength, eraserStrength, scale } = useAppSelector(
 		(state) => state.canvas,
 		(prev, next) => Object.is(prev, next)
 	);
 	const ERASER_RADIUS = 7;
 
 	const POINTER_SIZE =
-		mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength;
+		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
 
 	useEffect(() => {
 		function onMouseMove(e: MouseEvent) {
