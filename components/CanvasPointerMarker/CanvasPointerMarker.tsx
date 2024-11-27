@@ -8,11 +8,13 @@ import type { Coordinates } from "../../types";
 
 type CanvasPointerMarker = {
 	canvasSpaceReference: HTMLDivElement | null;
+	isVisible: boolean;
 };
 
 //
 const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
-	canvasSpaceReference
+	canvasSpaceReference,
+	isVisible
 }) => {
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const { mode, drawStrength, eraserStrength, scale } = useAppSelector(
@@ -25,6 +27,8 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
 
 	useEffect(() => {
+		if (!canvasSpaceReference) return;
+
 		function onMouseMove(e: MouseEvent) {
 			if (!canvasSpaceReference) return;
 
@@ -61,8 +65,6 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 			setPosition({ x: newX, y: newY });
 		}
 
-		if (!canvasSpaceReference) return;
-
 		canvasSpaceReference.addEventListener("mousemove", onMouseMove);
 
 		return () => {
@@ -81,6 +83,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 				backgroundColor: "black",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
+				display: isVisible ? "block" : "none",
 				transform: `translate(${position.x}px, ${position.y}px)`,
 				zIndex: 100,
 				width: POINTER_SIZE,

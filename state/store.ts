@@ -26,6 +26,7 @@ export const MODES: Modes = [
 	{ name: "draw", icon: "fa-pen-nib", shortcut: "d" },
 	{ name: "erase", icon: "fa-eraser", shortcut: "e" },
 	{ name: "shapes", icon: "fa-shapes", shortcut: "a" },
+	{ name: "eye_drop", icon: "fa-eye-dropper", shortcut: "i" },
 	{ name: "zoom_in", icon: "fa-search-plus", shortcut: "+" },
 	{ name: "zoom_out", icon: "fa-search-minus", shortcut: "_" },
 	{ name: "move", icon: "fa-arrows-alt", shortcut: "m" },

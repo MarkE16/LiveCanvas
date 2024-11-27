@@ -4,6 +4,7 @@ import * as UTILS from "../../utils";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { MODES } from "../../state/store";
 import { Tooltip } from "@mui/material";
+import useHistory from "../../state/hooks/useHistory";
 
 // Redux Actions
 import { changeMode, setPosition } from "../../state/slices/canvasSlice";
@@ -14,7 +15,6 @@ import type { FC } from "react";
 
 // Styles
 import "./LeftToolbar.styles.css";
-import useHistory from "../../state/hooks/useHistory";
 
 type ToolbarButtonProps = {
 	icon: string;
@@ -75,19 +75,24 @@ const ToolbarButton = memo(
 				arrow
 				placement="right"
 			>
-				<button
-					className={`toolbar-option ${isActive ? "active" : ""}`}
-					onClick={performAction}
-					disabled={
-						name === "undo"
-							? !undo.length
-							: name === "redo"
-								? !redo.length
-								: false
-					}
-				>
-					<i className={`fa ${icon}`} />
-				</button>
+				<span>
+					<button
+						className={`toolbar-option ${isActive ? "active" : ""}`}
+						data-modename={name}
+						data-iconname={icon}
+						data-shortcut={shortcut}
+						onClick={performAction}
+						disabled={
+							name === "undo"
+								? !undo.length
+								: name === "redo"
+									? !redo.length
+									: false
+						}
+					>
+						<i className={`fa ${icon}`} />
+					</button>
+				</span>
 			</Tooltip>
 		);
 	},
@@ -113,7 +118,12 @@ const LeftToolbar: FC = () => {
 
 	return (
 		<aside id="left-toolbar-container">
-			<div>{renderedModes}</div>
+			<div
+				id="modes"
+				data-testid="modes"
+			>
+				{renderedModes}
+			</div>
 			<div>
 				{/* Temporary. This may be moved somewhere else, or not implemented at all. */}
 				<Tooltip

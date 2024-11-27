@@ -23,9 +23,10 @@ describe("SaveCanvasButton functionality", () => {
 		const tooltip = await screen.findByText(/save canvas/i);
 
 		expect(tooltip).not.toBeNull();
+		expect(tooltip.textContent).toBe("Save Canvas (CTRL + S)");
 	});
 
-	it("should indicate that the canvas was saved after click on the tooltip", async () => {
+	it("should indicate that the canvas was saved on the tooltip after click", async () => {
 		const saveCanvasButton = screen.getByRole("button");
 
 		expect(saveCanvasButton).not.toBeNull();
@@ -34,11 +35,10 @@ describe("SaveCanvasButton functionality", () => {
 		const tooltip = await screen.findByText(/save canvas/i);
 
 		expect(tooltip).not.toBeNull();
+		expect(tooltip.textContent).toBe("Save Canvas (CTRL + S)");
 
 		fireEvent.click(saveCanvasButton);
 
-		const savedTooltip = await screen.findByText(/saved!/i);
-
-		expect(savedTooltip).not.toBeNull();
+		expect(tooltip.textContent).toBe("Saved!");
 	});
 });

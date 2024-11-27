@@ -76,13 +76,15 @@ const DrawingToolbar: FC = () => {
 					arrow
 					placement="bottom"
 				>
-					<button
-						key={name}
-						className={`shape-option ${isActive ? "active" : ""}`}
-						onClick={() => handleShapeChange(name)}
-					>
-						<i className={`fa ${icon}`} />
-					</button>
+					<span>
+						<button
+							key={name}
+							className={`shape-option ${isActive ? "active" : ""}`}
+							onClick={() => handleShapeChange(name)}
+						>
+							<i className={`fa ${icon}`} />
+						</button>
+					</span>
 				</Tooltip>
 			</Fragment>
 		);

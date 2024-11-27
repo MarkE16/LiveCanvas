@@ -1,4 +1,4 @@
-import { describe, expect, vi, it } from "vitest";
+import { describe, expect, vi, it, beforeEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../components/LayerPane/LayerPane";
 import { CanvasState } from "../types";
@@ -30,17 +30,17 @@ const mockState: CanvasState = {
 const preloadedState = { canvas: mockState };
 
 describe("LayerPane functionality", () => {
-	it("should render the LayerPane component", () => {
+	beforeEach(() => {
 		renderWithProviders(<LayerPane />, { preloadedState });
+	});
 
+	it("should render the LayerPane component", () => {
 		expect(screen.getByText("Layer 1")).not.toBeNull();
 		expect(screen.getByText("Layer 2")).not.toBeNull();
 	});
 
 	it("should render the LayerPane component with active layer", () => {
 		// Get the active layer by grabbing the label element
-
-		renderWithProviders(<LayerPane />, { preloadedState });
 
 		const layer1 = screen.getAllByLabelText("Layer 1")[1];
 		const layer2 = screen.getAllByLabelText("Layer 2")[1];
@@ -50,8 +50,6 @@ describe("LayerPane functionality", () => {
 	});
 
 	it("should switch active layer on click", () => {
-		renderWithProviders(<LayerPane />, { preloadedState });
-
 		const layer1 = screen.getAllByLabelText("Layer 1")[1];
 		const layer2 = screen.getAllByLabelText("Layer 2")[1];
 

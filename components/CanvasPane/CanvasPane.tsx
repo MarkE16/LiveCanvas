@@ -29,11 +29,11 @@ const CanvasPane: FC = () => {
 		(prev, next) => prev === next
 	);
 	const dispatch = useAppDispatch();
-	const shiftKey = useRef<boolean>(false);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
+	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
-	const canMove = mode === "move" || shiftKey.current;
+	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
 	// Effect is getting ugly... Might be a good idea to split
@@ -50,11 +50,7 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (
-				e.buttons !== 1 ||
-				(mode !== "move" && !shiftKey.current) ||
-				!isGrabbing
-			)
+			if (e.buttons !== 1 || (mode !== "move" && !shiftKey) || !isGrabbing)
 				return;
 
 			const dx = e.clientX - clientPosition.current.x;
@@ -72,9 +68,16 @@ const CanvasPane: FC = () => {
 			setIsGrabbing(false);
 		}
 
-		function handleShifyKeyChange(e: KeyboardEvent) {
+		function handleKeyDown(e: KeyboardEvent) {
 			if (e.key === "Shift") {
-				shiftKey.current = e.type === "keydown";
+				setShiftKey(e.type === "keydown");
+			}
+			if (e.key === "+" && e.type === "keydown") {
+				e.preventDefault();
+				dispatch(increaseScale());
+			} else if (e.key === "_" && e.type === "keydown") {
+				e.preventDefault();
+				dispatch(decreaseScale());
 			}
 		}
 
@@ -114,8 +117,8 @@ const CanvasPane: FC = () => {
 		canvasSpace.addEventListener("mouseleave", handleMouseUp);
 
 		// Handle shift key press
-		window.addEventListener("keydown", handleShifyKeyChange);
-		window.addEventListener("keyup", handleShifyKeyChange);
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyDown);
 
 		return () => {
 			canvasSpace.removeEventListener("mousedown", handleMouseDown);
@@ -125,16 +128,17 @@ const CanvasPane: FC = () => {
 			canvasSpace.removeEventListener("wheel", handleZoom);
 			canvasSpace.removeEventListener("click", handleZoom);
 
-			window.removeEventListener("keydown", handleShifyKeyChange);
-			window.removeEventListener("keyup", handleShifyKeyChange);
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyDown);
 		};
-	}, [dispatch, mode, isGrabbing]);
+	}, [dispatch, mode, isGrabbing, shiftKey]);
 
 	return (
 		<div id="canvas-pane">
-			{mode === "draw" || mode === "erase" ? (
-				<CanvasPointerMarker canvasSpaceReference={canvasSpaceRef.current} />
-			) : null}
+			<CanvasPointerMarker
+				isVisible={(mode === "draw" || mode === "erase") && !shiftKey}
+				canvasSpaceReference={canvasSpaceRef.current}
+			/>
 			{mode === "select" && !isMoving ? (
 				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef.current} />
 			) : null}
@@ -145,6 +149,7 @@ const CanvasPane: FC = () => {
 				ref={canvasSpaceRef}
 				data-moving={canMove}
 				data-grabbing={canMove && isGrabbing}
+				data-mode={mode}
 			>
 				<Canvas isGrabbing={isMoving} />
 			</div>

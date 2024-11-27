@@ -15,8 +15,9 @@ import reducer, {
 	changeX,
 	changeY
 } from "../state/slices/canvasSlice";
+import { MODES } from "../state/store";
 
-import type { CanvasState, Mode, Shape } from "../types";
+import type { CanvasState, Shape } from "../types";
 
 const mockState: CanvasState = {
 	width: 400,
@@ -54,19 +55,10 @@ describe("Test mode", () => {
 	});
 
 	it("should properly update to all existing modes", () => {
-		const modes: Mode[] = [
-			"draw",
-			"erase",
-			"shapes",
-			"zoom_in",
-			"zoom_out",
-			"move"
-		];
+		for (const mode of MODES) {
+			const state = reducer(undefined, changeMode(mode.name));
 
-		for (const mode of modes) {
-			const state = reducer(undefined, changeMode(mode));
-
-			expect(state.mode).toBe(mode);
+			expect(state.mode).toBe(mode.name);
 		}
 	});
 });

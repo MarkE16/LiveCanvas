@@ -19,6 +19,7 @@ export type Mode =
 	| "draw"
 	| "erase"
 	| "shapes"
+	| "eye_drop"
 	| "zoom_in"
 	| "zoom_out"
 	| "move"

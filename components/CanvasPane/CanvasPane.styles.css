@@ -19,14 +19,6 @@
 	transition: opacity 200ms;
 }
 
-#canvas-container[data-moving="true"] {
-	cursor: grab;
-}
-
-#canvas-container[data-grabbing="true"] {
-	cursor: grabbing;
-}
-
 #canvas-container {
 	display: flex;
 	justify-content: center;
@@ -36,4 +28,38 @@
 	width: 100%;
 	overflow: hidden;
 	/* border: 1px solid #000000; */
+}
+#canvas-container[data-moving="true"] {
+	cursor: grab !important;
+}
+
+#canvas-container[data-grabbing="true"] {
+	cursor: grabbing !important;
+}
+
+#canvas-container[data-mode="selection"] {
+	cursor: default;
+}
+
+#canvas-container[data-mode="draw"],
+#canvas-container[data-mode="erase"],
+#canvas-container[data-mode="shapes"] {
+	cursor: crosshair;
+}
+
+#canvas-container[data-mode="zoom_in"] {
+	cursor: zoom-in;
+}
+
+#canvas-container[data-mode="zoom_out"] {
+	cursor: zoom-out;
+}
+
+#canvas-container[data-mode="text"] {
+	cursor: text;
+}
+
+#canvas-container[data-mode="eye_drop"] {
+	/* cursor: url(eye_drop_cursor.png), auto; */
+	cursor: crosshair;
 }

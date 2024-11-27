@@ -117,26 +117,30 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					arrow
 					placement="left"
 				>
-					<button
-						className="layer-up"
-						onClick={() => onMoveLayer("up")}
-						disabled={positionIndex === 0}
-					>
-						<i className="fas fa-angle-up"></i>
-					</button>
+					<span>
+						<button
+							className="layer-up"
+							onClick={() => onMoveLayer("up")}
+							disabled={positionIndex === 0}
+						>
+							<i className="fas fa-angle-up"></i>
+						</button>
+					</span>
 				</Tooltip>
 				<Tooltip
 					title="Move Down"
 					arrow
 					placement="left"
 				>
-					<button
-						className="layer-down"
-						onClick={() => onMoveLayer("down")}
-						disabled={positionIndex === totalLayers - 1}
-					>
-						<i className="fas fa-angle-down"></i>
-					</button>
+					<span>
+						<button
+							className="layer-down"
+							onClick={() => onMoveLayer("down")}
+							disabled={positionIndex === totalLayers - 1}
+						>
+							<i className="fas fa-angle-down"></i>
+						</button>
+					</span>
 				</Tooltip>
 			</div>
 			<div className="layer-info-actions">
@@ -178,15 +182,17 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						arrow
 						placement="top"
 					>
-						<button
-							className="layer-rename"
-							onClick={onRename}
-							disabled={!editedName.length}
-						>
-							<i
-								className={`fas ${isEditing ? "fa-check" : "fa-pencil-alt"}`}
-							></i>
-						</button>
+						<span>
+							<button
+								className="layer-rename"
+								onClick={onRename}
+								disabled={!editedName.length}
+							>
+								<i
+									className={`fas ${isEditing ? "fa-check" : "fa-pencil-alt"}`}
+								></i>
+							</button>
+						</span>
 					</Tooltip>
 					{!isEditing && (
 						<>

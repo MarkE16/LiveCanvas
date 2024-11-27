@@ -72,6 +72,8 @@
 }
 
 .layer-info-container > .layer-info-actions > div > button,
+/* below is to account for the tooltip ones */
+.layer-info-container > .layer-info-actions > div > span > button,
 .layer-down,
 .layer-up {
 	opacity: 0;
@@ -84,15 +86,20 @@
 	transition: opacity 100ms;
 }
 
-.layer-info-container > .layer-info-actions > div > button:last-child {
+.layer-info-container > .layer-info-actions > div > button:last-child,
+.layer-info-container > .layer-info-actions > div > span > button:last-child {
 	margin-right: 0;
 }
 
 .layer-info-container:hover > .layer-info-actions > div > button,
 .layer-info-container.active > .layer-info-actions > div > button,
-.layer-info-container.editing > .layer-info-actions > div > button {
+.layer-info-container.editing > .layer-info-actions > div > button,
+.layer-info-container:hover > .layer-info-actions > div > span > button,
+.layer-info-container.active > .layer-info-actions > div > span > button,
+.layer-info-container.editing > .layer-info-actions > div > span > button {
 	opacity: 1;
 }
-.layer-info-container > .layer-info-actions > div > button:hover {
+.layer-info-container > .layer-info-actions > div > button:hover,
+.layer-info-container > .layer-info-actions > div > span > button:hover {
 	background-color: rgba(255, 255, 255, 0.1);
 }
