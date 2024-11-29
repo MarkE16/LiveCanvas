@@ -69,13 +69,12 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === "Shift") {
-				setShiftKey(e.type === "keydown");
-			}
-			if (e.key === "+" && e.type === "keydown") {
+			setShiftKey(e.shiftKey);
+
+			if (e.key === "+") {
 				e.preventDefault();
 				dispatch(increaseScale());
-			} else if (e.key === "_" && e.type === "keydown") {
+			} else if (e.key === "_") {
 				e.preventDefault();
 				dispatch(decreaseScale());
 			}
@@ -137,10 +136,10 @@ const CanvasPane: FC = () => {
 		<div id="canvas-pane">
 			<CanvasPointerMarker
 				isVisible={(mode === "draw" || mode === "erase") && !shiftKey}
-				canvasSpaceReference={canvasSpaceRef.current}
+				canvasSpaceReference={canvasSpaceRef}
 			/>
 			{mode === "select" && !isMoving ? (
-				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef.current} />
+				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef} />
 			) : null}
 			<DrawingToolbar />
 

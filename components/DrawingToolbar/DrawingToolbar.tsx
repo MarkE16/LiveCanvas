@@ -127,7 +127,7 @@ const DrawingToolbar: FC = () => {
 	].filter(Boolean);
 
 	// Now insert a break between each setting.
-	additionalSettings.forEach((setting, index) => {
+	additionalSettings.forEach((_, index) => {
 		if (index % 2 !== 0) {
 			additionalSettings.splice(
 				index,

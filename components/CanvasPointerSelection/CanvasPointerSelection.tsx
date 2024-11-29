@@ -4,11 +4,11 @@ import * as UTILS from "../../utils";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
-import type { FC } from "react";
+import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerSelectionProps = {
-	canvasSpaceReference: HTMLDivElement | null;
+	canvasSpaceReference: RefObject<HTMLDivElement>;
 };
 
 const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
@@ -18,10 +18,15 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	const isSelecting = useRef<boolean>(false);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const endPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
+	const [rect, setRect] = useState({
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0
+	});
 
 	useEffect(() => {
-		const canvasSpace = canvasSpaceReference;
+		const canvasSpace = canvasSpaceReference.current;
 		if (!canvasSpace) return;
 
 		const handleMouseDown = (e: MouseEvent) => {

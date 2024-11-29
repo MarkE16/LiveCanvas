@@ -1,17 +1,36 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Layer, Coordinates } from "./types";
 
+type CapitalizeOptions = {
+	titleCase: boolean;
+	delimiter: string;
+};
 /**
  * Capitalizes the first letter of a string and leaves the rest
  * of the string untouched.
  * @param str The string to capitalize.
+ * @param options The options object.
  * @returns The capitalized string.
  *
  * @example
  * capitalize("hello, world!"); // => "Hello, world!"
+ *
+ * capitalize("hello, world!", { titleCase: true }); // => "Hello, World!"
  */
-const capitalize = (str: string): string =>
-	str.charAt(0).toUpperCase() + str.slice(1);
+const capitalize = (str: string, options?: CapitalizeOptions): string => {
+	if (!options) {
+		return str.charAt(0).toUpperCase() + str.slice(1);
+	}
+
+	if (options.titleCase) {
+		return str
+			.split(options.delimiter)
+			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+			.join(options.delimiter);
+	}
+
+	return str.charAt(0).toUpperCase() + str.slice(1);
+};
 
 /**
  * Create a new Layer object.

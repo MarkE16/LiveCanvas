@@ -71,7 +71,6 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		const rectWidth = x - startX;
 		const rectHeight = y - startY;
 
-		ctx!.beginPath();
 		ctx!.clearRect(
 			0,
 			0,

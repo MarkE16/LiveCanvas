@@ -49,7 +49,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			color,
 			drawStrength,
 			eraserStrength,
-			show_all: showall,
 			position: { x: xPosition, y: yPosition }
 		} = useAppSelector((state) => state.canvas);
 		const dispatch = useAppDispatch();
@@ -81,13 +80,36 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			if (mode === "draw") {
 				ctx!.beginPath();
 				ctx!.moveTo(x, y);
+			} else if (mode === "eye_drop" && !isGrabbing) {
+				const pixel = ctx!.getImageData(x, y, 1, 1).data;
+
+				const colorStr = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`;
+				let color;
+
+				if (colorStr === "rgba(0, 0, 0, 0)") {
+					// If the color is transparent, we want to assume
+					// that the user wanted to select the background color
+					// which visually is white. For the color to be
+					// transparent is correct, but from a UX perspective,
+					// it's not what the user would expect. So,
+					// we'll set the color to white.
+					color = parseColor("rgba(255, 255, 255, 255)");
+				} else {
+					color = parseColor(colorStr);
+				}
+
+				// The color picker only supports HSLA, so we need to convert the color to HSLA.
+				dispatch(changeColor(color.toFormat("hsla").toString()));
+				dispatch(changeMode("select")); // Change the mode to select after the color is picked.
 			}
 
 			// Save the starting point of the drawing.
 			drawStartingPoint.current = { x, y };
 
-			// Save the current path.
-			currentPath.current.push({ x, y });
+			if (mode === "draw" || mode === "erase") {
+				// Save the current path.
+				currentPath.current.push({ x, y });
+			}
 
 			console.log(currentPath.current);
 		};
@@ -181,41 +203,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			isDrawing.current = false;
 		};
 
-		const onClick = (e: MouseEvent<HTMLCanvasElement>) => {
-			if (mode !== "eye_drop") return;
-
-			const ctx = layerRef!.getContext("2d");
-
-			if (!ctx) return;
-
-			const { x, y } = UTILS.getCanvasPointerPosition(
-				e.clientX,
-				e.clientY,
-				layerRef!
-			);
-
-			const pixel = ctx.getImageData(x, y, 1, 1).data;
-
-			const colorStr = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`;
-			let color;
-
-			if (colorStr === "rgba(0, 0, 0, 0)") {
-				// If the color is transparent, we want to assume
-				// that the user wanted to select the background color
-				// which visually is white. For the color to be
-				// transparent is correct, but from a UX perspective,
-				// it's not what the user would expect. So,
-				// we'll set the color to white.
-				color = parseColor("rgba(255, 255, 255, 255)");
-			} else {
-				color = parseColor(colorStr);
-			}
-
-			// The color picker only supports HSLA, so we need to convert the color to HSLA.
-			dispatch(changeColor(color.toFormat("hsla").toString()));
-			dispatch(changeMode("select")); // Change the mode to select after the color is picked.
-		};
-
 		//   useEffect(() => {
 		//     if (!layerRef) return;
 
@@ -267,7 +254,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				// These are the width and height via how many pixels the canvas has available to draw on.
 				width={width}
 				height={height}
-				className={`canvas ${active || showall ? "active" : ""} ${layerHidden ? "hidden" : ""}`}
+				className={`canvas ${active ? "active" : ""} ${layerHidden ? "hidden" : ""}`}
 				style={{
 					// These are the width and height of the canvas element visually.
 					width: `${width}px`,
@@ -283,7 +270,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				onMouseUp={onMouseUp}
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}
-				onClick={onClick}
 				data-name={name}
 				data-layer-index={layerIndex}
 				data-scale={scale}

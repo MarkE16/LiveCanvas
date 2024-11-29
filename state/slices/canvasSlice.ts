@@ -132,6 +132,9 @@ const canvasSlice = createSlice({
 				return layer;
 			});
 		},
+		toggleShowingAll: (state) => {
+			state.show_all = !state.show_all;
+		},
 		increaseScale: (state) => {
 			state.scale = Math.min(3, state.scale + 0.1);
 		},
@@ -165,6 +168,7 @@ export const {
 	setLayers,
 	setLayerId,
 	toggleVisibility,
+	toggleShowingAll,
 	increaseScale,
 	decreaseScale,
 	setPosition,

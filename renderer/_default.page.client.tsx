@@ -29,6 +29,9 @@ async function render(pageContext: PageContextClient) {
 	// @ts-ignore
 	delete window.__PRELOADED_STATE__;
 
+	// Since the initial Redux state is passed from the server to the client,
+	// we can remove the script tag that contains the initial Redux state.
+	// This way, the initial Redux state is not visible in the DOM inspector.
 	const script = document.getElementById("__preloaded_state__");
 
 	if (script) {
@@ -44,6 +47,11 @@ async function render(pageContext: PageContextClient) {
 		</PageShell>
 	);
 }
+
+// Note from developer: we shouldn't have to think about switching to
+// client-side routing, so this should be commented out. However,
+// if we do need to switch to client-side routing, we can uncomment this.
+// So, keep this here.
 
 /* To enable Client-side Routing:
 export const clientRouting = true

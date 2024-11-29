@@ -24,6 +24,7 @@ const LayerPane: FC = () => {
 	return (
 		<aside id="layer-manager-container">
 			<ColorWheel />
+
 			<button
 				id="new-layer-button"
 				onClick={onNewLayer}

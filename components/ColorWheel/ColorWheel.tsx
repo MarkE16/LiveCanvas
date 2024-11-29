@@ -32,13 +32,6 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 	const onChange = (color: Color) =>
 		dispatch(changeColor(color.toString("hsla")));
 
-	/*
-  For some reason, the thumb is not visible with the default implementation given from the documentation.
-  (https://react-spectrum.adobe.com/react-aria/ColorWheel.html#example) This is a workaround to make it visible and look
-  almost identical to the original implementation. (See the styles in the CSS file for more information)
-  */
-	const thumb = <AriaColorThumb className="thumb" />;
-
 	const COLOR_WHEEL_OUTER_RADIUS = 80;
 	const COLOR_WHEEL_INNER_RADIUS = 65;
 
@@ -46,19 +39,27 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 	const COLOR_AREA_WIDTH = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
 	const COLOR_AREA_HEIGHT = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
 
+	const id = "color-wheel-container";
+
 	return (
-		<div id="color-wheel-container">
+		<div
+			id={id}
+			data-testid={id}
+		>
 			<AriaColorWheel
 				outerRadius={COLOR_WHEEL_OUTER_RADIUS}
 				innerRadius={COLOR_WHEEL_INNER_RADIUS}
 				value={currentColor}
 				className="color-wheel"
+				data-testid="color-wheel"
 				onChange={onChange}
 				{...props}
 			>
-				<AriaColorWheelTrack />
-
-				{thumb}
+				<AriaColorWheelTrack data-testid="color-wheel-track" />
+				<AriaColorThumb
+					className="thumb"
+					data-testid="color-wheel-thumb"
+				/>
 			</AriaColorWheel>
 			{/**
 			 * Note: The ColorArea component implmentation of the xChannel and yChannel only works if the color value is in HSL/HSLA format.
@@ -68,6 +69,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 				value={currentColor}
 				onChange={onChange}
 				className="color-area"
+				data-testid="color-area"
 				style={{
 					width: `${COLOR_AREA_WIDTH}px`,
 					height: `${COLOR_AREA_HEIGHT}px`,
@@ -76,7 +78,10 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 				xChannel="saturation"
 				yChannel="lightness"
 			>
-				{thumb}
+				<AriaColorThumb
+					className="thumb"
+					data-testid="color-area-thumb"
+				/>
 			</AriaColorArea>
 		</div>
 	);

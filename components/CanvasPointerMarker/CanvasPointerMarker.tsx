@@ -3,15 +3,14 @@ import { useState, useEffect } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 
 // Types
-import type { FC } from "react";
+import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerMarker = {
-	canvasSpaceReference: HTMLDivElement | null;
+	canvasSpaceReference: RefObject<HTMLDivElement>;
 	isVisible: boolean;
 };
 
-//
 const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 	canvasSpaceReference,
 	isVisible
@@ -27,13 +26,14 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
 
 	useEffect(() => {
-		if (!canvasSpaceReference) return;
+		const canvasSpace = canvasSpaceReference.current;
+		if (!canvasSpace) return;
 
-		function onMouseMove(e: MouseEvent) {
-			if (!canvasSpaceReference) return;
+		function computeCoordinates(e: MouseEvent) {
+			if (!canvasSpace) return;
 
 			const { x, y, left, top, width, height } =
-				canvasSpaceReference.getBoundingClientRect();
+				canvasSpace.getBoundingClientRect();
 			let newX;
 			let newY;
 
@@ -65,10 +65,10 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 			setPosition({ x: newX, y: newY });
 		}
 
-		canvasSpaceReference.addEventListener("mousemove", onMouseMove);
+		canvasSpace.addEventListener("mousemove", computeCoordinates);
 
 		return () => {
-			canvasSpaceReference.removeEventListener("mousemove", onMouseMove);
+			canvasSpace.removeEventListener("mousemove", computeCoordinates);
 		};
 	}, [canvasSpaceReference, POINTER_SIZE]);
 

@@ -30,7 +30,10 @@ const ToolbarButton = memo(
 
 		const isActive = mode === name;
 		const tooltip =
-			UTILS.capitalize(name).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
+			UTILS.capitalize(name, {
+				titleCase: true,
+				delimiter: "_"
+			}).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
 
 		const performAction = useCallback(() => {
 			if (name === "undo") {
