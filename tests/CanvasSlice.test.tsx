@@ -26,10 +26,10 @@ const mockState: CanvasState = {
 	color: parseColor("hsla(0, 0%, 0%, 1)").toString(), // TODO: Convert to using react-aria's parseColor
 	drawStrength: 5,
 	eraserStrength: 3,
+	dpi: 1,
 	shape: "rectangle",
 	layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 	scale: 1,
-	show_all: false,
 	position: { x: 0, y: 0 }
 };
 
@@ -280,14 +280,12 @@ describe("Test scale", () => {
 	it("should increase the scale by 0.1", () => {
 		const state = reducer(undefined, increaseScale());
 
-		expect(state.scale).not.toBe(1);
 		expect(state.scale).toBe(1.1);
 	});
 
 	it("should decrease the scale by 0.1", () => {
 		const state = reducer(undefined, decreaseScale());
 
-		expect(state.scale).not.toBe(1);
 		expect(state.scale).toBe(0.9);
 	});
 

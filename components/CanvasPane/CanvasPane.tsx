@@ -22,6 +22,7 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 const CanvasPane: FC = () => {
 	const mode = useAppSelector(
@@ -33,6 +34,7 @@ const CanvasPane: FC = () => {
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
+	const references = useLayerReferences();
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -50,13 +52,45 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1 || (mode !== "move" && !shiftKey) || !isGrabbing)
+			if (
+				e.buttons !== 1 ||
+				(mode !== "move" && !shiftKey) ||
+				!isGrabbing ||
+				!canvasSpace
+			)
 				return;
 
-			const dx = e.clientX - clientPosition.current.x;
-			const dy = e.clientY - clientPosition.current.y;
+			const layer = references[0];
 
-			// Update the canvas position in the Redux state
+			const {
+				left: lLeft,
+				top: lTop,
+				width: lWidth,
+				height: lHeight
+			} = layer.getBoundingClientRect();
+
+			const {
+				left: sLeft,
+				width: sWidth,
+				height: sHeight,
+				top: sTop
+			} = canvasSpace.getBoundingClientRect();
+
+			let dx = e.clientX - clientPosition.current.x;
+			let dy = e.clientY - clientPosition.current.y;
+
+			// Check if the layer is outside the canvas space.
+			// If it is, we don't want to move it.
+			// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
+			if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth) {
+				dx = 0; // Set to 0 so that the layer doesn't move.
+			}
+
+			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dx >= sHeight) {
+				dy = 0; // Set to 0 so that the layer doesn't move.
+			}
+
+			// Apply the changes.
 			dispatch(changeX(dx));
 			dispatch(changeY(dy));
 
@@ -130,7 +164,7 @@ const CanvasPane: FC = () => {
 			window.removeEventListener("keydown", handleKeyDown);
 			window.removeEventListener("keyup", handleKeyDown);
 		};
-	}, [dispatch, mode, isGrabbing, shiftKey]);
+	}, [dispatch, mode, isGrabbing, shiftKey, references]);
 
 	return (
 		<div id="canvas-pane">

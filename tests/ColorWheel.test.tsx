@@ -1,13 +1,5 @@
 // Lib
-import {
-	describe,
-	it,
-	expect,
-	beforeEach,
-	afterEach,
-	afterAll,
-	vi
-} from "vitest";
+import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
 import { parseColor } from "react-aria-components";
@@ -18,40 +10,37 @@ import ColorWheel from "../components/ColorWheel/ColorWheel";
 // Types
 import type { CanvasState } from "../types";
 import type { PropsWithChildren } from "react";
-import type { Color } from "react-aria-components";
+// import type { Color } from "react-aria-components";
 
 const mockAriaColorWheel = vi.fn();
 const mockAriaColorArea = vi.fn();
-
-type onChangeMockProps = PropsWithChildren & {
-	onChange: (value: Color) => void;
-};
-
-const newColor = parseColor("hsla(120, 100%, 50%, 1)");
+const mockOnChange = vi.fn();
 
 vi.mock("react-aria-components", async (importOriginal) => {
 	const actual = (await importOriginal()) as NonNullable<unknown>;
 	return {
 		...actual,
-		ColorWheel: (props: onChangeMockProps) => {
+		ColorWheel: ({ children, ...props }: PropsWithChildren) => {
 			mockAriaColorWheel(props);
 			return (
 				<div
 					data-testid="color-wheel"
-					onChange={() => props.onChange(newColor)}
+					onChange={mockOnChange}
+					{...props}
 				>
-					{props.children}
+					{children}
 				</div>
 			);
 		},
-		ColorArea: (props: onChangeMockProps) => {
+		ColorArea: ({ children, ...props }: PropsWithChildren) => {
 			mockAriaColorArea(props);
 			return (
 				<div
 					data-testid="color-area"
-					onChange={() => props.onChange(newColor)}
+					onChange={mockOnChange}
+					{...props}
 				>
-					{props.children}
+					{children}
 				</div>
 			);
 		},
@@ -76,7 +65,7 @@ describe("ColorWheel functionality", () => {
 				drawStrength: 5,
 				eraserStrength: 3,
 				scale: 1,
-				show_all: false,
+				dpi: 1,
 				position: { x: 0, y: 0 },
 				layers: [
 					{ name: "Layer 1", id: "1", active: true, hidden: false },
@@ -86,10 +75,6 @@ describe("ColorWheel functionality", () => {
 			}
 		};
 		renderWithProviders(<ColorWheel />, { preloadedState });
-	});
-
-	afterEach(() => {
-		vi.restoreAllMocks();
 	});
 
 	afterAll(() => {
@@ -102,6 +87,8 @@ describe("ColorWheel functionality", () => {
 		const colorWheelTrack = screen.getByTestId("color-wheel-track");
 		const colorWheelThumb = screen.getAllByTestId("color-wheel-track"); // there should be two thumbs rendered: one for the color wheel and one for the color area.
 		const colorWheelArea = screen.getByTestId("color-area");
+
+		console.log(ColorWheel.prototype);
 
 		expect(container).not.toBeNull();
 		expect(colorWheel).not.toBeNull();
@@ -146,7 +133,9 @@ describe("ColorWheel functionality", () => {
 
 		const parsedColor = parseColor(newColor);
 
-		fireEvent.change(colorWheel, { value: parsedColor });
+		fireEvent.change(colorWheel, parsedColor);
+
+		expect(mockOnChange).toHaveBeenCalledWith(parsedColor);
 
 		expect(mockAriaColorWheel).toHaveBeenCalledWith(
 			expect.objectContaining({

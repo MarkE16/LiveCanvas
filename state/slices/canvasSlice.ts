@@ -15,7 +15,7 @@ const initialState: CanvasState = {
 	shape: "rectangle",
 	layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 	scale: 1,
-	show_all: false,
+	dpi: 1,
 	position: { x: 0, y: 0 }
 };
 
@@ -45,6 +45,9 @@ const canvasSlice = createSlice({
 		},
 		changeEraserStrength: (state, action: PayloadAction<number>) => {
 			state.eraserStrength = Math.min(10, Math.max(3, action.payload));
+		},
+		changeDPI: (state, action: PayloadAction<number>) => {
+			state.dpi = action.payload;
 		},
 		createLayer: (
 			state,
@@ -132,9 +135,6 @@ const canvasSlice = createSlice({
 				return layer;
 			});
 		},
-		toggleShowingAll: (state) => {
-			state.show_all = !state.show_all;
-		},
 		increaseScale: (state) => {
 			state.scale = Math.min(3, state.scale + 0.1);
 		},
@@ -159,6 +159,7 @@ export const {
 	changeShape,
 	changeDrawStrength,
 	changeEraserStrength,
+	changeDPI,
 	createLayer,
 	removeLayer,
 	toggleLayer,
@@ -168,7 +169,6 @@ export const {
 	setLayers,
 	setLayerId,
 	toggleVisibility,
-	toggleShowingAll,
 	increaseScale,
 	decreaseScale,
 	setPosition,

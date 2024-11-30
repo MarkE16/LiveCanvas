@@ -86,12 +86,28 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				if (!ctx) return;
 
 				setRect((prev) => {
+					const dpi = currentLayer.getAttribute("data-dpi");
+					if (!dpi) {
+						console.error("Can't determine DPI for deleting selection.");
+						return { x: 0, y: 0, width: 0, height: 0 };
+					}
+
 					const { x: startX, y: startY } = startingPosition.current;
 					const { x: startCanvasX, y: startCanvasY } =
-						UTILS.getCanvasPointerPosition(startX, startY, currentLayer);
+						UTILS.getCanvasPointerPosition(
+							startX,
+							startY,
+							currentLayer,
+							Number(dpi)
+						);
 					const { x: endX, y: endY } = endPosition.current;
 					const { x: endCanvasX, y: endCanvasY } =
-						UTILS.getCanvasPointerPosition(endX, endY, currentLayer);
+						UTILS.getCanvasPointerPosition(
+							endX,
+							endY,
+							currentLayer,
+							Number(dpi)
+						);
 					const scale = currentLayer.getAttribute("data-scale");
 
 					if (!scale) {

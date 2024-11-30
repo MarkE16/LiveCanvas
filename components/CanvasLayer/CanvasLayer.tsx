@@ -49,6 +49,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			color,
 			drawStrength,
 			eraserStrength,
+			dpi,
 			position: { x: xPosition, y: yPosition }
 		} = useAppSelector((state) => state.canvas);
 		const dispatch = useAppDispatch();
@@ -74,17 +75,21 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			const { x, y } = UTILS.getCanvasPointerPosition(
 				e.clientX,
 				e.clientY,
-				layerRef!
+				layerRef!,
+				dpi
 			);
 
 			if (mode === "draw") {
 				ctx!.beginPath();
 				ctx!.moveTo(x, y);
 			} else if (mode === "eye_drop" && !isGrabbing) {
+				// How do I get the pixel accurately while accounting for the dpi scale?
 				const pixel = ctx!.getImageData(x, y, 1, 1).data;
 
 				const colorStr = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`;
 				let color;
+
+				console.log(x, y);
 
 				if (colorStr === "rgba(0, 0, 0, 0)") {
 					// If the color is transparent, we want to assume
@@ -132,7 +137,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			const { x, y } = UTILS.getCanvasPointerPosition(
 				e.clientX,
 				e.clientY,
-				layerRef!
+				layerRef!,
+				dpi
 			);
 
 			switch (mode) {
@@ -273,6 +279,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				data-name={name}
 				data-layer-index={layerIndex}
 				data-scale={scale}
+				data-dpi={dpi}
 				{...rest}
 			/>
 		);

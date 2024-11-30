@@ -5,7 +5,6 @@
 	min-width: 50px;
 	height: 100%;
 	overflow: auto;
-	justify-content: space-between;
 	background-color: rgb(36, 36, 36);
 	border: 1px solid rgb(56, 55, 55);
 	/* border: 1px solid #000000; */

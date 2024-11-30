@@ -101,6 +101,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	return (
 		<label
 			htmlFor={"layer-" + id}
+			data-testid={"layer-" + id}
 			className={cn}
 			aria-label={"Layer " + id}
 		>
@@ -120,6 +121,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					<span>
 						<button
 							className="layer-up"
+							data-testid={`up-${id}`}
 							onClick={() => onMoveLayer("up")}
 							disabled={positionIndex === 0}
 						>
@@ -136,6 +138,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						<button
 							className="layer-down"
 							onClick={() => onMoveLayer("down")}
+							data-testid={`down-${id}`}
 							disabled={positionIndex === totalLayers - 1}
 						>
 							<i className="fas fa-angle-down"></i>
@@ -147,6 +150,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				{isEditing ? (
 					<input
 						type="text"
+						data-testid={`name-input-${id}`}
 						placeholder={name}
 						value={editedName}
 						/**
@@ -171,6 +175,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				) : (
 					<span
 						className="layer-info-name"
+						data-testid={`name-${id}`}
 						ref={nameRef}
 					>
 						{name}
@@ -186,6 +191,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 							<button
 								className="layer-rename"
 								onClick={onRename}
+								data-testid={`rename-${id}`}
 								disabled={!editedName.length}
 							>
 								<i
@@ -204,6 +210,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								>
 									<button
 										className="layer-delete"
+										data-testid={`del-${id}`}
 										onClick={onDelete}
 									>
 										<i className="fas fa-trash-alt"></i>
@@ -215,7 +222,10 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								arrow
 								placement="top"
 							>
-								<button onClick={onToggleVisibility}>
+								<button
+									onClick={onToggleVisibility}
+									data-testid={`toggle-${id}`}
+								>
 									<i
 										className={`fas ${hidden ? "fa-eye-slash" : "fa-eye"}`}
 									></i>

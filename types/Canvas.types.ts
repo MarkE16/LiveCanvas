@@ -10,7 +10,7 @@ export type CanvasState = {
 	shape: Shape;
 	layers: Layer[];
 	scale: number;
-	show_all: boolean;
+	dpi: number;
 	position: Coordinates;
 };
 

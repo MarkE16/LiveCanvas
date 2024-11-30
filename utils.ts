@@ -87,22 +87,23 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
 
 /**
  * Get the position of the pointer on the given canvas element.
- * @param e The MouseEvent object.
+ * @param x The x-coordinate of the pointer. This should normally be the `clientX` value of a MouseEvent.
+ * @param y The y-coordinate of the pointer. This should normally be the `clientY` value of a MouseEvent.
  * @param canvas The canvas element.
+ * @param dpi The device pixel ratio. Defaults to `window.devicePixelRatio`.
  * @returns The position of the pointer on the canvas.
  */
 const getCanvasPointerPosition = (
 	x: number,
 	y: number,
-	canvas: HTMLCanvasElement
-	// dpi: number = window.devicePixelRatio
+	canvas: HTMLCanvasElement,
+	dpi: number = window.devicePixelRatio
 ): Coordinates => {
 	const rect = canvas.getBoundingClientRect();
 	const scaleX = canvas.width / rect.width;
-	const scaleY = canvas.height / rect.height;
 
-	const computedX = (x - rect.left) * scaleX;
-	const computedY = (y - rect.top) * scaleY;
+	const computedX = ((x - rect.left) * scaleX) / dpi;
+	const computedY = ((y - rect.top) * scaleX) / dpi;
 
 	return { x: computedX, y: computedY };
 };
