@@ -118,21 +118,20 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 					const { width, height } = prev;
 					let deletionX = startCanvasX;
 					let deletionY = startCanvasY;
+					const deletionWidth = width / Number(scale);
+					const deletionHeight = height / Number(scale);
 
 					if (endCanvasX <= startCanvasX) {
-						deletionX = startCanvasX - width / Number(scale);
+						deletionX = startCanvasX - width / Number(scale) / Number(dpi);
+						// deletionWidth = (width / Number(scale)) / Number(dpi);
 					}
 
 					if (endCanvasY <= startCanvasY) {
-						deletionY = startCanvasY - height / Number(scale);
+						deletionY = startCanvasY - height / Number(scale) / Number(dpi);
+						// deletionHeight = height / Number(scale) / Number(dpi);
 					}
 
-					ctx.clearRect(
-						deletionX,
-						deletionY,
-						width / Number(scale),
-						height / Number(scale)
-					);
+					ctx.clearRect(deletionX, deletionY, deletionWidth, deletionHeight);
 					return { x: 0, y: 0, width: 0, height: 0 };
 				});
 			}

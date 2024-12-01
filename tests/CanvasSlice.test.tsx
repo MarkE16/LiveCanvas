@@ -2,6 +2,7 @@ import { parseColor } from "react-aria-components";
 import { describe, it, expect, vi } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import reducer, {
+	changeDimensions,
 	changeMode,
 	changeColor,
 	changeDrawStrength,
@@ -43,8 +44,15 @@ describe("Test dimensions", () => {
 		expect(state.height).toBe(mockState.height);
 	});
 
-	// TODO: Add more tests.
-	it.todo("should properly update the width and height");
+	it("should properly update the dimensions", () => {
+		const state = reducer(
+			undefined,
+			changeDimensions({ width: 800, height: 600 })
+		);
+
+		expect(state.width).toBe(800);
+		expect(state.height).toBe(600);
+	});
 });
 
 describe("Test mode", () => {
@@ -267,6 +275,12 @@ describe("Test layer", () => {
 				hidden: false
 			}
 		]);
+	});
+
+	it("should not remove any layer if not found", () => {
+		const state = reducer(mockState, removeLayer("1234-5678-9123-4568"));
+
+		expect(state.layers).toEqual(mockState.layers);
 	});
 });
 

@@ -1,83 +1,93 @@
 // Lib
-import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
-import { parseColor } from "react-aria-components";
-
-// Components
+import * as ReduxHooks from "../state/hooks/reduxHooks";
 import ColorWheel from "../components/ColorWheel/ColorWheel";
+
+// Redux Actions
+import { changeColor } from "../state/slices/canvasSlice";
 
 // Types
 import type { CanvasState } from "../types";
-import type { PropsWithChildren } from "react";
-// import type { Color } from "react-aria-components";
+import { Color, parseColor } from "react-aria-components";
+import { PropsWithChildren } from "react";
 
-const mockAriaColorWheel = vi.fn();
-const mockAriaColorArea = vi.fn();
-const mockOnChange = vi.fn();
+type MockProps = PropsWithChildren & {
+	onChange?: (color: Color) => void;
+};
 
+const mockColorWheelProps = vi.fn();
+const mockColorAreaProps = vi.fn();
+const mockColor = parseColor("hsla(240, 100%, 50%, 1)"); // Simulated color
+
+// NOTE: Using the click event to simulate the color change because the onChange event is not being triggered
 vi.mock("react-aria-components", async (importOriginal) => {
-	const actual = (await importOriginal()) as NonNullable<unknown>;
+	const original = (await importOriginal()) as NonNullable<
+		typeof importOriginal
+	>;
+
 	return {
-		...actual,
-		ColorWheel: ({ children, ...props }: PropsWithChildren) => {
-			mockAriaColorWheel(props);
+		...original,
+		ColorWheel: ({ onChange, children, ...props }: MockProps) => {
+			mockColorWheelProps(props);
 			return (
 				<div
 					data-testid="color-wheel"
-					onChange={mockOnChange}
+					onClick={() => onChange && onChange(mockColor)}
 					{...props}
 				>
 					{children}
 				</div>
 			);
 		},
-		ColorArea: ({ children, ...props }: PropsWithChildren) => {
-			mockAriaColorArea(props);
+		ColorWheelTrack: () => <div data-testid="color-wheel-track" />,
+		ColorThumb: () => <div data-testid="thumb" />,
+		ColorArea: ({ onChange, children, ...props }: MockProps) => {
+			mockColorAreaProps(props);
 			return (
 				<div
 					data-testid="color-area"
-					onChange={mockOnChange}
+					onClick={() => onChange && onChange(mockColor)}
 					{...props}
 				>
 					{children}
 				</div>
 			);
-		},
-		ColorThumb: (props: PropsWithChildren) => (
-			<div data-testid="color-wheel-thumb">{props.children}</div>
-		),
-		ColorWheelTrack: (props: PropsWithChildren) => (
-			<div data-testid="color-wheel-track">{props.children}</div>
-		)
+		}
 	};
 });
 
 describe("ColorWheel functionality", () => {
+	const dispatchMock = vi.fn();
+
+	const preloadedState: { canvas: CanvasState } = {
+		canvas: {
+			width: 400,
+			height: 400,
+			mode: "select",
+			shape: "circle",
+			drawStrength: 5,
+			eraserStrength: 3,
+			scale: 1,
+			dpi: 1,
+			position: { x: 0, y: 0 },
+			layers: [
+				{ name: "Layer 1", id: "1", active: true, hidden: false },
+				{ name: "Layer 2", id: "2", active: false, hidden: false }
+			],
+			color: "hsla(0, 100%, 50%, 1)" // Default red color
+		}
+	};
+
 	beforeEach(() => {
-		// Color is set to red by default
-		const preloadedState: { canvas: CanvasState } = {
-			canvas: {
-				width: 400,
-				height: 400,
-				mode: "select",
-				shape: "circle",
-				drawStrength: 5,
-				eraserStrength: 3,
-				scale: 1,
-				dpi: 1,
-				position: { x: 0, y: 0 },
-				layers: [
-					{ name: "Layer 1", id: "1", active: true, hidden: false },
-					{ name: "Layer 2", id: "2", active: false, hidden: false }
-				],
-				color: "hsla(0, 100%, 50%, 1)"
-			}
-		};
+		// Mock Redux dispatch function
+		vi.spyOn(ReduxHooks, "useAppDispatch").mockReturnValue(dispatchMock);
+
 		renderWithProviders(<ColorWheel />, { preloadedState });
 	});
 
-	afterAll(() => {
+	afterEach(() => {
 		vi.resetAllMocks();
 	});
 
@@ -85,74 +95,57 @@ describe("ColorWheel functionality", () => {
 		const container = screen.getByTestId("color-wheel-container");
 		const colorWheel = screen.getByTestId("color-wheel");
 		const colorWheelTrack = screen.getByTestId("color-wheel-track");
-		const colorWheelThumb = screen.getAllByTestId("color-wheel-track"); // there should be two thumbs rendered: one for the color wheel and one for the color area.
+		const colorWheelThumbs = screen.getAllByTestId("thumb");
 		const colorWheelArea = screen.getByTestId("color-area");
-
-		console.log(ColorWheel.prototype);
 
 		expect(container).not.toBeNull();
 		expect(colorWheel).not.toBeNull();
 		expect(colorWheelTrack).not.toBeNull();
 		expect(colorWheelArea).not.toBeNull();
-		for (const thumb of colorWheelThumb) {
-			expect(thumb).not.toBeNull();
-		}
+		expect(colorWheelThumbs).toHaveLength(2);
 	});
 
 	it("should render with default color", () => {
-		const color = "hsla(0, 100%, 50%, 1)";
-		expect(mockAriaColorWheel).toHaveBeenCalledWith(
+		// Check initial Redux state
+		expect(mockColorWheelProps).toHaveBeenCalledWith(
 			expect.objectContaining({
-				value: color
+				value: preloadedState.canvas.color
 			})
 		);
 
-		expect(mockAriaColorArea).toHaveBeenCalledWith(
+		expect(mockColorAreaProps).toHaveBeenCalledWith(
 			expect.objectContaining({
-				value: color
+				value: preloadedState.canvas.color
 			})
 		);
 	});
 
 	it("should properly update to a new color when changing through color wheel", () => {
-		const currentColor = "hsla(0, 100%, 50%, 1)";
-		const newColor = "hsla(120, 100%, 50%, 1)";
+		// Simulate clicking the color wheel
 		const colorWheel = screen.getByTestId("color-wheel");
+		fireEvent.click(colorWheel);
 
-		expect(mockAriaColorWheel).toHaveBeenCalledWith(
-			expect.objectContaining({
-				value: currentColor
-			})
+		// Assert that dispatch was called with the correct action
+		expect(dispatchMock).toHaveBeenCalledWith(
+			changeColor(mockColor.toString())
 		);
-
-		expect(mockAriaColorArea).toHaveBeenCalledWith(
-			expect.objectContaining({
-				value: currentColor
-			})
-		);
-
-		const parsedColor = parseColor(newColor);
-
-		fireEvent.change(colorWheel, parsedColor);
-
-		expect(mockOnChange).toHaveBeenCalledWith(parsedColor);
-
-		expect(mockAriaColorWheel).toHaveBeenCalledWith(
-			expect.objectContaining({
-				value: newColor
-			})
-		);
-
-		expect(mockAriaColorArea).toHaveBeenCalledWith(
-			expect.objectContaining({
-				value: newColor
-			})
-		);
+		expect(dispatchMock).toHaveBeenCalledOnce();
 	});
 
-	// Note: this test should most likely NOT be changed as these channels are required for the color area to work as intended with the color wheel.
+	it("should properly update to a new color when changing through color area", () => {
+		// Simulate clicking the color area
+		const colorArea = screen.getByTestId("color-area");
+		fireEvent.click(colorArea);
+
+		// Assert that dispatch was called with the correct action
+		expect(dispatchMock).toHaveBeenCalledWith(
+			changeColor(mockColor.toString())
+		);
+		expect(dispatchMock).toHaveBeenCalledOnce();
+	});
+
 	it("should render the color area with the correct channels", () => {
-		expect(mockAriaColorArea).toHaveBeenCalledWith(
+		expect(mockColorAreaProps).toHaveBeenCalledWith(
 			expect.objectContaining({
 				xChannel: "saturation",
 				yChannel: "lightness"
@@ -165,7 +158,8 @@ describe("ColorWheel functionality", () => {
 
 		const COLOR_AREA_WIDTH = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
 		const COLOR_AREA_HEIGHT = COLOR_WHEEL_INNER_RADIUS * Math.sqrt(2) - 5;
-		expect(mockAriaColorArea).toHaveBeenCalledWith(
+
+		expect(mockColorAreaProps).toHaveBeenCalledWith(
 			expect.objectContaining({
 				style: {
 					width: `${COLOR_AREA_WIDTH}px`,

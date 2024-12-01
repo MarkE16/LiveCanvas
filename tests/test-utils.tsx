@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactNode } from "react";
-import type { RenderOptions, RenderResult } from "@testing-library/react";
+import type { RenderOptions } from "@testing-library/react";
 import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
@@ -23,7 +23,7 @@ export function renderWithProviders(
 		store = createStore(preloadedState),
 		...renderOptions
 	}: ExtendedRenderOptions = {}
-): RenderResult {
+) {
 	const Wrapper = ({ children }: PropsWithChildren) => (
 		<IndexedDBProvider>
 			<LayerReferenceProvider>
@@ -32,5 +32,8 @@ export function renderWithProviders(
 		</IndexedDBProvider>
 	);
 
-	return render(ui, { wrapper: Wrapper, ...renderOptions });
+	return {
+		...render(ui, { wrapper: Wrapper, ...renderOptions }),
+		store
+	};
 }

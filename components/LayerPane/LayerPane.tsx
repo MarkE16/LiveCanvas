@@ -31,21 +31,12 @@ const LayerPane: FC = () => {
 	const onDPIChange = () => {
 		dispatch(changeDPI(res));
 
-		references.forEach((layer) => {
-			const ctx = layer.getContext("2d");
+		references.forEach((ref) => {
+			const ctx = ref.getContext("2d");
 
-			if (!ctx) return;
-
-			layer.width =
-				Number(layer.style.width.substring(0, layer.style.width.length - 2)) *
-				res;
-			layer.height =
-				Number(layer.style.height.substring(0, layer.style.height.length - 2)) *
-				res;
-
-			ctx.scale(res, res);
-
-			ctx.drawImage(layer, 0, 0);
+			if (ctx) {
+				ctx.scale(res, res);
+			}
 		});
 	};
 

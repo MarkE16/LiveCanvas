@@ -21,7 +21,6 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		(prev, next) => Object.is(prev, next)
 	);
 	const ERASER_RADIUS = 7;
-
 	const POINTER_SIZE =
 		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
 

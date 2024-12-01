@@ -1,9 +1,13 @@
 // Lib
-import { expect, it, describe, beforeEach, vi } from "vitest";
+import { expect, it, describe, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
+import * as ReduxHooks from "../state/hooks/reduxHooks";
 import { MODES } from "../state/store";
 import * as UTILS from "../utils";
+
+// Redux Actions
+import { changeMode } from "../state/slices/canvasSlice";
 
 // Components
 import LeftToolbar from "../components/LeftToolbar/LeftToolbar";
@@ -13,8 +17,14 @@ vi.mock("../../renderer/usePageContext", () => ({
 }));
 
 describe("Left Toolbar functionality", () => {
+	const mockDispatch = vi.fn();
 	beforeEach(() => {
+		vi.spyOn(ReduxHooks, "useAppDispatch").mockReturnValue(mockDispatch);
 		renderWithProviders(<LeftToolbar />);
+	});
+
+	afterEach(() => {
+		vi.resetAllMocks();
 	});
 
 	it("should render the component", async () => {
@@ -64,13 +74,21 @@ describe("Left Toolbar functionality", () => {
 			expect(mode).not.toBeNull();
 			expect(previousMode).not.toBeNull();
 
-			expect(mode.classList.contains("active")).toBe(false);
-			expect(previousMode.classList.contains("active")).toBe(true);
+			if (MODES[i].name === "undo" || MODES[i].name === "redo") {
+				// These aren't necessarily modes that we can change to; they're just actions. So, we skip them.
+				break;
+			}
+			expect(mockDispatch).toHaveBeenCalledTimes(i - 1);
 
 			fireEvent.click(mode);
 
-			expect(mode.classList.contains("active")).toBe(true);
-			expect(previousMode.classList.contains("active")).toBe(false);
+			expect(mockDispatch).toHaveBeenCalledTimes(i);
+			expect(mockDispatch).toHaveBeenCalledWith(changeMode(MODES[i].name));
 		}
+
+		expect(mockDispatch).toHaveBeenCalledTimes(MODES.length - 3);
+		expect(mockDispatch).toHaveBeenCalledWith(
+			changeMode(MODES[MODES.length - 3].name)
+		); // Last mode that can be changed to
 	});
 });

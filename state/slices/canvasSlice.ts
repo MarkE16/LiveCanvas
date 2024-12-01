@@ -19,10 +19,16 @@ const initialState: CanvasState = {
 	position: { x: 0, y: 0 }
 };
 
+type Dimensions = { width: number; height: number };
+
 const canvasSlice = createSlice({
 	name: "canvas",
 	initialState,
 	reducers: {
+		changeDimensions: (state, action: PayloadAction<Partial<Dimensions>>) => {
+			state.width = action.payload.width ?? state.width;
+			state.height = action.payload.height ?? state.height;
+		},
 		changeColor: (state, action: PayloadAction<string>) => {
 			const space = parseColor(action.payload).getColorSpace();
 
@@ -154,6 +160,7 @@ const canvasSlice = createSlice({
 });
 
 export const {
+	changeDimensions,
 	changeColor,
 	changeMode,
 	changeShape,

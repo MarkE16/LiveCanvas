@@ -18,13 +18,14 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 	height,
 	...rest
 }) => {
-	const { scale, mode, shape, color } = useAppSelector((state) => state.canvas);
+	const { scale, mode, shape, color, dpi } = useAppSelector(
+		(state) => state.canvas
+	);
 	const { x: xPosition, y: yPosition } = useAppSelector(
 		(state) => state.canvas.position
 	);
 	const isSelecting = useRef<boolean>(false);
 	const selectionRef = useRef<HTMLCanvasElement>(null);
-	const selectionRect = useRef({ x: 0, y: 0, width: 0, height: 0 });
 	const selectionStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
 	const references = useLayerReferences();
 
@@ -36,7 +37,8 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		const { x, y } = UTILS.getCanvasPointerPosition(
 			e.clientX,
 			e.clientY,
-			selectionRef.current!
+			selectionRef.current!,
+			dpi
 		);
 
 		const ctx = selectionRef.current!.getContext("2d");
@@ -49,7 +51,6 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		);
 
 		selectionStartingPoint.current = { x, y };
-		selectionRect.current = { ...selectionRect.current, x, y };
 	};
 
 	const onMouseMove: MouseEventHandler<HTMLCanvasElement> = (
@@ -64,12 +65,13 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		const { x, y } = UTILS.getCanvasPointerPosition(
 			e.clientX,
 			e.clientY,
-			selectionRef.current!
+			selectionRef.current!,
+			dpi
 		);
 		const { x: startX, y: startY } = selectionStartingPoint.current;
 
-		const rectWidth = x - startX;
-		const rectHeight = y - startY;
+		const rectWidth = (x - startX) / dpi;
+		const rectHeight = (y - startY) / dpi;
 
 		ctx!.clearRect(
 			0,
@@ -128,13 +130,6 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 				}
 			}
 		}
-
-		selectionRect.current = {
-			x: startX,
-			y: startY,
-			width: rectWidth,
-			height: rectHeight
-		};
 	};
 
 	const onMouseUp: MouseEventHandler<HTMLCanvasElement> = () => {

@@ -101,9 +101,10 @@ const getCanvasPointerPosition = (
 ): Coordinates => {
 	const rect = canvas.getBoundingClientRect();
 	const scaleX = canvas.width / rect.width;
+	const scaleY = canvas.height / rect.height;
 
 	const computedX = ((x - rect.left) * scaleX) / dpi;
-	const computedY = ((y - rect.top) * scaleX) / dpi;
+	const computedY = ((y - rect.top) * scaleY) / dpi;
 
 	return { x: computedX, y: computedY };
 };

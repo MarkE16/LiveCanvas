@@ -1,7 +1,7 @@
 // Lib
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 // import useHistory from "../../state/hooks/useHistory";
-import { useRef, forwardRef } from "react";
+import { useRef, forwardRef, useEffect } from "react";
 import * as UTILS from "../../utils";
 import { parseColor } from "react-aria-components";
 
@@ -83,13 +83,18 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				ctx!.beginPath();
 				ctx!.moveTo(x, y);
 			} else if (mode === "eye_drop" && !isGrabbing) {
-				// How do I get the pixel accurately while accounting for the dpi scale?
-				const pixel = ctx!.getImageData(x, y, 1, 1).data;
+				// `.getImageData()` retreives the x and y coordinates of the pixel
+				// differently if the canvas is scaled. So, we need to multiply the
+				// x and y coordinates by the DPI to get the correct pixel.
+				const pixel = ctx!.getImageData(
+					Math.floor(x * dpi),
+					Math.floor(y * dpi),
+					1,
+					1
+				).data;
 
 				const colorStr = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]})`;
 				let color;
-
-				console.log(x, y);
 
 				if (colorStr === "rgba(0, 0, 0, 0)") {
 					// If the color is transparent, we want to assume
@@ -153,7 +158,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 					currentPath.current.push({ x, y });
 
-					// emitLayerState(); // Not necessary to emit every time the mouse moves (at the moment)
 					break;
 				}
 
@@ -164,7 +168,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 						ERASER_RADIUS * eraserStrength,
 						ERASER_RADIUS * eraserStrength
 					);
-					// emitLayerState(); // Not necessary to emit every time the mouse moves (at the moment)
 					break;
 				}
 
@@ -209,57 +212,27 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			isDrawing.current = false;
 		};
 
-		//   useEffect(() => {
-		//     if (!layerRef) return;
+		// Update the resolution of the canvas when the DPI changes.
+		useEffect(() => {
+			if (!layerRef) return;
+			const layerCtx = layerRef.getContext("2d");
 
-		//     const layerCtx = layerRef.getContext('2d');
-		//     if (!layerCtx) return;
+			if (!layerCtx) return;
 
-		//     const subCanvas = document.createElement('canvas');
-		//     subCanvas.width = layerRef.width;
-		//     subCanvas.height = layerRef.height;
+			const { width, height } = layerRef.getBoundingClientRect();
+			layerRef.width = width * dpi;
+			layerRef.height = height * dpi;
 
-		//     const subCtx = subCanvas.getContext('2d');
-		//     if (!subCtx) return;
+			layerCtx.scale(dpi, dpi);
 
-		//     // Copy the existing content from the main canvas to the temporary canvas
-		//     subCtx.drawImage(layerRef, 0, 0);
-
-		//     // Draw the history of the layer on the temporary canvas
-		//     history.undo.forEach(action => {
-		//       const { mode, path, layerId, color, drawStrength } = action;
-		//       if (layerId !== layerRef.id) return;
-
-		//       // Draw the path
-		//       subCtx.beginPath();
-		//       subCtx.strokeStyle = color;
-		//       subCtx.lineWidth = drawStrength;
-		//       subCtx.lineCap = 'round';
-		//       subCtx.lineJoin = 'round';
-
-		//       path.forEach(({ x, y }, index) => {
-		//         if (index === 0) {
-		//           subCtx.moveTo(x, y);
-		//         } else {
-		//           subCtx.lineTo(x, y);
-		//         }
-		//       });
-		//       subCtx.stroke();
-		//     });
-
-		//     subCtx.closePath();
-		//     // Draw the temporary canvas back onto the main canvas
-
-		//     layerCtx.clearRect(0, 0, layerRef.width, layerRef.height);
-		//     layerCtx.drawImage(subCanvas, 0, 0);
-		// }, [history.undo, history.redo, layerRef]);
+			return () => {
+				layerCtx.scale(1 / dpi, 1 / dpi);
+			};
+		}, [dpi, layerRef]);
 
 		return (
 			<canvas
 				ref={ref}
-				// These are the width and height via how many pixels the canvas has available to draw on.
-				width={width}
-				height={height}
 				className={`canvas ${active ? "active" : ""} ${layerHidden ? "hidden" : ""}`}
 				style={{
 					// These are the width and height of the canvas element visually.
