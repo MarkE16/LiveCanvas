@@ -120,8 +120,6 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				// Save the current path.
 				currentPath.current.push({ x, y });
 			}
-
-			console.log(currentPath.current);
 		};
 
 		// Handler for when the mouse is moved on the canvas.
@@ -165,8 +163,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 					ctx!.clearRect(
 						x - (ERASER_RADIUS * eraserStrength) / 2,
 						y - (ERASER_RADIUS * eraserStrength) / 2,
-						ERASER_RADIUS * eraserStrength,
-						ERASER_RADIUS * eraserStrength
+						ERASER_RADIUS * eraserStrength * dpi,
+						ERASER_RADIUS * eraserStrength * dpi
 					);
 					break;
 				}

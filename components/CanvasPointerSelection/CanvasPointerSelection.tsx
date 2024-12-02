@@ -15,14 +15,20 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	canvasSpaceReference
 }) => {
 	const references = useLayerReferences();
-	const isSelecting = useRef<boolean>(false);
+	const [isSelecting, setIsSelecting] = useState<boolean>(false);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const endPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const [rect, setRect] = useState({
-		x: 0,
-		y: 0,
-		width: 0,
-		height: 0
+	const [rect, setRect] = useState(() => {
+		if (!canvasSpaceReference.current)
+			return { x: 0, y: 0, width: 0, height: 0 };
+
+		const canvasSpace = canvasSpaceReference.current;
+
+		const { left, top } = canvasSpace.getBoundingClientRect();
+
+		console.log(left, top);
+
+		return { x: left, y: top, width: 0, height: 0 };
 	});
 
 	useEffect(() => {
@@ -30,7 +36,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		if (!canvasSpace) return;
 
 		const handleMouseDown = (e: MouseEvent) => {
-			isSelecting.current = true;
+			setIsSelecting(true);
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const x = e.clientX;
 			const y = e.clientY;
@@ -46,7 +52,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		};
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (e.buttons !== 1 || !isSelecting.current) return;
+			if (e.buttons !== 1) return;
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const { x, y } = startingPosition.current;
@@ -68,7 +74,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			const y = e.clientY;
 
 			endPosition.current = { x, y };
-			isSelecting.current = false;
+			setIsSelecting(false);
 		};
 
 		const handleKeyboardDown = (e: KeyboardEvent) => {
@@ -85,7 +91,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 
 				if (!ctx) return;
 
-				setRect((prev) => {
+				setRect(() => {
 					const dpi = currentLayer.getAttribute("data-dpi");
 					if (!dpi) {
 						console.error("Can't determine DPI for deleting selection.");
@@ -108,27 +114,18 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 							currentLayer,
 							Number(dpi)
 						);
-					const scale = currentLayer.getAttribute("data-scale");
 
-					if (!scale) {
-						console.error("Can't determine scale for deleting selection.");
-						return { x: 0, y: 0, width: 0, height: 0 };
-					}
-
-					const { width, height } = prev;
 					let deletionX = startCanvasX;
 					let deletionY = startCanvasY;
-					const deletionWidth = width / Number(scale);
-					const deletionHeight = height / Number(scale);
+					const deletionWidth = Math.abs(endCanvasX - startCanvasX);
+					const deletionHeight = Math.abs(endCanvasY - startCanvasY);
 
 					if (endCanvasX <= startCanvasX) {
-						deletionX = startCanvasX - width / Number(scale) / Number(dpi);
-						// deletionWidth = (width / Number(scale)) / Number(dpi);
+						deletionX = endCanvasX;
 					}
 
 					if (endCanvasY <= startCanvasY) {
-						deletionY = startCanvasY - height / Number(scale) / Number(dpi);
-						// deletionHeight = height / Number(scale) / Number(dpi);
+						deletionY = endCanvasY;
 					}
 
 					ctx.clearRect(deletionX, deletionY, deletionWidth, deletionHeight);
@@ -136,7 +133,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				});
 			}
 
-			isSelecting.current = false;
+			setIsSelecting(false);
 		};
 
 		const handleReset = () => {
@@ -168,7 +165,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				display: rect.width + rect.height === 0 ? "none" : "block",
 				position: "absolute",
 				pointerEvents: "none",
-				border: "1px dashed #d1836a",
+				border: `1px ${isSelecting ? "dashed" : "solid"} #d1836a`,
 				backgroundColor: "hsla(20, 50%, 60%, 0.3)",
 				zIndex: 100,
 				left: rect.x,

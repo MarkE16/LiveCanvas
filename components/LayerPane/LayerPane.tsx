@@ -1,7 +1,6 @@
 // Lib
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { useState, memo } from "react";
-import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Redux Actions
 import { createLayer, changeDPI } from "../../state/slices/canvasSlice";
@@ -24,21 +23,10 @@ const LayerPane: FC = () => {
 	const dpi = useAppSelector((state) => state.canvas.dpi);
 	const [res, setRes] = useState(dpi);
 	const dispatch = useAppDispatch();
-	const references = useLayerReferences();
 
 	const onNewLayer = () => dispatch(createLayer());
 
-	const onDPIChange = () => {
-		dispatch(changeDPI(res));
-
-		references.forEach((ref) => {
-			const ctx = ref.getContext("2d");
-
-			if (ctx) {
-				ctx.scale(res, res);
-			}
-		});
-	};
+	const onDPIChange = () => dispatch(changeDPI(res));
 
 	return (
 		<aside id="layer-manager-container">

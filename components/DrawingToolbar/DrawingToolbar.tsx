@@ -80,6 +80,7 @@ const DrawingToolbar: FC = () => {
 						<button
 							key={name}
 							className={`shape-option ${isActive ? "active" : ""}`}
+							data-testid={`shape-${name}`}
 							onClick={() => handleShapeChange(name)}
 						>
 							<i className={`fa ${icon}`} />
@@ -101,8 +102,9 @@ const DrawingToolbar: FC = () => {
 				step="1"
 				value={strengthSettings.value}
 				onChange={handleStrengthChange}
+				data-testid="strength-range"
 			/>
-			<label>{strengthSettings.value}</label>
+			<label data-testid="strength-value">{strengthSettings.value}</label>
 		</>
 	);
 

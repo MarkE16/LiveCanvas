@@ -1,22 +1,48 @@
 // Lib
 import { useEffect } from "react";
-import { navigateTo } from "../../utils";
 
-// Types
-import type { FC } from "react";
+// Components
+import Navbar from "../../components/Navbar/Navbar";
+import Main from "../../components/Main/Main";
 
-export { Page };
+// The <head> tags
+// eslint-disable-next-line
+export const documentProps = {
+	title: "IdeaDrawn", // <title>
+	desc: "A drawing canvas editor on the browser" // <meta name="description">
+};
 
-const Page: FC = () => {
-	// Redirect.
+function Page() {
 	useEffect(() => {
-		navigateTo("editor");
+		async function checkStoragePersistency() {
+			if (!navigator.storage || !navigator.storage.persist) return;
+
+			const isPersisted = await navigator.storage.persisted();
+
+			if (!isPersisted) {
+				const isPersisting = await navigator.storage.persist();
+
+				if (isPersisting) {
+					console.log("Storage is now persisted.");
+				} else {
+					console.error("Storage was not persisted.");
+				}
+			} else {
+				console.log("Storage is already persisted.");
+			}
+		}
+
+		// Check if the database persists.
+		checkStoragePersistency();
 	}, []);
 
 	return (
 		<>
-			<h2>This is the main page</h2>
-			<span>Redirecting to the editor...</span>
+			<Navbar />
+
+			<Main />
 		</>
 	);
-};
+}
+
+export { Page };

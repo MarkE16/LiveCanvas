@@ -1,5 +1,5 @@
 // Lib
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import * as UTILS from "../../utils";
@@ -13,6 +13,8 @@ type InteractiveCanvasLayerProps = HTMLAttributes<HTMLCanvasElement> & {
 	height: number;
 };
 
+// Note: In favor of having the ability to draw shapes and text on the canvas space, this component may be deprecated
+// and so will be removed in the future.
 const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 	width,
 	height,
@@ -70,8 +72,8 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		);
 		const { x: startX, y: startY } = selectionStartingPoint.current;
 
-		const rectWidth = (x - startX) / dpi;
-		const rectHeight = (y - startY) / dpi;
+		const rectWidth = x - startX;
+		const rectHeight = y - startY;
 
 		ctx!.clearRect(
 			0,
@@ -160,13 +162,32 @@ const InteractiveCanvasLayer: FC<InteractiveCanvasLayerProps> = ({
 		}
 	};
 
+	// Also need to apply the changes of the DPI to the interactive canvas layer.
+	useEffect(() => {
+		if (!selectionRef.current) return;
+		const ctx = selectionRef.current.getContext("2d");
+
+		if (!ctx) return;
+
+		const { width, height } = selectionRef.current.getBoundingClientRect();
+
+		selectionRef.current.width = width * dpi;
+		selectionRef.current.height = height * dpi;
+
+		ctx.scale(dpi, dpi);
+
+		return () => {
+			ctx.scale(1 / dpi, 1 / dpi);
+		};
+	}, [dpi]);
+
 	return (
 		<canvas
 			ref={selectionRef}
-			width={width}
-			height={height}
 			className="canvas selection"
 			style={{
+				width: `${width}px`,
+				height: `${height}px`,
 				transform: `translate(
         ${xPosition}px,
         ${yPosition}px

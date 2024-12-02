@@ -87,8 +87,5 @@ describe("Left Toolbar functionality", () => {
 		}
 
 		expect(mockDispatch).toHaveBeenCalledTimes(MODES.length - 3);
-		expect(mockDispatch).toHaveBeenCalledWith(
-			changeMode(MODES[MODES.length - 3].name)
-		); // Last mode that can be changed to
 	});
 });

@@ -102,9 +102,10 @@ const getCanvasPointerPosition = (
 	const rect = canvas.getBoundingClientRect();
 	const scaleX = canvas.width / rect.width;
 	const scaleY = canvas.height / rect.height;
+	const calculatedDpi = dpi || window.devicePixelRatio || 1;
 
-	const computedX = ((x - rect.left) * scaleX) / dpi;
-	const computedY = ((y - rect.top) * scaleY) / dpi;
+	const computedX = ((x - rect.left) * scaleX) / calculatedDpi;
+	const computedY = ((y - rect.top) * scaleY) / calculatedDpi;
 
 	return { x: computedX, y: computedY };
 };
