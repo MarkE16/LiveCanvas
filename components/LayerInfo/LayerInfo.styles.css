@@ -96,7 +96,9 @@
 .layer-info-container.editing > .layer-info-actions > div > button,
 .layer-info-container:hover > .layer-info-actions > div > span > button,
 .layer-info-container.active > .layer-info-actions > div > span > button,
-.layer-info-container.editing > .layer-info-actions > div > span > button {
+.layer-info-container.editing > .layer-info-actions > div > span > button,
+.layer-info-container > .layer-info-actions > div > button:focus,
+.layer-info-container > .layer-info-actions > div > span > button:focus {
 	opacity: 1;
 }
 .layer-info-container > .layer-info-actions > div > button:hover,

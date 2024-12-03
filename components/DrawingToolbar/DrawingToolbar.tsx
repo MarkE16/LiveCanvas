@@ -3,11 +3,10 @@ import * as UTILS from "../../utils";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { SHAPES } from "../../state/store";
 import { Tooltip } from "@mui/material";
-import { Fragment } from "react";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Redux Actions
 import {
-	changeShape,
 	changeDrawStrength,
 	changeEraserStrength,
 	changeColor
@@ -19,6 +18,40 @@ import type { Shape } from "../../types";
 
 // Styles
 import "./DrawingToolbar.styles.css";
+
+const ShapeOption = ({
+	icon,
+	name,
+	isActive
+}: {
+	icon: string;
+	name: Shape;
+	isActive: boolean;
+}) => {
+	const { createElement } = useCanvasElements();
+
+	const handleShapeChange = () => {
+		createElement(name);
+	};
+
+	return (
+		<Tooltip
+			title={UTILS.capitalize(name)}
+			arrow
+			placement="bottom"
+		>
+			<span>
+				<button
+					className={`shape-option ${isActive ? "active" : ""}`}
+					onClick={handleShapeChange}
+					data-testid={`shape-${name}`}
+				>
+					<i className={`fa ${icon}`} />
+				</button>
+			</span>
+		</Tooltip>
+	);
+};
 
 const DrawingToolbar: FC = () => {
 	const { drawStrength, eraserStrength, mode, shape, color } = useAppSelector(
@@ -49,10 +82,6 @@ const DrawingToolbar: FC = () => {
 		}
 	};
 
-	const handleShapeChange = (shape: Shape) => {
-		dispatch(changeShape(shape));
-	};
-
 	// Looks ugly. Might need to refactor
 	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
@@ -70,24 +99,12 @@ const DrawingToolbar: FC = () => {
 		const isActive = shape === name;
 
 		return (
-			<Fragment key={name}>
-				<Tooltip
-					title={UTILS.capitalize(name)}
-					arrow
-					placement="bottom"
-				>
-					<span>
-						<button
-							key={name}
-							className={`shape-option ${isActive ? "active" : ""}`}
-							data-testid={`shape-${name}`}
-							onClick={() => handleShapeChange(name)}
-						>
-							<i className={`fa ${icon}`} />
-						</button>
-					</span>
-				</Tooltip>
-			</Fragment>
+			<ShapeOption
+				key={name}
+				icon={icon}
+				name={name}
+				isActive={isActive}
+			/>
 		);
 	});
 

@@ -57,6 +57,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 		const drawStartingPoint = useRef<Coordinates>({ x: 0, y: 0 });
 		const isDrawing = useRef<boolean>(false);
+		const currentPath2D = useRef<Path2D | null>(null);
 		const currentPath = useRef<Coordinates[]>([]);
 
 		const ERASER_RADIUS = 7;
@@ -80,8 +81,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			);
 
 			if (mode === "draw") {
-				ctx!.beginPath();
-				ctx!.moveTo(x, y);
+				currentPath2D.current = new Path2D();
+				currentPath2D.current.moveTo(x, y);
 			} else if (mode === "eye_drop" && !isGrabbing) {
 				// `.getImageData()` retreives the x and y coordinates of the pixel
 				// differently if the canvas is scaled. So, we need to multiply the
@@ -146,13 +147,17 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 			switch (mode) {
 				case "draw": {
+					if (!currentPath2D.current) {
+						console.error("Couldn't create a Path2D object.");
+						return;
+					}
 					ctx!.strokeStyle = color;
 					ctx!.lineWidth = drawStrength;
 					ctx!.lineCap = "round";
 					ctx!.lineJoin = "round";
 
-					ctx!.lineTo(x, y);
-					ctx!.stroke();
+					currentPath2D.current.lineTo(x, y);
+					ctx!.stroke(currentPath2D.current);
 
 					currentPath.current.push({ x, y });
 
@@ -163,8 +168,8 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 					ctx!.clearRect(
 						x - (ERASER_RADIUS * eraserStrength) / 2,
 						y - (ERASER_RADIUS * eraserStrength) / 2,
-						ERASER_RADIUS * eraserStrength * dpi,
-						ERASER_RADIUS * eraserStrength * dpi
+						ERASER_RADIUS * eraserStrength,
+						ERASER_RADIUS * eraserStrength
 					);
 					break;
 				}
@@ -179,11 +184,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			if (isGrabbing) return;
 			isDrawing.current = false;
 
-			const ctx = layerRef!.getContext("2d");
-
 			if (mode === "draw" || mode === "erase") {
-				ctx!.closePath();
-
 				// Save the action to the history.
 				// history.addHistory({
 				// 	mode: mode as "draw" | "erase" | "shapes",

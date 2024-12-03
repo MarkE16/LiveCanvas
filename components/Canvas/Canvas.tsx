@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useIndexed from "../../state/hooks/useIndexed";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Redux Actions
 import { setLayers } from "../../state/slices/canvasSlice";
@@ -15,7 +16,6 @@ import "./Canvas.styles.css";
 
 // Components
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
-import useLayerReferences from "../../state/hooks/useLayerReferences";
 import InteractiveCanvasLayer from "../InteractiveCanvasLayer/InteractiveCanvasLayer";
 
 type CanvasProps = {

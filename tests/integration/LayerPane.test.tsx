@@ -9,9 +9,9 @@ import {
 } from "vitest";
 import {} from "@testing-library/user-event";
 import { fireEvent, screen } from "@testing-library/react";
-import LayerPane from "../components/LayerPane/LayerPane";
-import { CanvasState } from "../types";
-import { renderWithProviders } from "./test-utils";
+import LayerPane from "../../components/LayerPane/LayerPane";
+import { CanvasState } from "../../types";
+import { renderWithProviders } from "../test-utils";
 
 // Essential so that when the component is rendered,
 // the usePageContext hook doesn't throw an error (since it's not in the browser)

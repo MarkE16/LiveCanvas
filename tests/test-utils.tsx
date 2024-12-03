@@ -3,13 +3,14 @@ import type { RenderOptions, RenderResult } from "@testing-library/react";
 import { render } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
-import { LayerReferenceProvider } from "../components/LayerReferenceProvider/LayerReferenceProvider";
+import { CanvasElementsProvider } from "../components/CanvasElementsProvider/CanvasElementsProvider";
 
 //!! See https://redux.js.org/usage/writing-tests#setting-up-a-reusable-test-render-function
 //!! for more information on how to set up a Redux store for testing.
 
 import type { AppStore, RootState } from "../state/store";
 import { createStore } from "../state/store";
+import { LayerReferencesProvider } from "../components/LayerReferencesProvider/LayerReferencesProvider";
 
 type ExtendedRenderOptions = Omit<RenderOptions, "queries"> & {
 	preloadedState?: Partial<RootState>;
@@ -26,9 +27,11 @@ export function renderWithProviders(
 ): RenderResult {
 	const Wrapper = ({ children }: PropsWithChildren) => (
 		<IndexedDBProvider>
-			<LayerReferenceProvider>
-				<Provider store={store}>{children}</Provider>
-			</LayerReferenceProvider>
+			<LayerReferencesProvider>
+				<CanvasElementsProvider>
+					<Provider store={store}>{children}</Provider>
+				</CanvasElementsProvider>
+			</LayerReferencesProvider>
 		</IndexedDBProvider>
 	);
 

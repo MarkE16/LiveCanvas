@@ -15,10 +15,10 @@ import reducer, {
 	setPosition,
 	changeX,
 	changeY
-} from "../state/slices/canvasSlice";
-import { MODES } from "../state/store";
+} from "../../state/slices/canvasSlice";
+import { MODES } from "../../state/store";
 
-import type { CanvasState, Shape } from "../types";
+import type { CanvasState, Shape } from "../../types";
 
 const mockState: CanvasState = {
 	width: 400,

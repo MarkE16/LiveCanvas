@@ -1,15 +1,15 @@
 // Lib
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import { renderWithProviders } from "./test-utils";
-import * as ReduxHooks from "../state/hooks/reduxHooks";
-import ColorWheel from "../components/ColorWheel/ColorWheel";
+import { renderWithProviders } from "../test-utils";
+import * as ReduxHooks from "../../state/hooks/reduxHooks";
+import ColorWheel from "../../components/ColorWheel/ColorWheel";
 
 // Redux Actions
-import { changeColor } from "../state/slices/canvasSlice";
+import { changeColor } from "../../state/slices/canvasSlice";
 
 // Types
-import type { CanvasState } from "../types";
+import type { CanvasState } from "../../types";
 import { Color, parseColor } from "react-aria-components";
 import { PropsWithChildren } from "react";
 

@@ -1,16 +1,16 @@
 import { expect, describe, it, vi, afterEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import { renderWithProviders } from "./test-utils";
-import * as ReduxHooks from "../state/hooks/reduxHooks";
-import * as UTILS from "../utils";
-import { SHAPES } from "../state/store";
+import { renderWithProviders } from "../test-utils";
+import * as ReduxHooks from "../../state/hooks/reduxHooks";
+import * as UTILS from "../../utils";
+import { SHAPES } from "../../state/store";
 
 // Redux Actions
-import { changeShape } from "../state/slices/canvasSlice";
+import { changeShape } from "../../state/slices/canvasSlice";
 
 // Components
-import DrawingToolbar from "../components/DrawingToolbar/DrawingToolbar";
-import { CanvasState } from "../types";
+import DrawingToolbar from "../../components/DrawingToolbar/DrawingToolbar";
+import { CanvasState } from "../../types";
 
 vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook

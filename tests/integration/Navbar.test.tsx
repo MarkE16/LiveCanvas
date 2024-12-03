@@ -1,7 +1,7 @@
 import { expect, describe, it, vi, beforeEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import Navbar from "../components/Navbar/Navbar";
-import { renderWithProviders } from "./test-utils";
+import Navbar from "../../components/Navbar/Navbar";
+import { renderWithProviders } from "../test-utils";
 
 vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook

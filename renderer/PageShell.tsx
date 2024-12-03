@@ -3,7 +3,8 @@ import { PageContextProvider } from "./usePageContext";
 import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
 import type { PageContext } from "./types";
 import "./PageShell.css";
-import { LayerReferenceProvider } from "../components/LayerReferenceProvider/LayerReferenceProvider";
+import { CanvasElementsProvider } from "../components/CanvasElementsProvider/CanvasElementsProvider";
+import { LayerReferencesProvider } from "../components/LayerReferencesProvider/LayerReferencesProvider";
 
 export { PageShell };
 
@@ -18,7 +19,9 @@ function PageShell({
 		<React.StrictMode>
 			<PageContextProvider pageContext={pageContext}>
 				<IndexedDBProvider>
-					<LayerReferenceProvider>{children}</LayerReferenceProvider>
+					<LayerReferencesProvider>
+						<CanvasElementsProvider>{children}</CanvasElementsProvider>
+					</LayerReferencesProvider>
 				</IndexedDBProvider>
 			</PageContextProvider>
 		</React.StrictMode>

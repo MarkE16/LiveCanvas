@@ -10,11 +10,11 @@ import { Tooltip } from "@mui/material";
 const SaveCanvasButton: FC = () => {
 	const [saved, setSaved] = useState<boolean>(false);
 	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-	const layerReferences = useLayerReferences();
+	const references = useLayerReferences();
 	const { set } = useIndexed();
 
 	const saveCanvas = useCallback(() => {
-		layerReferences.forEach((canvas, index) => {
+		references.forEach((canvas, index) => {
 			if (!canvas) return;
 
 			canvas.toBlob(async (blob) => {
@@ -38,7 +38,7 @@ const SaveCanvasButton: FC = () => {
 		timeout.current = setTimeout(() => {
 			setSaved(false);
 		}, 1000);
-	}, [layerReferences, set]);
+	}, [references, set]);
 
 	useEffect(() => {
 		function handleKeyboardSave(e: KeyboardEvent) {

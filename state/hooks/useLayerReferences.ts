@@ -1,15 +1,14 @@
-// Lib
 import { useContext } from "react";
-import { LayerReferenceContext } from "../../components/LayerReferenceProvider/LayerReferenceProvider";
+import { LayerReferencesContext } from "../../components/LayerReferencesProvider/LayerReferencesProvider";
 
 /**
- * A custom hook that returns an array of references to the layers' associated HTML Canvas element.
- * The array is read from the LayerReferenceContext. The array should be properly ordered
- * to match the order of the layers in the Redux store.
- * @returns An array of references to the layers' associated HTML Canvas element
+ * A custom hook that returns an array consisting of HTMLCanvasElements that hold a reference
+ * to their respective canvas layers.
+ *
+ * @returns An array consisting of HTMLCanvasElements that references the canvas layers.
  */
 const useLayerReferences = () => {
-	return useContext(LayerReferenceContext);
+	return useContext(LayerReferencesContext);
 };
 
 export default useLayerReferences;

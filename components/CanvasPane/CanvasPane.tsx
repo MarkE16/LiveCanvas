@@ -1,6 +1,6 @@
 // Lib
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 
 // Redux Actions
 import {
@@ -23,6 +23,10 @@ import type { Coordinates } from "../../types";
 // Styles
 import "./CanvasPane.styles.css";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
+import ShapeElement from "../ShapeElement/ShapeElement";
+
+const MemoizedShapeElement = memo(ShapeElement);
 
 const CanvasPane: FC = () => {
 	const mode = useAppSelector(
@@ -35,6 +39,7 @@ const CanvasPane: FC = () => {
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const references = useLayerReferences();
+	const { elements } = useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -176,7 +181,12 @@ const CanvasPane: FC = () => {
 				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef} />
 			) : null}
 			<DrawingToolbar />
-
+			{elements.map((element) => (
+				<MemoizedShapeElement
+					key={element.id}
+					{...element}
+				/>
+			))}
 			<div
 				id="canvas-container"
 				ref={canvasSpaceRef}
