@@ -16,7 +16,6 @@ import "./Canvas.styles.css";
 
 // Components
 import CanvasLayer from "../CanvasLayer/CanvasLayer";
-import InteractiveCanvasLayer from "../InteractiveCanvasLayer/InteractiveCanvasLayer";
 
 type CanvasProps = {
 	isGrabbing: boolean;
@@ -31,11 +30,10 @@ type DBLayer = {
 const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	const state = useAppSelector((state) => state.canvas);
 	const dispatch = useAppDispatch();
-	const { width, height, mode, layers } = state;
+	const { width, height, layers } = state;
 
 	const refsOfLayers = useLayerReferences();
 	const { get } = useIndexed();
-	const isSelecting = mode === "shapes";
 
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
@@ -102,14 +100,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			However, there may be benefits to having a separate component for each layer. Regardless, this should
 			be considered for refactoring.
 			*/}
-
-			{isSelecting && (
-				<InteractiveCanvasLayer
-					id="interactive_canvas"
-					width={width}
-					height={height}
-				/>
-			)}
 
 			{/* The main canvas. */}
 			{layers

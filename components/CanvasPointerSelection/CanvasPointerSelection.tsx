@@ -2,20 +2,25 @@
 import { useRef, useEffect, useState } from "react";
 import * as UTILS from "../../utils";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
 import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerSelectionProps = {
+	isSelecting: boolean;
+	setIsSelecting: (isSelecting: boolean) => void;
 	canvasSpaceReference: RefObject<HTMLDivElement>;
 };
 
 const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
+	isSelecting,
+	setIsSelecting,
 	canvasSpaceReference
 }) => {
 	const references = useLayerReferences();
-	const [isSelecting, setIsSelecting] = useState<boolean>(false);
+	const rectRef = useRef<HTMLDivElement>(null);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const endPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [rect, setRect] = useState(() => {
@@ -26,10 +31,35 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 
 		const { left, top } = canvasSpace.getBoundingClientRect();
 
-		console.log(left, top);
-
 		return { x: left, y: top, width: 0, height: 0 };
 	});
+	const { focusElement, unfocusElement, elements } = useCanvasElements();
+
+	useEffect(() => {
+		const checkIntersections = (e: MouseEvent) => {
+			if (!rectRef.current || e.buttons !== 1) return;
+
+			const selectionRect = rectRef.current;
+
+			elements.forEach((element) => {
+				const node = document.getElementById(element.id);
+
+				if (!node) return;
+
+				if (UTILS.isRectIntersecting(selectionRect, node)) {
+					focusElement(element.id);
+				} else {
+					unfocusElement(element.id);
+				}
+			});
+		};
+
+		document.addEventListener("mousemove", checkIntersections);
+
+		return () => {
+			document.removeEventListener("mousemove", checkIntersections);
+		};
+	}, [elements, focusElement, unfocusElement]);
 
 	useEffect(() => {
 		const canvasSpace = canvasSpaceReference.current;
@@ -132,9 +162,9 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			setRect({ x: 0, y: 0, width: 0, height: 0 });
 		};
 
-		canvasSpace.addEventListener("mousedown", handleMouseDown);
-		canvasSpace.addEventListener("mousemove", handleMouseMove);
-		canvasSpace.addEventListener("mouseup", handleMouseUp);
+		document.addEventListener("mousedown", handleMouseDown);
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
 		document.addEventListener("keydown", handleKeyboardDown);
 
 		// Sometimes, when the window is resized, the selection rectangle will appear over the UI.
@@ -142,17 +172,18 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		window.addEventListener("resize", handleReset);
 
 		return () => {
-			canvasSpace.removeEventListener("mousedown", handleMouseDown);
-			canvasSpace.removeEventListener("mousemove", handleMouseMove);
-			canvasSpace.removeEventListener("mouseup", handleMouseUp);
+			document.removeEventListener("mousedown", handleMouseDown);
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
 			document.removeEventListener("keydown", handleKeyboardDown);
 			window.removeEventListener("resize", handleReset);
 		};
-	}, [canvasSpaceReference, references]);
+	}, [canvasSpaceReference, references, setIsSelecting]);
 
 	return (
 		<div
 			id="selection-rect"
+			ref={rectRef}
 			style={{
 				display: rect.width + rect.height === 0 ? "none" : "block",
 				position: "absolute",

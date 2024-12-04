@@ -140,10 +140,39 @@ const navigateTo = (href: string): void => {
 	window.location.href = url;
 };
 
+/**
+ * Determines whether two HTML elements are intersecting by comparing their bounding rectangles.
+ * @param rect1 An HTML element.
+ * @param rect2 An HTML element.
+ * @returns whether the two rectangles are intersecting.
+ */
+const isRectIntersecting = (
+	rect1: HTMLElement,
+	rect2: HTMLElement
+): boolean => {
+	const {
+		left: r1Left,
+		top: r1Top,
+		bottom: r1Bottom,
+		right: r1Right
+	} = rect1.getBoundingClientRect();
+	const {
+		left: r2Left,
+		top: r2Top,
+		bottom: r2Bottom,
+		right: r2Right
+	} = rect2.getBoundingClientRect();
+
+	return (
+		r1Left < r2Right && r1Right > r2Left && r1Top < r2Bottom && r1Bottom > r2Top
+	);
+};
+
 export {
 	capitalize,
 	createLayer,
 	swapElements,
 	getCanvasPointerPosition,
-	navigateTo
+	navigateTo,
+	isRectIntersecting
 };

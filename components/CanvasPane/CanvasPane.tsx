@@ -38,6 +38,7 @@ const CanvasPane: FC = () => {
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
+	const [isSelecting, setIsSelecting] = useState<boolean>(false);
 	const references = useLayerReferences();
 	const { elements } = useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
@@ -178,12 +179,17 @@ const CanvasPane: FC = () => {
 				canvasSpaceReference={canvasSpaceRef}
 			/>
 			{mode === "select" && !isMoving ? (
-				<CanvasPointerSelection canvasSpaceReference={canvasSpaceRef} />
+				<CanvasPointerSelection
+					isSelecting={isSelecting}
+					setIsSelecting={setIsSelecting}
+					canvasSpaceReference={canvasSpaceRef}
+				/>
 			) : null}
 			<DrawingToolbar />
 			{elements.map((element) => (
 				<MemoizedShapeElement
 					key={element.id}
+					isSelecting={isSelecting}
 					{...element}
 				/>
 			))}

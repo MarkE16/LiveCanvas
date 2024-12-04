@@ -5,6 +5,7 @@
 	align-items: center;
 	flex: 3;
 	width: 100%;
+	overflow: hidden;
 }
 
 /* #canvas-pointer-marker is from the component CanvasPointerMarker */
@@ -42,8 +43,7 @@
 }
 
 #canvas-container[data-mode="draw"],
-#canvas-container[data-mode="erase"],
-#canvas-container[data-mode="shapes"] {
+#canvas-container[data-mode="erase"] {
 	cursor: crosshair;
 }
 

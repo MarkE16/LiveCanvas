@@ -1,6 +1,8 @@
 // Lib
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppSelector } from "../../state/hooks/reduxHooks";
+import * as UTILS from "../../utils";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
 import type { FC, RefObject } from "react";
@@ -15,6 +17,8 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 	canvasSpaceReference,
 	isVisible
 }) => {
+	const { elements, deleteElement } = useCanvasElements();
+	const ref = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const { mode, drawStrength, eraserStrength, scale } = useAppSelector(
 		(state) => state.canvas,
@@ -71,8 +75,41 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		};
 	}, [canvasSpaceReference, POINTER_SIZE]);
 
+	useEffect(() => {
+		const canvasSpace = canvasSpaceReference.current;
+
+		if (!canvasSpace) return;
+
+		const isIntersecting = (e: MouseEvent) => {
+			const m = ref.current;
+
+			if (!m) return;
+
+			elements.forEach((element) => {
+				const el = document.getElementById(element.id);
+
+				if (!el) return;
+
+				if (
+					UTILS.isRectIntersecting(m, el) &&
+					mode === "erase" &&
+					e.buttons === 1
+				) {
+					deleteElement(element.id);
+				}
+			});
+		};
+
+		canvasSpace.addEventListener("mousemove", isIntersecting);
+
+		return () => {
+			canvasSpace.removeEventListener("mousemove", isIntersecting);
+		};
+	}, [elements, deleteElement, mode, canvasSpaceReference]);
+
 	return (
 		<div
+			ref={ref}
 			id="canvas-pointer-marker"
 			style={{
 				position: "absolute",
