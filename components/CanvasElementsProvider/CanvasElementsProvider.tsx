@@ -21,43 +21,13 @@ type Element = {
 
 type CanvasElementsUtils = {
 	elements: Element[];
-	/**
-	 * Marks an element as focused.
-	 * @param id The id associated with an element.
-	 * @returns void
-	 */
 	focusElement: (id: string) => void;
-
-	/**
-	 * Unmarks an element as focused.
-	 * @param id The id associated with an element.
-	 * @returns void
-	 */
 	unfocusElement: (id: string) => void;
-
-	/**
-	 * Creates an element for the canvas.
-	 * @param shape The shape to create.
-	 * @returns void
-	 */
 	createElement: (shape: Shape) => void;
-
-	/**
-	 *
-	 * @param id The id associated with an element.
-	 * @param callback - A function that accepts the element as an argument and returns a new element with the updated properties.
-	 * @returns void
-	 */
 	changeElementProperties: (
 		id: string,
 		callback: (el: Element) => Element
 	) => void;
-
-	/**
-	 *
-	 * @param id The id associated with the element.
-	 * @returns void
-	 */
 	deleteElement: (id: string) => void;
 };
 
@@ -69,6 +39,11 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [elements, setElements] = useState<Element[]>([]);
 	const references = useLayerReferences();
 
+	/**
+	 * Marks an element as focused.
+	 * @param id The id associated with an element.
+	 * @returns void
+	 */
 	const focusElement = useCallback((id: string) => {
 		setElements((prev) => {
 			return prev.map((element) => {
@@ -80,6 +55,11 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 		});
 	}, []);
 
+	/**
+	 * Unmarks an element as focused.
+	 * @param id The id associated with an element.
+	 * @returns void
+	 */
 	const unfocusElement = useCallback((id: string) => {
 		setElements((prev) => {
 			return prev.map((element) => {
@@ -91,6 +71,11 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 		});
 	}, []);
 
+	/**
+	 * Creates an element for the canvas.
+	 * @param shape The shape to create.
+	 * @returns void
+	 */
 	const createElement = useCallback(
 		(shape: Shape) => {
 			const activeLayer = references.find((ref) =>
@@ -101,9 +86,10 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 				throw new Error("Cannot create element: No existing layer.");
 			}
 
+			// Used NaN to indicate that the x and y values are not set. They will be set later when the user moves the element.
 			const element: Element = {
-				x: 0,
-				y: 0,
+				x: NaN,
+				y: NaN,
 				width: 100,
 				height: 100,
 				id: uuid(),
@@ -117,12 +103,33 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 		[references]
 	);
 
+	/**
+	 * Changes the properties of an element. Properties include:
+	 * x, y, width, height, shape, id, layerId, focused
+	 *
+	 * @param id The id associated with an element.
+	 * @param callback - A function that accepts the element as an argument and returns a new element with the updated properties.
+	 * @returns void
+	 */
 	const changeElementProperties = useCallback(
 		(id: string, callback: (el: Element) => Element) => {
 			setElements((prev) => {
 				return prev.map((element) => {
 					if (element.id === id) {
-						return callback(element);
+						// Ensure that the width and height are at least 1.
+						const { width, height, ...rest } = callback(element);
+
+						if (width < 1 || height < 1) {
+							console.error(
+								"Element width and height must be greater than or equal 1."
+							);
+						}
+
+						return {
+							...rest,
+							width: Math.max(width, 1),
+							height: Math.max(height, 1)
+						};
 					}
 					return element;
 				});
@@ -131,15 +138,18 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 		[]
 	);
 
+	/**
+	 * Deletes an element from the canvas.
+	 * @param id The id associated with the element.
+	 * @returns void
+	 */
 	const deleteElement = useCallback((id: string) => {
-		setElements((prev) => {
-			return prev.filter((element) => element.id !== id);
-		});
+		setElements((prev) => prev.filter((element) => element.id !== id));
 	}, []);
 
 	const value = useMemo(
 		() => ({
-			elements: elements,
+			elements,
 			focusElement,
 			unfocusElement,
 			createElement,
@@ -147,10 +157,10 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			deleteElement
 		}),
 		[
+			elements,
 			focusElement,
 			unfocusElement,
 			createElement,
-			elements,
 			changeElementProperties,
 			deleteElement
 		]

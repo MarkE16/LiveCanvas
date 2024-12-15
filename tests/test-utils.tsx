@@ -17,6 +17,13 @@ type ExtendedRenderOptions = Omit<RenderOptions, "queries"> & {
 	store?: AppStore;
 };
 
+/**
+ * Renders a React component with the Redux store and other providers. This function
+ * should only be used for testing purposes.
+ * @param ui A React component to render.
+ * @param obj An object container optional preloadedState, store, and other render options.
+ * @returns Render options returned by React Testing Library.
+ */
 export function renderWithProviders(
 	ui: ReactNode,
 	{

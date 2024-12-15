@@ -189,6 +189,7 @@ const CanvasPane: FC = () => {
 			{elements.map((element) => (
 				<MemoizedShapeElement
 					key={element.id}
+					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
 					{...element}
 				/>

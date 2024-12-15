@@ -46,3 +46,5 @@ export type Modes = {
 	icon: string;
 	shortcut: string;
 }[];
+
+export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";

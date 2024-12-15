@@ -26,7 +26,7 @@ const ExportCanvasButton: FC = () => {
 		ctx!.fillStyle = "white";
 		ctx!.fillRect(0, 0, width, height);
 
-		const layers = await get<[string, Blob][]>("layers", { asEntries: true });
+		const layers = await get<[string, Blob][]>("layers");
 
 		const promises = layers.reverse().map((layer) => {
 			return new Promise<void>((resolve) => {

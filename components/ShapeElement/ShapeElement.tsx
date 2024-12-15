@@ -1,13 +1,17 @@
 // Lib
+import { useAppSelector } from "../../state/hooks/reduxHooks";
 import { useEffect, useRef } from "react";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
-import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
-import type { Shape, Coordinates } from "../../types";
-import type { FC, CSSProperties, ReactElement } from "react";
+import type { Shape, Coordinates, ResizePosition } from "../../types";
+import type { FC, CSSProperties, ReactElement, RefObject } from "react";
+
+// Components
+import ResizeGrid from "../ResizeGrid/ResizeGrid";
 
 type ShapeElementProps = {
+	canvasSpaceReference: RefObject<HTMLDivElement>;
 	shape: Shape;
 	x: number;
 	y: number;
@@ -20,6 +24,7 @@ type ShapeElementProps = {
 };
 
 const ShapeElement: FC<ShapeElementProps> = ({
+	canvasSpaceReference,
 	shape,
 	width,
 	height,
@@ -30,38 +35,37 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	id,
 	layerId
 }) => {
-	const references = useLayerReferences();
-	const isResizing = useRef<boolean>(false);
-	const resizeEnd = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const containerRef = useRef<HTMLDivElement>(null);
-	const ref = useRef<SVGSVGElement>(null);
+	const layers = useAppSelector((state) => state.canvas.layers);
+	const ref = useRef<HTMLDivElement>(null);
+	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const activeLayer = references.find((reference) => reference.id === layerId);
+	const activeLayer = layers.find((layer) => layer.active);
+
+	if (!activeLayer) {
+		throw new Error("No active layer. This is a bug that should be fixed.");
+	}
+
 	let jsx: ReactElement;
 
 	const {
 		focusElement,
 		unfocusElement,
 		changeElementProperties,
-		deleteElement,
-		elements
+		deleteElement
 	} = useCanvasElements();
-	const interactable = elements.every((element) => !element.focused);
 	width = width || 100;
 	height = height || 100;
 
 	const styles: CSSProperties = {
-		position: "relative",
+		position: "absolute",
 		outline: "none",
-		width: "100%",
-		zIndex: activeLayer?.style.zIndex,
-		height: "100%"
+		zIndex: activeLayer.id === layerId ? layers.length + 1 : 0
 	};
 
 	useEffect(() => {
 		const element = ref.current;
-		const container = containerRef.current;
-		if (!element || !container) return;
+		const canvasSpace = canvasSpaceReference.current;
+		if (!element || !canvasSpace) return;
 
 		const handleFocus = () => focusElement(id);
 		const handleUnfocus = () => unfocusElement(id);
@@ -76,7 +80,13 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function handleMouseDown(e: MouseEvent) {
-			if (!isInsideElement(e)) return;
+			if (!isInsideElement(e) || !canvasSpace) return;
+
+			const { left, top } = canvasSpace.getBoundingClientRect();
+			const startX = e.clientX - left;
+			const startY = e.clientY - top;
+
+			startPos.current = { x: startX, y: startY };
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
@@ -87,18 +97,74 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				!element ||
 				!focused ||
 				isSelecting ||
-				isResizing.current
+				!canvasSpace
 			)
 				return;
 
 			const deltaX = e.clientX - clientPosition.current.x;
 			const deltaY = e.clientY - clientPosition.current.y;
 
-			changeElementProperties(id, (state) => ({
-				...state,
-				x: state.x + deltaX,
-				y: state.y + deltaY
-			}));
+			const resizePos = element.getAttribute(
+				"data-resizing"
+			) as ResizePosition | null;
+
+			if (resizePos !== null) {
+				changeElementProperties(id, (state) => {
+					switch (resizePos) {
+						case "nw":
+						case "ne":
+						case "sw":
+						case "se":
+							return {
+								...state,
+								width: Math.abs(e.clientX - startPos.current.x),
+								height: Math.abs(e.clientY - startPos.current.y),
+								x: Math.min(startPos.current.x, e.clientX),
+								y: Math.min(startPos.current.y, e.clientY)
+							};
+
+						case "n":
+						case "s":
+							return {
+								...state,
+								height: Math.abs(e.clientY - startPos.current.y),
+								y: Math.min(startPos.current.y, e.clientY)
+							};
+
+						case "w":
+						case "e":
+							return {
+								...state,
+								width: Math.abs(e.clientX - startPos.current.x),
+								x: Math.min(startPos.current.x, e.clientX)
+							};
+
+						default:
+							throw new Error(
+								"Cannot properly resize element: Invalid resize position."
+							);
+					}
+				});
+			} else {
+				changeElementProperties(id, (state) => {
+					let { x, y } = state;
+					const { left, top } = canvasSpace.getBoundingClientRect();
+
+					if (isNaN(x)) {
+						x = e.clientX - left;
+					}
+
+					if (isNaN(y)) {
+						y = e.clientY - top;
+					}
+
+					return {
+						...state,
+						x: x + deltaX,
+						y: y + deltaY
+					};
+				});
+			}
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -109,18 +175,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			}
 		}
 
-		function onResize() {
-			if (resizeEnd.current) {
-				clearTimeout(resizeEnd.current);
-			}
-
-			resizeEnd.current = setTimeout(() => {
-				isResizing.current = false;
-			}, 100);
-
-			isResizing.current = true;
-		}
-
 		// Added to the document to allow the user to drag the element even when the mouse is outside the element.
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
@@ -129,7 +183,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		element.addEventListener("focusout", handleUnfocus);
 
 		window.addEventListener("keydown", handleDelete);
-		container.addEventListener("resize", onResize);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
@@ -138,7 +191,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			element.removeEventListener("focusin", handleFocus);
 			element.removeEventListener("focusout", handleUnfocus);
 			window.removeEventListener("keydown", handleDelete);
-			container.removeEventListener("resize", onResize);
 		};
 	}, [
 		unfocusElement,
@@ -147,75 +199,51 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		changeElementProperties,
 		deleteElement,
 		focused,
-		isSelecting
+		isSelecting,
+		canvasSpaceReference
 	]);
 
 	if (shape === "triangle") {
-		jsx = (
-			<svg
-				ref={ref}
-				tabIndex={0} // Allows the element to be focused.
-				style={styles}
-				width={width}
-				height={height}
-				viewBox="0 0 100 100"
-				// Makes the shape responsive as in allowing it to be stretched.
-				// If you want to maintain the aspect ratio, simply remove this prop.
-				preserveAspectRatio="none"
-				xmlns="http://www.w3.org/2000/svg"
-			>
-				<polygon points="50,0 100,100 0,100" />
-			</svg>
-		);
+		jsx = <polygon points="50,0 100,100 0,100" />;
 	} else {
-		jsx = (
-			<svg
-				ref={ref}
-				tabIndex={0}
-				style={styles}
-				width={width}
-				height={height}
-				viewBox="0 0 100 100"
-				preserveAspectRatio="none"
-				xmlns="http://www.w3.org/2000/svg"
-			>
-				{shape === "circle" ? (
-					<circle
-						cx="50"
-						cy="50"
-						r="50"
-					/>
-				) : (
-					<rect
-						x="0"
-						y="0"
-						width="100"
-						height="100"
-					/>
-				)}
-			</svg>
-		);
+		jsx =
+			shape === "circle" ? (
+				<circle
+					cx="50"
+					cy="50"
+					r="50"
+				/>
+			) : (
+				<rect
+					x="0"
+					y="0"
+					width="100"
+					height="100"
+				/>
+			);
 	}
 
 	return (
-		<div
-			ref={containerRef}
-			style={{
-				left: x,
-				top: y,
-				position: "absolute",
-				outlineOffset: "5px",
-				outline: focused ? "1px solid #d1836a" : "none",
-				pointerEvents: focused || interactable ? "auto" : "none",
-				zIndex: 100,
-				resize: "both",
-				overflow: "auto",
-				scrollbarWidth: "none"
-			}}
-			id={id}
+		<ResizeGrid
+			ref={ref}
+			x={x}
+			y={y}
+			width={width}
+			height={height}
+			focused={focused}
 		>
-			{jsx}
-		</div>
+			<svg
+				width={width}
+				height={height}
+				style={styles}
+				id={id}
+				// Below is so that the size of the SVG element is the same as the size of the ResizeGrid.
+				preserveAspectRatio="none"
+				viewBox="0 0 100 100"
+			>
+				{jsx}
+			</svg>
+		</ResizeGrid>
 	);
 };
 
