@@ -5,6 +5,9 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
 import type { FC } from "react";
+import type { CanvasElement } from "../../types";
+
+// Components
 import { Tooltip } from "@mui/material";
 
 const SaveCanvasButton: FC = () => {
@@ -13,7 +16,8 @@ const SaveCanvasButton: FC = () => {
 	const references = useLayerReferences();
 	const { set } = useIndexed();
 
-	const saveCanvas = useCallback(() => {
+	const saveCanvas = useCallback(async () => {
+		const elements = Array.from(document.getElementsByClassName("element"));
 		references.forEach((canvas, index) => {
 			if (!canvas) return;
 
@@ -31,6 +35,32 @@ const SaveCanvasButton: FC = () => {
 				});
 			});
 		});
+
+		const allUnfocused = elements.map((element) => {
+			const x = Number(element.getAttribute("data-x"));
+			const y = Number(element.getAttribute("data-y"));
+			const width = Number(element.getAttribute("data-width"));
+			const height = Number(element.getAttribute("data-height"));
+			const shape = element.getAttribute("data-shape");
+			const fill = element.getAttribute("data-fill");
+			const border = element.getAttribute("data-border");
+			const layerId = element.getAttribute("data-layerid");
+			const id = element.id;
+
+			return {
+				x,
+				y,
+				width,
+				height,
+				shape,
+				fill,
+				border,
+				layerId,
+				id
+			} as CanvasElement;
+		});
+
+		await set("elements", "items", allUnfocused);
 
 		// Update the UI to indicate that the canvas has been saved
 		setSaved(true);

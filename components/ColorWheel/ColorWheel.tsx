@@ -1,11 +1,11 @@
 // Lib
 import {
 	ColorWheel as AriaColorWheel,
-	ColorThumb as AriaColorThumb,
 	ColorWheelTrack as AriaColorWheelTrack,
 	ColorArea as AriaColorArea
 } from "react-aria-components";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
+import ColorThumb from "../ColorThumb/ColorThumb";
 
 // Redux Actions
 import { changeColor } from "../../state/slices/canvasSlice";
@@ -56,10 +56,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 				{...props}
 			>
 				<AriaColorWheelTrack data-testid="color-wheel-track" />
-				<AriaColorThumb
-					className="thumb"
-					data-testid="color-wheel-thumb"
-				/>
+				<ColorThumb data-testid="color-wheel-thumb" />
 			</AriaColorWheel>
 			{/**
 			 * Note: The ColorArea component implmentation of the xChannel and yChannel only works if the color value is in HSL/HSLA format.
@@ -78,10 +75,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 				xChannel="saturation"
 				yChannel="lightness"
 			>
-				<AriaColorThumb
-					className="thumb"
-					data-testid="color-area-thumb"
-				/>
+				<ColorThumb data-testid="color-area-thumb" />
 			</AriaColorArea>
 		</div>
 	);

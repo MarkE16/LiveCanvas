@@ -1,6 +1,8 @@
 // Lib
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useRef, useEffect, useState, memo } from "react";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Redux Actions
 import {
@@ -15,6 +17,7 @@ import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import Canvas from "../Canvas/Canvas";
 import CanvasPointerMarker from "../CanvasPointerMarker/CanvasPointerMarker";
 import CanvasPointerSelection from "../CanvasPointerSelection/CanvasPointerSelection";
+import ShapeElement from "../ShapeElement/ShapeElement";
 
 // Types
 import type { FC } from "react";
@@ -22,9 +25,6 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
-import useLayerReferences from "../../state/hooks/useLayerReferences";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
-import ShapeElement from "../ShapeElement/ShapeElement";
 
 const MemoizedShapeElement = memo(ShapeElement);
 
@@ -40,7 +40,7 @@ const CanvasPane: FC = () => {
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const [isSelecting, setIsSelecting] = useState<boolean>(false);
 	const references = useLayerReferences();
-	const { elements } = useCanvasElements();
+	const { elements, changeElementProperties } = useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -50,11 +50,14 @@ const CanvasPane: FC = () => {
 		const canvasSpace = canvasSpaceRef.current;
 		if (!canvasSpace) return;
 
+		const isClickingOnSpace = (e: MouseEvent) =>
+			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
+
 		function handleMouseDown(e: MouseEvent) {
 			if (e.button !== 0) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
-			setIsGrabbing(true);
+			setIsGrabbing(isClickingOnSpace(e));
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -100,6 +103,21 @@ const CanvasPane: FC = () => {
 			dispatch(changeX(dx));
 			dispatch(changeY(dy));
 
+			// We grab the elements using the class name "element"
+			// rather than the state variable so that this effect
+			// doesn't depend on the state variable.
+			const htmlElements = Array.from(
+				document.getElementsByClassName("element")
+			);
+
+			htmlElements.forEach((element) => {
+				changeElementProperties(element.id, (state) => ({
+					...state,
+					x: state.x + dx,
+					y: state.y + dy
+				}));
+			});
+
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
@@ -131,6 +149,8 @@ const CanvasPane: FC = () => {
 				}
 				// Handle the click event
 			} else if (e instanceof MouseEvent) {
+				if (!isClickingOnSpace(e)) return;
+
 				// Shift key means we are moving. We don't want to zoom in this case.
 				if (e.buttons === 0 && !e.shiftKey) {
 					// Left click
@@ -145,32 +165,34 @@ const CanvasPane: FC = () => {
 			}
 		}
 
-		canvasSpace.addEventListener("mousedown", handleMouseDown);
-		canvasSpace.addEventListener("mousemove", handleMouseMove);
-		canvasSpace.addEventListener("mouseup", handleMouseUp);
-		canvasSpace.addEventListener("wheel", handleZoom);
-		canvasSpace.addEventListener("click", handleZoom);
-
-		// Handle the case where the user moves the mouse outside the canvas space.
-		// We consider this to be the same as releasing the mouse inside the canvas space.
-		canvasSpace.addEventListener("mouseleave", handleMouseUp);
+		document.addEventListener("mousedown", handleMouseDown);
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+		document.addEventListener("wheel", handleZoom);
+		document.addEventListener("click", handleZoom);
 
 		// Handle shift key press
-		window.addEventListener("keydown", handleKeyDown);
-		window.addEventListener("keyup", handleKeyDown);
+		document.addEventListener("keydown", handleKeyDown);
+		document.addEventListener("keyup", handleKeyDown);
 
 		return () => {
-			canvasSpace.removeEventListener("mousedown", handleMouseDown);
-			canvasSpace.removeEventListener("mousemove", handleMouseMove);
-			canvasSpace.removeEventListener("mouseup", handleMouseUp);
-			canvasSpace.removeEventListener("mouseleave", handleMouseUp);
-			canvasSpace.removeEventListener("wheel", handleZoom);
-			canvasSpace.removeEventListener("click", handleZoom);
+			document.removeEventListener("mousedown", handleMouseDown);
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+			document.removeEventListener("wheel", handleZoom);
+			document.removeEventListener("click", handleZoom);
 
-			window.removeEventListener("keydown", handleKeyDown);
-			window.removeEventListener("keyup", handleKeyDown);
+			document.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("keyup", handleKeyDown);
 		};
-	}, [dispatch, mode, isGrabbing, shiftKey, references]);
+	}, [
+		dispatch,
+		mode,
+		isGrabbing,
+		shiftKey,
+		references,
+		changeElementProperties
+	]);
 
 	return (
 		<div id="canvas-pane">

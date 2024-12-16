@@ -30,7 +30,7 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			position: "absolute",
 			outlineOffset: OFFSET,
 			outline: focused ? "1px solid #d1836a" : "none",
-			zIndex: 100
+			zIndex: 99
 		};
 
 		const onResizeStart = (pos?: ResizePosition) => {

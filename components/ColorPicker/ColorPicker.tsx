@@ -33,21 +33,19 @@ type ColorPickerProps = {
 	value: string;
 };
 
-const ColorPicker: FC<ColorPickerProps> = ({
-	label,
-	__for,
-	value
-}) => {
+const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	const [hex, setHex] = useState<string>(parseColor(value).toString("hex"));
 	const { elements, changeElementProperties } = useCanvasElements();
 
 	const handleColorChange = (color: Color) => {
-		elements.forEach((element) => {
-			changeElementProperties(element.id, (el) => ({
-				...el,
-				[__for]: color.toString()
-			}));
-		});
+		elements
+			.filter((element) => element.focused)
+			.forEach((element) => {
+				changeElementProperties(element.id, (el) => ({
+					...el,
+					[__for]: color.toString()
+				}));
+			});
 
 		setHex(color.toString("hex"));
 	};

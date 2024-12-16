@@ -68,8 +68,14 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			e.target === element || element.contains(e.target as Node);
 
 		function handleKeyDown(e: KeyboardEvent) {
+			// Handle Focus
 			if (e.key === "Escape") {
 				handleUnfocus();
+			}
+
+			// Handle Delete
+			if ((e.key === "Delete" || e.key === "Backspace") && focused) {
+				deleteElement(id);
 			}
 		}
 
@@ -168,25 +174,17 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
-		function handleDelete(e: KeyboardEvent) {
-			if ((e.key === "Delete" || e.key === "Backspace") && focused) {
-				deleteElement(id);
-			}
-		}
-
 		// Added to the document to allow the user to drag the element even when the mouse is outside the element.
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
-		element.addEventListener("keydown", handleKeyDown);
+		document.addEventListener("keydown", handleKeyDown);
 		element.addEventListener("mousedown", handleFocus);
-		window.addEventListener("keydown", handleDelete);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
-			element.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("keydown", handleKeyDown);
 			element.removeEventListener("mousedown", handleFocus);
-			window.removeEventListener("keydown", handleDelete);
 		};
 	}, [
 		unfocusElement,
@@ -229,6 +227,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			focused={focused}
 		>
 			<svg
+				className="element"
 				width={width}
 				height={height}
 				style={styles}

@@ -1,11 +1,18 @@
 // Lib
-import { createContext, useMemo, useCallback, useState } from "react";
+import {
+	createContext,
+	useMemo,
+	useCallback,
+	useState,
+	useEffect
+} from "react";
 import { v4 as uuid } from "uuid";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
-import { FC, PropsWithChildren } from "react";
-import { Shape, CanvasElement } from "../../types";
+import type { FC, PropsWithChildren } from "react";
+import type { Shape, CanvasElement } from "../../types";
 
 type CanvasElementsUtils = {
 	elements: CanvasElement[];
@@ -26,6 +33,7 @@ const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
 const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [elements, setElements] = useState<CanvasElement[]>([]);
 	const references = useLayerReferences();
+	const { get } = useIndexed();
 
 	/**
 	 * Marks an element as focused.
@@ -155,6 +163,18 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			deleteElement
 		]
 	);
+
+	useEffect(() => {
+		async function getElements() {
+			const elements = (await get("elements", "items")) as CanvasElement[];
+
+			if (elements) {
+				setElements(elements);
+			}
+		}
+
+		getElements();
+	}, [get]);
 
 	return (
 		<CanvasElementsContext.Provider value={value}>

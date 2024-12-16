@@ -25,7 +25,6 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 		position: "absolute",
 		background: "white",
 		border: "1px solid black",
-		zIndex: 101,
 		width: `${WIDTH}px`,
 		height: `${HEIGHT}px`,
 		outline: "none",
