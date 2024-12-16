@@ -2,8 +2,8 @@
 import * as UTILS from "../../utils";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { SHAPES } from "../../state/store";
-import { Tooltip } from "@mui/material";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
+import { memo, useCallback } from "react";
 
 // Redux Actions
 import {
@@ -13,21 +13,21 @@ import {
 } from "../../state/slices/canvasSlice";
 
 // Type
-import type { FC, ChangeEvent } from "react";
+import type { FC, ChangeEvent, ReactElement } from "react";
 import type { Shape } from "../../types";
+import type { Color } from "react-aria-components";
+
+// Components
+import { Tooltip } from "@mui/material";
+import ColorPicker from "../ColorPicker/ColorPicker";
 
 // Styles
 import "./DrawingToolbar.styles.css";
+// import ColorField from "../ColorField/ColorField";
 
-const ShapeOption = ({
-	icon,
-	name,
-	isActive
-}: {
-	icon: string;
-	name: Shape;
-	isActive: boolean;
-}) => {
+const MemoizedColorPicker = memo(ColorPicker);
+
+const ShapeOption = ({ icon, name }: { icon: string; name: Shape }) => {
 	const { createElement } = useCanvasElements();
 
 	const handleShapeChange = () => {
@@ -42,7 +42,7 @@ const ShapeOption = ({
 		>
 			<span>
 				<button
-					className={`shape-option ${isActive ? "active" : ""}`}
+					className="shape-option"
 					onClick={handleShapeChange}
 					data-testid={`shape-${name}`}
 				>
@@ -54,10 +54,12 @@ const ShapeOption = ({
 };
 
 const DrawingToolbar: FC = () => {
-	const { drawStrength, eraserStrength, mode, shape, color } = useAppSelector(
+	const { drawStrength, eraserStrength, mode, color } = useAppSelector(
 		(state) => state.canvas
 	);
+	const { elements, changeElementProperties } = useCanvasElements();
 	const dispatch = useAppDispatch();
+	const focusedElements = elements.filter((element) => element.focused);
 
 	const strengthSettings =
 		mode === "draw"
@@ -93,17 +95,51 @@ const DrawingToolbar: FC = () => {
 		dispatch(changeColor(newColor));
 	};
 
+	const onFillChange = useCallback(
+		(c: Color) => {
+			focusedElements.forEach((element) => {
+				changeElementProperties(element.id, (state) => ({
+					...state,
+					fill: c.toString()
+				}));
+			});
+		},
+		[focusedElements, changeElementProperties]
+	);
+
+	const onBorderChange = useCallback(
+		(c: Color) => {
+			focusedElements.forEach((element) => {
+				changeElementProperties(element.id, (state) => ({
+					...state,
+					border: c.toString()
+				}));
+			});
+		},
+		[focusedElements, changeElementProperties]
+	);
+
+	// const onBorderWidthChange = useCallback(
+	// 	(e: ChangeEvent<HTMLInputElement>) => {
+	// 		const value = e.target.value;
+	// 		focusedElements.forEach((element) => {
+	// 			changeElementProperties(element.id, (state) => ({
+	// 				...state,
+	// 				borderWidth: parseInt(value)
+	// 			}));
+	// 		});
+	// 	},
+	// 	[focusedElements, changeElementProperties]
+	// );
+
 	const renderedShapes = SHAPES.map((s) => {
 		const { icon, name } = s;
-
-		const isActive = shape === name;
 
 		return (
 			<ShapeOption
 				key={name}
 				icon={icon}
 				name={name}
-				isActive={isActive}
 			/>
 		);
 	});
@@ -140,10 +176,50 @@ const DrawingToolbar: FC = () => {
 		</>
 	);
 
-	const additionalSettings = [
-		renderedStrength,
-		mode === "draw" ? renderedBrush : null
-	].filter(Boolean);
+	const renderedShapeSettings = (
+		<>
+			<MemoizedColorPicker
+				label="Fill"
+				__for="fill"
+				focusedElements={focusedElements}
+				value={
+					focusedElements.length === 0 ? "#000000" : focusedElements[0].fill
+				}
+				onColorChange={onFillChange}
+			/>
+			<MemoizedColorPicker
+				label="Border"
+				__for="border"
+				focusedElements={focusedElements}
+				value={
+					focusedElements.length === 0 ? "#000000" : focusedElements[0].border
+				}
+				onColorChange={onBorderChange}
+			/>
+			{/* <ColorField
+				label="Border Width"
+				value={
+					focusedElements.length === 0
+						? "1"
+						: focusedElements[0].borderWidth.toString()
+				}
+				onChange={onBorderWidthChange}
+			/> */}
+		</>
+	);
+
+	const additionalSettings: ReactElement[] = [];
+
+	// What should the type of additionalSettings be?
+	// It should be an array of ReactElements.
+
+	if (mode === "draw") additionalSettings.push(renderedStrength, renderedBrush);
+
+	if (mode === "shapes") additionalSettings.push(renderedShapes);
+
+	if (focusedElements.length > 0) {
+		additionalSettings.push(renderedShapeSettings);
+	}
 
 	// Now insert a break between each setting.
 	additionalSettings.forEach((_, index) => {
@@ -160,9 +236,7 @@ const DrawingToolbar: FC = () => {
 
 	return (
 		<div id="drawing-toolbar">
-			{mode === "shapes" ? (
-				renderedShapes
-			) : mode === "draw" || mode === "erase" ? (
+			{additionalSettings.length > 0 ? (
 				additionalSettings
 			) : (
 				<span id="draw-toolbar-no-actions">
