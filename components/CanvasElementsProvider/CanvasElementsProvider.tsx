@@ -5,28 +5,16 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
 import { FC, PropsWithChildren } from "react";
-import { Shape } from "../../types";
-
-type Element = {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	shape: Shape;
-	id: string;
-	layerId: string;
-	focused: boolean;
-	// More properties later...
-};
+import { Shape, CanvasElement } from "../../types";
 
 type CanvasElementsUtils = {
-	elements: Element[];
+	elements: CanvasElement[];
 	focusElement: (id: string) => void;
 	unfocusElement: (id: string) => void;
 	createElement: (shape: Shape) => void;
 	changeElementProperties: (
 		id: string,
-		callback: (el: Element) => Element
+		callback: (el: CanvasElement) => CanvasElement
 	) => void;
 	deleteElement: (id: string) => void;
 };
@@ -36,7 +24,7 @@ const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
 );
 
 const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
-	const [elements, setElements] = useState<Element[]>([]);
+	const [elements, setElements] = useState<CanvasElement[]>([]);
 	const references = useLayerReferences();
 
 	/**
@@ -87,12 +75,14 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			}
 
 			// Used NaN to indicate that the x and y values are not set. They will be set later when the user moves the element.
-			const element: Element = {
+			const element: CanvasElement = {
 				x: NaN,
 				y: NaN,
 				width: 100,
 				height: 100,
 				id: uuid(),
+				fill: "#000000",
+				border: "#000000",
 				focused: false,
 				layerId: activeLayer.id,
 				shape
@@ -112,7 +102,7 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @returns void
 	 */
 	const changeElementProperties = useCallback(
-		(id: string, callback: (el: Element) => Element) => {
+		(id: string, callback: (el: CanvasElement) => CanvasElement) => {
 			setElements((prev) => {
 				return prev.map((element) => {
 					if (element.id === id) {

@@ -4,23 +4,15 @@ import { useEffect, useRef } from "react";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
-import type { Shape, Coordinates, ResizePosition } from "../../types";
+import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
 import type { FC, CSSProperties, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
 
-type ShapeElementProps = {
+type ShapeElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement>;
-	shape: Shape;
-	x: number;
-	y: number;
-	focused: boolean;
 	isSelecting: boolean;
-	width?: number;
-	height?: number;
-	layerId: string;
-	id: string;
 };
 
 const ShapeElement: FC<ShapeElementProps> = ({
@@ -28,6 +20,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	shape,
 	width,
 	height,
+	fill,
+	border,
 	focused,
 	isSelecting,
 	x,
@@ -80,7 +74,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function handleMouseDown(e: MouseEvent) {
-			if (!isInsideElement(e) || !canvasSpace) return;
+			if (!canvasSpace) return;
+
+			if (!isInsideElement(e)) {
+				handleUnfocus();
+				return;
+			}
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const startX = e.clientX - left;
@@ -179,17 +178,14 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		element.addEventListener("keydown", handleKeyDown);
-		element.addEventListener("focusin", handleFocus);
-		element.addEventListener("focusout", handleUnfocus);
-
+		element.addEventListener("mousedown", handleFocus);
 		window.addEventListener("keydown", handleDelete);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
 			element.removeEventListener("keydown", handleKeyDown);
-			element.removeEventListener("focusin", handleFocus);
-			element.removeEventListener("focusout", handleUnfocus);
+			element.removeEventListener("mousedown", handleFocus);
 			window.removeEventListener("keydown", handleDelete);
 		};
 	}, [
@@ -237,9 +233,19 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				height={height}
 				style={styles}
 				id={id}
+				fill={fill}
+				stroke={border}
 				// Below is so that the size of the SVG element is the same as the size of the ResizeGrid.
 				preserveAspectRatio="none"
 				viewBox="0 0 100 100"
+				data-x={x}
+				data-y={y}
+				data-shape={shape}
+				data-layerid={layerId}
+				data-width={width}
+				data-height={height}
+				data-fill={fill}
+				data-border={border}
 			>
 				{jsx}
 			</svg>

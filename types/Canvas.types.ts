@@ -48,3 +48,17 @@ export type Modes = {
 }[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
+
+export type CanvasElement = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	shape: Shape;
+	fill: string;
+	border: string;
+	id: string;
+	layerId: string;
+	focused: boolean;
+	// More properties later...
+};
