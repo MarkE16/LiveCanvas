@@ -99,5 +99,6 @@
 	background-color: transparent;
 	border: none;
 	border-radius: 50%;
-	padding: 0.7em 0.9em;
+	font-size: 1.3em;
+	padding: 0.4em 0.6em;
 }

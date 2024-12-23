@@ -3,7 +3,7 @@ import * as UTILS from "../../utils";
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { SHAPES } from "../../state/store";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
-import { memo } from "react";
+import { memo, Fragment } from "react";
 
 // Redux Actions
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../state/slices/canvasSlice";
 
 // Type
-import type { FC, ChangeEvent, ReactElement } from "react";
+import type { FC, ChangeEvent, ReactElement, MouseEvent } from "react";
 import type { Shape } from "../../types";
 
 // Components
@@ -107,7 +107,7 @@ const DrawingToolbar: FC = () => {
 	});
 
 	const renderedStrength = (
-		<>
+		<Fragment key="settings_Strength">
 			Strength:{" "}
 			<input
 				name={`${mode}_strength`.toUpperCase()}
@@ -120,11 +120,11 @@ const DrawingToolbar: FC = () => {
 				data-testid="strength-range"
 			/>
 			<label data-testid="strength-value">{strengthSettings.value}</label>
-		</>
+		</Fragment>
 	);
 
 	const renderedBrush = (
-		<>
+		<Fragment key="settings_Brush">
 			<i className="fa fa-paint-brush"></i>
 			<input
 				type="range"
@@ -135,24 +135,20 @@ const DrawingToolbar: FC = () => {
 				step={0.01}
 				onChange={onBrushChange}
 			/>
-		</>
+		</Fragment>
 	);
 
 	const renderedShapeSettings = (
-		<>
+		<Fragment key="settings_Shapes">
 			<MemoizedColorPicker
 				label="Fill"
 				__for="fill"
-				value={
-					focusedElements.length !== 1 ? "#000000" : focusedElements[0].fill
-				}
+				value={focusedElements[0]?.fill}
 			/>
 			<MemoizedColorPicker
 				label="Border"
 				__for="border"
-				value={
-					focusedElements.length !== 1 ? "#000000" : focusedElements[0].border
-				}
+				value={focusedElements[0]?.border}
 			/>
 			{/* <ColorField
 				label="Border Width"
@@ -163,17 +159,14 @@ const DrawingToolbar: FC = () => {
 				}
 				onChange={onBorderWidthChange}
 			/> */}
-		</>
+		</Fragment>
 	);
 
 	const additionalSettings: ReactElement[] = [];
 
-	// What should the type of additionalSettings be?
-	// It should be an array of ReactElements.
-
 	if (mode === "draw") additionalSettings.push(renderedStrength, renderedBrush);
 
-	if (mode === "shapes") additionalSettings.push(renderedShapes);
+	if (mode === "shapes") additionalSettings.push(<>{renderedShapes}</>);
 
 	if (focusedElements.length > 0) {
 		additionalSettings.push(renderedShapeSettings);
@@ -192,8 +185,13 @@ const DrawingToolbar: FC = () => {
 		}
 	});
 
+	const stopPropagation = (e: MouseEvent) => e.stopPropagation();
+
 	return (
-		<div id="drawing-toolbar">
+		<div
+			id="drawing-toolbar"
+			onMouseDown={stopPropagation}
+		>
 			{additionalSettings.length > 0 ? (
 				additionalSettings
 			) : (

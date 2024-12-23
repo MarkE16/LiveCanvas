@@ -38,24 +38,26 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	const { elements, changeElementProperties } = useCanvasElements();
 
 	const handleColorChange = (color: Color) => {
-		elements
+		const hex = color.toString("hex");
+		const focusedIds = elements
 			.filter((element) => element.focused)
-			.forEach((element) => {
-				changeElementProperties(element.id, (el) => ({
-					...el,
-					[__for]: color.toString()
-				}));
-			});
+			.map((element) => element.id);
 
-		setHex(color.toString("hex"));
+		changeElementProperties(
+			(state) => ({
+				...state,
+				[__for]: hex
+			}),
+			...focusedIds
+		);
+
+		setHex(hex);
 	};
 
 	const onHexChange = (e: ChangeEvent<HTMLInputElement>) => {
 		try {
 			const color = parseColor(e.target.value);
-			if (color) {
-				handleColorChange(color);
-			}
+			handleColorChange(color);
 		} catch (e: unknown) {
 			// Do nothing. This should be thrown if the hex is invalid.
 		}

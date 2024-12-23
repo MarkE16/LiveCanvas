@@ -22,16 +22,16 @@ export const createStore = (preloadedState?: Partial<RootState>) => {
 };
 
 export const MODES: Modes = [
-	{ name: "select", icon: "fa-mouse-pointer", shortcut: "s" },
-	{ name: "draw", icon: "fa-pen-nib", shortcut: "d" },
-	{ name: "erase", icon: "fa-eraser", shortcut: "e" },
-	{ name: "shapes", icon: "fa-shapes", shortcut: "a" },
-	{ name: "eye_drop", icon: "fa-eye-dropper", shortcut: "i" },
-	{ name: "zoom_in", icon: "fa-search-plus", shortcut: "+" },
-	{ name: "zoom_out", icon: "fa-search-minus", shortcut: "_" },
-	{ name: "move", icon: "fa-arrows-alt", shortcut: "m" },
-	{ name: "undo", icon: "fa-undo", shortcut: "ctrl + z" },
-	{ name: "redo", icon: "fa-redo", shortcut: "ctrl + shift + z" }
+	{ name: "select", shortcut: "s" },
+	{ name: "draw", shortcut: "d" },
+	{ name: "erase", shortcut: "e" },
+	{ name: "shapes", shortcut: "a" },
+	{ name: "eye_drop", shortcut: "i" },
+	{ name: "zoom_in", shortcut: "+" },
+	{ name: "zoom_out", shortcut: "_" },
+	{ name: "move", shortcut: "m" },
+	{ name: "undo", shortcut: "ctrl + z" },
+	{ name: "redo", shortcut: "ctrl + shift + z" }
 ];
 
 export const SHAPES: Shapes = [

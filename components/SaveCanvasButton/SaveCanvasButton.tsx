@@ -7,6 +7,9 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 import type { FC } from "react";
 import type { CanvasElement } from "../../types";
 
+// Icons
+import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
+
 // Components
 import { Tooltip } from "@mui/material";
 
@@ -94,7 +97,7 @@ const SaveCanvasButton: FC = () => {
 				id="save-btn"
 				onClick={saveCanvas}
 			>
-				<i className={`fas fa-${saved ? "check" : "save"}`}></i>
+			  <FloppyDisk checkmark={saved} />
 			</button>
 		</Tooltip>
 	);

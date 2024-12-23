@@ -1,6 +1,5 @@
 // Lib
 import { useCallback, useEffect } from "react";
-import { Tooltip } from "@mui/material";
 import { useAppDispatch } from "../../state/hooks/reduxHooks";
 import * as UTILS from "../../utils";
 import useHistory from "../../state/hooks/useHistory";
@@ -9,22 +8,40 @@ import useHistory from "../../state/hooks/useHistory";
 import { changeMode } from "../../state/slices/canvasSlice";
 
 // Types
-import type { Mode } from "../../types";
-import type { FC } from "react";
+import type { Mode, ToolbarMode } from "../../types";
+import type { FC, ReactElement } from "react";
 
-type ToolbarButtonProps = {
-	icon: string;
-	name: Mode;
-	shortcut: string;
+// Components
+import { Tooltip } from "@mui/material";
+import Select from "../icons/Select/Select";
+import Pen from "../icons/Pen/Pen";
+import Eraser from "../icons/Eraser/Eraser";
+import Shapes from "../icons/Shapes/Shapes";
+import EyeDropper from "../icons/EyeDropper/EyeDropper";
+import ZoomIn from "../icons/ZoomIn/ZoomIn";
+import ZoomOut from "../icons/ZoomOut/ZoomOut";
+import Move from "../icons/Move/Move";
+import Undo from "../icons/Undo/Undo";
+import Redo from "../icons/Redo/Redo";
+
+type ToolbarButtonProps = ToolbarMode & {
 	active: boolean;
 };
 
-const ToolbarButton: FC<ToolbarButtonProps> = ({
-	icon,
-	name,
-	shortcut,
-	active
-}) => {
+const ICONS: Record<Mode, ReactElement> = {
+	select: <Select />,
+	draw: <Pen />,
+	erase: <Eraser />,
+	shapes: <Shapes />,
+	eye_drop: <EyeDropper />,
+	zoom_in: <ZoomIn />,
+	zoom_out: <ZoomOut />,
+	move: <Move />,
+	undo: <Undo />,
+	redo: <Redo />
+};
+
+const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 	const dispatch = useAppDispatch();
 	const { undo, undoAction, redo, redoAction } = useHistory();
 	const tooltip =
@@ -80,7 +97,6 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({
 				<button
 					className={`toolbar-option ${active ? "active" : ""}`}
 					data-modename={name}
-					data-iconname={icon}
 					data-shortcut={shortcut}
 					data-testid={name}
 					onClick={performAction}
@@ -92,7 +108,7 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({
 								: false
 					}
 				>
-					<i className={`fa ${icon}`} />
+					{ICONS[name]}
 				</button>
 			</span>
 		</Tooltip>

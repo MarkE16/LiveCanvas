@@ -90,8 +90,7 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 		}
 	}
 
-	const onMouseDown = (e: MouseEvent) => {
-		e.stopPropagation(); //This is solely to prevent the selection grid to not fire the `focusout` event when attempting to resize.
+	const onMouseDown = () => {
 
 		onResizeStart && onResizeStart();
 	};

@@ -33,12 +33,13 @@ const CanvasPane: FC = () => {
 		(state) => state.canvas.mode,
 		(prev, next) => prev === next
 	);
+	const scale = useAppSelector((state) => state.canvas.scale);
 	const dispatch = useAppDispatch();
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
+	const isSelecting = useRef<boolean>(false);
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
-	const [isSelecting, setIsSelecting] = useState<boolean>(false);
 	const references = useLayerReferences();
 	const { elements, changeElementProperties } = useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
@@ -106,17 +107,18 @@ const CanvasPane: FC = () => {
 			// We grab the elements using the class name "element"
 			// rather than the state variable so that this effect
 			// doesn't depend on the state variable.
-			const htmlElements = Array.from(
+			const elementIds = Array.from(
 				document.getElementsByClassName("element")
-			);
+			).map((element) => element.id);
 
-			htmlElements.forEach((element) => {
-				changeElementProperties(element.id, (state) => ({
+			changeElementProperties(
+				(state) => ({
 					...state,
 					x: state.x + dx,
 					y: state.y + dy
-				}));
-			});
+				}),
+				...elementIds
+			);
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -196,18 +198,20 @@ const CanvasPane: FC = () => {
 
 	return (
 		<div id="canvas-pane">
-			<CanvasPointerMarker
-				isVisible={(mode === "draw" || mode === "erase") && !shiftKey}
-				canvasSpaceReference={canvasSpaceRef}
-			/>
-			{mode === "select" && !isMoving ? (
-				<CanvasPointerSelection
-					isSelecting={isSelecting}
-					setIsSelecting={setIsSelecting}
+			{(mode === "draw" || mode == "erase") && (
+				<CanvasPointerMarker
 					canvasSpaceReference={canvasSpaceRef}
+					shiftKey={shiftKey}
 				/>
-			) : null}
+			)}
+			{mode === "select" && !isMoving && (
+				<CanvasPointerSelection
+					canvasSpaceReference={canvasSpaceRef}
+					isSelecting={isSelecting}
+				/>
+			)}
 			<DrawingToolbar />
+
 			{elements.map((element) => (
 				<MemoizedShapeElement
 					key={element.id}
@@ -225,6 +229,18 @@ const CanvasPane: FC = () => {
 			>
 				<Canvas isGrabbing={isMoving} />
 			</div>
+
+			<span
+				style={{
+					backgroundColor: "rgba(0, 0, 0, 0.4)",
+					pointerEvents: "none",
+					position: "absolute",
+					left: 10,
+					bottom: 10
+				}}
+			>
+				Current Scale: {scale}
+			</span>
 		</div>
 	);
 };

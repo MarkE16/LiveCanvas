@@ -78,9 +78,9 @@
 .layer-up {
 	opacity: 0;
 	background-color: transparent;
-	margin: 0 1px;
-	padding: 0.4em;
-	font-size: small;
+	padding: 0 0.2em;
+	font-size: large;
+	padding: 0.2em;
 	border: none;
 	border-radius: 50%;
 	transition: opacity 100ms;

@@ -12,10 +12,10 @@
 
 .toolbar-option {
 	width: 100%;
-	min-height: 5vh;
-	border: none;
+	min-height: 4vh;
+	border: 1px solid rgb(36, 36, 36);
 	padding: 0.1em;
-	font-size: 1.1em;
+	font-size: 1.6em;
 	background-color: transparent;
 	cursor: pointer;
 	transition: background-color 100ms;

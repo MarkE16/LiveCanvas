@@ -4,7 +4,9 @@ import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { useRef, forwardRef, useEffect } from "react";
 import * as UTILS from "../../utils";
 import { parseColor } from "react-aria-components";
+import useCanvasElements from "../../state/hooks/useCanvasElements";
 
+import { changeColor, changeMode } from "../../state/slices/canvasSlice";
 // Types
 import type {
 	HTMLAttributes,
@@ -14,7 +16,6 @@ import type {
 	MouseEvent
 } from "react";
 import type { Coordinates } from "../../types";
-import { changeColor, changeMode } from "../../state/slices/canvasSlice";
 
 type CanvasLayerProps = HTMLAttributes<HTMLCanvasElement> &
 	RefAttributes<HTMLCanvasElement> & {
@@ -52,6 +53,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			dpi,
 			position: { x: xPosition, y: yPosition }
 		} = useAppSelector((state) => state.canvas);
+		const { movingElement } = useCanvasElements();
 		const dispatch = useAppDispatch();
 		// const history = useHistory();
 
@@ -68,12 +70,16 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
 			e.preventDefault();
-			isDrawing.current = !isGrabbing && mode !== "select" && mode !== "move";
+			isDrawing.current =
+				!isGrabbing &&
+				mode !== "select" &&
+				mode !== "move" &&
+				!movingElement.current;
 
 			const ctx = layerRef!.getContext("2d");
 
 			// Calculate the position of the mouse relative to the canvas.
-			const { x, y } = UTILS.getCanvasPointerPosition(
+			const { x, y } = UTILS.getCanvasPosition(
 				e.clientX,
 				e.clientY,
 				layerRef!,
@@ -83,7 +89,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			if (mode === "draw") {
 				currentPath2D.current = new Path2D();
 				currentPath2D.current.moveTo(x, y);
-			} else if (mode === "eye_drop" && !isGrabbing) {
+			} else if (mode === "eye_drop" && !isGrabbing && !movingElement.current) {
 				// `.getImageData()` retreives the x and y coordinates of the pixel
 				// differently if the canvas is scaled. So, we need to multiply the
 				// x and y coordinates by the DPI to get the correct pixel.
@@ -138,7 +144,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			const ctx = layerRef!.getContext("2d");
 
 			// Calculate the position of the mouse relative to the canvas.
-			const { x, y } = UTILS.getCanvasPointerPosition(
+			const { x, y } = UTILS.getCanvasPosition(
 				e.clientX,
 				e.clientY,
 				layerRef!,

@@ -41,11 +41,11 @@ export type ShapeMode = {
 	icon: string;
 };
 export type Shapes = ShapeMode[];
-export type Modes = {
+export type ToolbarMode = {
 	name: Mode;
-	icon: string;
 	shortcut: string;
-}[];
+};
+export type Modes = ToolbarMode[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 

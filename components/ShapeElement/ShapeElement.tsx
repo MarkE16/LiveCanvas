@@ -12,7 +12,7 @@ import ResizeGrid from "../ResizeGrid/ResizeGrid";
 
 type ShapeElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement>;
-	isSelecting: boolean;
+	isSelecting: RefObject<boolean>;
 };
 
 const ShapeElement: FC<ShapeElementProps> = ({
@@ -23,17 +23,27 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	fill,
 	border,
 	focused,
-	isSelecting,
 	x,
 	y,
 	id,
-	layerId
+	layerId,
+	isSelecting
 }) => {
 	const layers = useAppSelector((state) => state.canvas.layers);
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const activeLayer = layers.find((layer) => layer.active);
+	let left = NaN,
+		top = NaN;
+
+	if (canvasSpaceReference.current) {
+		const { left: l, top: t } =
+			canvasSpaceReference.current.getBoundingClientRect();
+
+		left = l;
+		top = t;
+	}
 
 	if (!activeLayer) {
 		throw new Error("No active layer. This is a bug that should be fixed.");
@@ -45,14 +55,14 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		focusElement,
 		unfocusElement,
 		changeElementProperties,
-		deleteElement
+		deleteElement,
+		updateMovingState
 	} = useCanvasElements();
-	width = width || 100;
-	height = height || 100;
 
 	const styles: CSSProperties = {
 		position: "absolute",
 		outline: "none",
+		cursor: isSelecting.current ? "default" : "move",
 		zIndex: activeLayer.id === layerId ? layers.length + 1 : 0
 	};
 
@@ -61,7 +71,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		const canvasSpace = canvasSpaceReference.current;
 		if (!element || !canvasSpace) return;
 
-		const handleFocus = () => focusElement(id);
 		const handleUnfocus = () => unfocusElement(id);
 
 		const isInsideElement = (e: MouseEvent) =>
@@ -77,22 +86,40 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			if ((e.key === "Delete" || e.key === "Backspace") && focused) {
 				deleteElement(id);
 			}
+
+			if (e.key === "a" && e.ctrlKey) {
+				focusElement(id);
+			}
 		}
 
 		function handleMouseDown(e: MouseEvent) {
+			e.stopPropagation();
 			if (!canvasSpace) return;
 
-			if (!isInsideElement(e)) {
+			// If the user clicks outside the element, unfocus it.
+			// However, if the user is holding the ctrl key, do not unfocus the element.
+			// This is so that the user can select multiple elements.
+			const insideElement = isInsideElement(e);
+
+			if (!insideElement && !e.ctrlKey) {
 				handleUnfocus();
 				return;
 			}
 
-			const { left, top } = canvasSpace.getBoundingClientRect();
-			const startX = e.clientX - left;
-			const startY = e.clientY - top;
+			if (insideElement) {
+				if (e.ctrlKey) {
+					if (focused) {
+						unfocusElement(id);
+						return;
+					}
+				}
 
-			startPos.current = { x: startX, y: startY };
+				focusElement(id);
+			}
+
+			startPos.current = { x: e.clientX, y: e.clientY };
 			clientPosition.current = { x: e.clientX, y: e.clientY };
+			updateMovingState(true);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -101,7 +128,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				e.buttons !== 1 ||
 				!element ||
 				!focused ||
-				isSelecting ||
+				isSelecting.current ||
 				!canvasSpace
 			)
 				return;
@@ -114,34 +141,59 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			) as ResizePosition | null;
 
 			if (resizePos !== null) {
-				changeElementProperties(id, (state) => {
+				changeElementProperties((state) => {
 					switch (resizePos) {
 						case "nw":
+							return {
+								...state,
+								width: state.width - deltaX,
+								height: state.height - deltaY,
+								x: state.x + deltaX,
+								y: state.y + deltaY
+							};
 						case "ne":
+							return {
+								...state,
+								width: state.width + deltaX,
+								height: state.height - deltaY,
+								y: state.y + deltaY
+							};
 						case "sw":
+							return {
+								...state,
+								width: state.width - deltaX,
+								height: state.height + deltaY,
+								x: state.x + deltaX
+							};
 						case "se":
 							return {
 								...state,
-								width: Math.abs(e.clientX - startPos.current.x),
-								height: Math.abs(e.clientY - startPos.current.y),
-								x: Math.min(startPos.current.x, e.clientX),
-								y: Math.min(startPos.current.y, e.clientY)
+								width: state.width + deltaX,
+								height: state.height + deltaY
 							};
 
 						case "n":
+							return {
+								...state,
+								height: state.height - deltaY,
+								y: state.y + deltaY
+							};
 						case "s":
 							return {
 								...state,
-								height: Math.abs(e.clientY - startPos.current.y),
-								y: Math.min(startPos.current.y, e.clientY)
+								height: state.height + deltaY
 							};
 
 						case "w":
+							return {
+								...state,
+								width: state.width - deltaX,
+								x: state.x + deltaX
+							};
 						case "e":
 							return {
 								...state,
-								width: Math.abs(e.clientX - startPos.current.x),
-								x: Math.min(startPos.current.x, e.clientX)
+								width: state.width + deltaX
 							};
 
 						default:
@@ -149,18 +201,20 @@ const ShapeElement: FC<ShapeElementProps> = ({
 								"Cannot properly resize element: Invalid resize position."
 							);
 					}
-				});
+				}, id);
 			} else {
-				changeElementProperties(id, (state) => {
+				changeElementProperties((state) => {
 					let { x, y } = state;
 					const { left, top } = canvasSpace.getBoundingClientRect();
 
+					// We subtract each coordinate by half of the width and height
+					// to get the cursor to appear in the middle of the element
 					if (isNaN(x)) {
-						x = e.clientX - left;
+						x = clientPosition.current.x - left - state.width / 2;
 					}
 
 					if (isNaN(y)) {
-						y = e.clientY - top;
+						y = clientPosition.current.y - top - state.height / 2;
 					}
 
 					return {
@@ -168,23 +222,52 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						x: x + deltaX,
 						y: y + deltaY
 					};
-				});
+				}, id);
 			}
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
+		}
+
+		function onMouseUp() {
+			updateMovingState(false);
+		}
+
+		function onWindowResize(e: Event) {
+			// Move the element along with the window when the window is resized.
+
+			const element = ref.current;
+
+			if (!element || !canvasSpace) return;
+
+			const { x, y } = element.getBoundingClientRect();
+
+			const { left, top } = canvasSpace.getBoundingClientRect();
+
+			const deltaX = x - left;
+			const deltaY = y - top;
+
+			changeElementProperties((state) => {
+				return {
+					...state,
+					x: state.x + deltaX,
+					y: state.y + deltaY
+				};
+			}, id);
 		}
 
 		// Added to the document to allow the user to drag the element even when the mouse is outside the element.
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("keydown", handleKeyDown);
-		element.addEventListener("mousedown", handleFocus);
+		document.addEventListener("mouseup", onMouseUp);
+		window.addEventListener("resize", onWindowResize);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
 			document.removeEventListener("keydown", handleKeyDown);
-			element.removeEventListener("mousedown", handleFocus);
+			document.removeEventListener("mouseup", onMouseUp);
+			window.removeEventListener("resize", onWindowResize);
 		};
 	}, [
 		unfocusElement,
@@ -194,7 +277,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		deleteElement,
 		focused,
 		isSelecting,
-		canvasSpaceReference
+		canvasSpaceReference,
+		updateMovingState
 	]);
 
 	if (shape === "triangle") {
@@ -228,8 +312,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		>
 			<svg
 				className="element"
-				width={width}
-				height={height}
+				width="100%"
+				height="100%"
 				style={styles}
 				id={id}
 				fill={fill}
@@ -245,6 +329,9 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				data-height={height}
 				data-fill={fill}
 				data-border={border}
+				data-focused={focused}
+				data-canvas-space-left={left}
+				data-canvas-space-top={top}
 			>
 				{jsx}
 			</svg>

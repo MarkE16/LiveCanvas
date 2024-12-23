@@ -4,14 +4,15 @@ import {
 	useMemo,
 	useCallback,
 	useState,
-	useEffect
+	useEffect,
+	useRef
 } from "react";
 import { v4 as uuid } from "uuid";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
-import type { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren, RefObject } from "react";
 import type { Shape, CanvasElement } from "../../types";
 
 type CanvasElementsUtils = {
@@ -20,10 +21,12 @@ type CanvasElementsUtils = {
 	unfocusElement: (id: string) => void;
 	createElement: (shape: Shape) => void;
 	changeElementProperties: (
-		id: string,
-		callback: (el: CanvasElement) => CanvasElement
+		callback: (el: CanvasElement) => CanvasElement,
+		...ids: string[]
 	) => void;
 	deleteElement: (id: string) => void;
+  movingElement: RefObject<boolean>;
+  updateMovingState: (state: boolean) => void;
 };
 
 const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
@@ -32,18 +35,23 @@ const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
 
 const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [elements, setElements] = useState<CanvasElement[]>([]);
+  const movingElement = useRef<boolean>(false);
 	const references = useLayerReferences();
 	const { get } = useIndexed();
+	
+  const updateMovingState = useCallback((state: boolean) => {
+    movingElement.current = state;
+  }, []);
 
 	/**
 	 * Marks an element as focused.
 	 * @param id The id associated with an element.
 	 * @returns void
 	 */
-	const focusElement = useCallback((id: string) => {
+	const focusElement = useCallback((...ids: string[]) => {
 		setElements((prev) => {
 			return prev.map((element) => {
-				if (element.id === id) {
+				if (ids.includes(element.id)) {
 					return { ...element, focused: true };
 				}
 				return element;
@@ -56,10 +64,10 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @param id The id associated with an element.
 	 * @returns void
 	 */
-	const unfocusElement = useCallback((id: string) => {
+	const unfocusElement = useCallback((...ids: string[]) => {
 		setElements((prev) => {
 			return prev.map((element) => {
-				if (element.id === id) {
+				if (ids.includes(element.id)) {
 					return { ...element, focused: false };
 				}
 				return element;
@@ -110,10 +118,10 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @returns void
 	 */
 	const changeElementProperties = useCallback(
-		(id: string, callback: (el: CanvasElement) => CanvasElement) => {
+		(callback: (el: CanvasElement) => CanvasElement, ...ids: string[]) => {
 			setElements((prev) => {
 				return prev.map((element) => {
-					if (element.id === id) {
+					if (ids.includes(element.id)) {
 						// Ensure that the width and height are at least 1.
 						const { width, height, ...rest } = callback(element);
 
@@ -141,8 +149,8 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @param id The id associated with the element.
 	 * @returns void
 	 */
-	const deleteElement = useCallback((id: string) => {
-		setElements((prev) => prev.filter((element) => element.id !== id));
+	const deleteElement = useCallback((...ids: string[]) => {
+    setElements((prev) => prev.filter((element) => !ids.includes(element.id)));
 	}, []);
 
 	const value = useMemo(
@@ -152,7 +160,9 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			unfocusElement,
 			createElement,
 			changeElementProperties,
-			deleteElement
+			deleteElement,
+			movingElement,
+			updateMovingState
 		}),
 		[
 			elements,
@@ -160,7 +170,8 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			unfocusElement,
 			createElement,
 			changeElementProperties,
-			deleteElement
+			deleteElement,
+			updateMovingState
 		]
 	);
 

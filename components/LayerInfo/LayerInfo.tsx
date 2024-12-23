@@ -1,7 +1,7 @@
 // Lib
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Tooltip } from "@mui/material";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Redux Actions
 import {
@@ -13,7 +13,12 @@ import {
 	moveLayerUp,
 	renameLayer
 } from "../../state/slices/canvasSlice";
-import useIndexed from "../../state/hooks/useIndexed";
+
+// Icons
+import Eye from "../icons/Eye/Eye";
+import Pen from "../icons/Pen/Pen";
+import Trashcan from "../icons/Trashcan/Trashcan";
+import Checkmark from "../icons/Checkmark/Checkmark";
 
 // Types
 import type { FC } from "react";
@@ -21,6 +26,9 @@ import type { Layer } from "../../types";
 
 // Styles
 import "./LayerInfo.styles.css";
+
+// Components
+import { Tooltip } from "@mui/material";
 
 type LayerInfoProps = Layer & {
 	positionIndex: number;
@@ -194,9 +202,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								data-testid={`rename-${id}`}
 								disabled={!editedName.length}
 							>
-								<i
-									className={`fas ${isEditing ? "fa-check" : "fa-pencil-alt"}`}
-								></i>
+								{isEditing ? <Checkmark /> : <Pen />}
 							</button>
 						</span>
 					</Tooltip>
@@ -213,7 +219,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 										data-testid={`del-${id}`}
 										onClick={onDelete}
 									>
-										<i className="fas fa-trash-alt"></i>
+										<Trashcan />
 									</button>
 								</Tooltip>
 							)}
@@ -226,9 +232,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 									onClick={onToggleVisibility}
 									data-testid={`toggle-${id}`}
 								>
-									<i
-										className={`fas ${hidden ? "fa-eye-slash" : "fa-eye"}`}
-									></i>
+									<Eye lineCross={hidden} />
 								</button>
 							</Tooltip>
 						</>

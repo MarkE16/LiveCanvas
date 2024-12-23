@@ -86,14 +86,14 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
 };
 
 /**
- * Get the position of the pointer on the given canvas element.
- * @param x The x-coordinate of the pointer. This should normally be the `clientX` value of a MouseEvent.
- * @param y The y-coordinate of the pointer. This should normally be the `clientY` value of a MouseEvent.
+ * Get the position of the given X and Y coordinate relative to the given HTMLCanvasElement.
+ * @param x The x-coordinate to calculate.
+ * @param y The y-coordinate to calculate.
  * @param canvas The canvas element.
  * @param dpi The device pixel ratio. Defaults to `window.devicePixelRatio`.
- * @returns The position of the pointer on the canvas.
+ * @returns The an X and Y coordinate relative to the canvas.
  */
-const getCanvasPointerPosition = (
+const getCanvasPosition = (
 	x: number,
 	y: number,
 	canvas: HTMLCanvasElement,
@@ -146,10 +146,7 @@ const navigateTo = (href: string): void => {
  * @param rect2 An HTML element.
  * @returns whether the two rectangles are intersecting.
  */
-const isRectIntersecting = (
-	rect1: HTMLElement,
-	rect2: HTMLElement
-): boolean => {
+const isRectIntersecting = (rect1: Element, rect2: Element): boolean => {
 	const {
 		left: r1Left,
 		top: r1Top,
@@ -172,7 +169,7 @@ export {
 	capitalize,
 	createLayer,
 	swapElements,
-	getCanvasPointerPosition,
+	getCanvasPosition,
 	navigateTo,
 	isRectIntersecting
 };

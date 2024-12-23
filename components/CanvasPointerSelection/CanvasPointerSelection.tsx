@@ -9,49 +9,37 @@ import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerSelectionProps = {
-	isSelecting: boolean;
-	setIsSelecting: (isSelecting: boolean) => void;
 	canvasSpaceReference: RefObject<HTMLDivElement>;
+	isSelecting: RefObject<boolean>;
 };
 
 const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
-	isSelecting,
-	setIsSelecting,
-	canvasSpaceReference
+	canvasSpaceReference,
+	isSelecting
 }) => {
 	const references = useLayerReferences();
 	const rectRef = useRef<HTMLDivElement>(null);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const endPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const [rect, setRect] = useState(() => {
-		if (!canvasSpaceReference.current)
-			return { x: 0, y: 0, width: 0, height: 0 };
-
-		const canvasSpace = canvasSpaceReference.current;
-
-		const { left, top } = canvasSpace.getBoundingClientRect();
-
-		return { x: left, y: top, width: 0, height: 0 };
-	});
-	const { focusElement, unfocusElement, elements } = useCanvasElements();
+	const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
+	const { focusElement, unfocusElement, movingElement } = useCanvasElements();
 
 	useEffect(() => {
 		const checkIntersections = (e: MouseEvent) => {
-			if (!rectRef.current || e.buttons !== 1) return;
+			if (!rectRef.current || e.buttons !== 1 || !isSelecting.current) return;
 
 			const selectionRect = rectRef.current;
 
-			elements.forEach((element) => {
-				const node = document.getElementById(element.id);
+			const elements = document.getElementsByClassName("element");
 
-				if (!node) return;
-
+			for (let i = 0; i < elements.length; i++) {
+				const node = elements[i];
 				if (UTILS.isRectIntersecting(selectionRect, node)) {
-					focusElement(element.id);
+					focusElement(node.id);
 				} else {
-					unfocusElement(element.id);
+					unfocusElement(node.id);
 				}
-			});
+			}
 		};
 
 		document.addEventListener("mousemove", checkIntersections);
@@ -59,14 +47,16 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		return () => {
 			document.removeEventListener("mousemove", checkIntersections);
 		};
-	}, [elements, focusElement, unfocusElement]);
+	}, [focusElement, unfocusElement, isSelecting]);
 
 	useEffect(() => {
 		const canvasSpace = canvasSpaceReference.current;
 		if (!canvasSpace) return;
 
+		const isOverCanvasSpace = (e: MouseEvent) =>
+			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
+
 		const handleMouseDown = (e: MouseEvent) => {
-			setIsSelecting(true);
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const x = e.clientX;
 			const y = e.clientY;
@@ -77,12 +67,14 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				width: 0,
 				height: 0
 			});
+			isSelecting.current = isOverCanvasSpace(e);
 			startingPosition.current = { x, y };
 			endPosition.current = { x: 0, y: 0 };
 		};
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (e.buttons !== 1) return;
+			if (e.buttons !== 1 || movingElement.current || !isSelecting.current)
+				return;
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const { x, y } = startingPosition.current;
@@ -104,81 +96,82 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			const y = e.clientY;
 
 			endPosition.current = { x, y };
-			setIsSelecting(false);
-		};
-
-		const handleKeyboardDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				setRect({ x: 0, y: 0, width: 0, height: 0 });
-			} else if (e.key === "Delete" || e.key === "Backspace") {
-				const currentLayer = references.find((ref) =>
-					ref.classList.contains("active")
-				);
-				if (!currentLayer) throw new Error("No active layer found.");
-
-				// Calculate the selection rectangle area as to the canvas space.
-				const ctx = currentLayer.getContext("2d");
-
-				if (!ctx) return;
-
-				setRect(() => {
-					const dpi = currentLayer.getAttribute("data-dpi");
-					if (!dpi) {
-						console.error("Can't determine DPI for deleting selection.");
-						return { x: 0, y: 0, width: 0, height: 0 };
-					}
-
-					const { x: startX, y: startY } = startingPosition.current;
-					const { x: startCanvasX, y: startCanvasY } =
-						UTILS.getCanvasPointerPosition(
-							startX,
-							startY,
-							currentLayer,
-							Number(dpi)
-						);
-					const { x: endX, y: endY } = endPosition.current;
-					const { x: endCanvasX, y: endCanvasY } =
-						UTILS.getCanvasPointerPosition(
-							endX,
-							endY,
-							currentLayer,
-							Number(dpi)
-						);
-
-					ctx.clearRect(
-						Math.min(startCanvasX, endCanvasX),
-						Math.min(startCanvasY, endCanvasY),
-						Math.abs(endCanvasX - startCanvasX),
-						Math.abs(endCanvasY - startCanvasY)
-					);
-					return { x: 0, y: 0, width: 0, height: 0 };
-				});
-			}
-
-			setIsSelecting(false);
-		};
-
-		const handleReset = () => {
 			setRect({ x: 0, y: 0, width: 0, height: 0 });
+			isSelecting.current = false;
 		};
+
+		// const handleKeyboardDown = (e: KeyboardEvent) => {
+		// 	if (e.key === "Escape") {
+		// 		setRect({ x: 0, y: 0, width: 0, height: 0 });
+		// 	} else if (e.key === "Delete" || e.key === "Backspace") {
+		// 		const currentLayer = references.find((ref) =>
+		// 			ref.classList.contains("active")
+		// 		);
+		// 		if (!currentLayer) throw new Error("No active layer found.");
+
+		// 		// Calculate the selection rectangle area as to the canvas space.
+		// 		const ctx = currentLayer.getContext("2d");
+
+		// 		if (!ctx) return;
+
+		// 		setRect(() => {
+		// 			const dpi = currentLayer.getAttribute("data-dpi");
+		// 			if (!dpi) {
+		// 				console.error("Can't determine DPI for deleting selection.");
+		// 				return { x: 0, y: 0, width: 0, height: 0 };
+		// 			}
+
+		// 			const { x: startX, y: startY } = startingPosition.current;
+		// 			const { x: startCanvasX, y: startCanvasY } =
+		// 				UTILS.getCanvasPointerPosition(
+		// 					startX,
+		// 					startY,
+		// 					currentLayer,
+		// 					Number(dpi)
+		// 				);
+		// 			const { x: endX, y: endY } = endPosition.current;
+		// 			const { x: endCanvasX, y: endCanvasY } =
+		// 				UTILS.getCanvasPointerPosition(
+		// 					endX,
+		// 					endY,
+		// 					currentLayer,
+		// 					Number(dpi)
+		// 				);
+
+		// 			ctx.clearRect(
+		// 				Math.min(startCanvasX, endCanvasX),
+		// 				Math.min(startCanvasY, endCanvasY),
+		// 				Math.abs(endCanvasX - startCanvasX),
+		// 				Math.abs(endCanvasY - startCanvasY)
+		// 			);
+		// 			return { x: 0, y: 0, width: 0, height: 0 };
+		// 		});
+		// 	}
+
+		// 	setIsSelecting(false);
+		// };
+
+		// const handleReset = () => {
+		// 	setRect({ x: 0, y: 0, width: 0, height: 0 });
+		// };
 
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
-		document.addEventListener("keydown", handleKeyboardDown);
+		// document.addEventListener("keydown", handleKeyboardDown);
 
 		// Sometimes, when the window is resized, the selection rectangle will appear over the UI.
 		// This is so that the selection rectangle is reset when the window is resized.
-		window.addEventListener("resize", handleReset);
+		// window.addEventListener("resize", handleReset);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
 			document.removeEventListener("mouseup", handleMouseUp);
-			document.removeEventListener("keydown", handleKeyboardDown);
-			window.removeEventListener("resize", handleReset);
+			// document.removeEventListener("keydown", handleKeyboardDown);
+			// window.removeEventListener("resize", handleReset);
 		};
-	}, [canvasSpaceReference, references, setIsSelecting]);
+	}, [canvasSpaceReference, references, movingElement, isSelecting]);
 
 	return (
 		<div
@@ -188,7 +181,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				display: rect.width + rect.height === 0 ? "none" : "block",
 				position: "absolute",
 				pointerEvents: "none",
-				border: `1px ${isSelecting ? "dashed" : "solid"} #d1836a`,
+				border: `1px dashed #d1836a`,
 				backgroundColor: "hsla(20, 50%, 60%, 0.3)",
 				zIndex: 100,
 				left: rect.x,

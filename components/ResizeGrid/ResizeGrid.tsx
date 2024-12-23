@@ -115,7 +115,6 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			<div
 				ref={ref}
 				style={styles}
-				tabIndex={0}
 				data-resizing={positionResizing}
 			>
 				{focused && resizeHandles}

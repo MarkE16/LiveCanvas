@@ -6,6 +6,11 @@ import * as UTILS from "../../utils";
 import type { FC } from "react";
 import type { CanvasElement } from "../../types";
 
+type ExportedElement = CanvasElement & {
+	spaceLeft: number;
+	spaceTop: number;
+};
+
 const ExportCanvasButton: FC = () => {
 	const references = useLayerReferences();
 
@@ -20,6 +25,8 @@ const ExportCanvasButton: FC = () => {
 		// Using the first layer as a reference for the canvas size.
 		// Recall that all layers should have the same dimensions.
 		// There should also *always* be at least one layer.
+		// Using this instead of the width and height in the state
+		// so that the component does not need to depend on the values.
 		const layer = references[0];
 		const { width, height } = layer;
 
@@ -49,6 +56,15 @@ const ExportCanvasButton: FC = () => {
 						const fill = element.getAttribute("data-fill");
 						const border = element.getAttribute("data-border");
 						const layerId = element.getAttribute("data-layerid");
+						// There may be a better solution to grabbing the canvas space's bounding rect
+						// properties from an external component that is not rendered in the CanvasPane component.
+						// However, this is a temporary solution.
+						const spaceLeft = Number(
+							element.getAttribute("data-canvas-space-left")
+						);
+						const spaceTop = Number(
+							element.getAttribute("data-canvas-space-top")
+						);
 						const id = element.id;
 
 						return {
@@ -60,8 +76,10 @@ const ExportCanvasButton: FC = () => {
 							fill,
 							border,
 							layerId,
+							spaceLeft,
+							spaceTop,
 							id
-						} as CanvasElement;
+						} as unknown as ExportedElement;
 					})
 					.filter((element) => element.layerId === layer.id);
 
@@ -80,13 +98,26 @@ const ExportCanvasButton: FC = () => {
 						const element = elements[i];
 						const { x: eX, y: eY, width: eWidth, height: eHeight } = element;
 
-						// Calculate the x and y position of the element relative to the canvas.
-						const { x, y } = UTILS.getCanvasPointerPosition(
-							eX,
-							eY,
-							layer,
-							Number(layer.getAttribute("data-dpi"))
+						// Note: `spaceLeft` and `spaceTop` are the left and top properties of the canvas space.
+						// (See CanvasPane.tsx where the reference is defined). In order for the elements
+						// to be dragged by the mouse properly, we need to account for the canvas space's left and top
+						// of the bounding rect in the element's coordinates.
+						// However, when exporting to the canvas, these values do not matter (and screws up the calculation)
+						// for the x and y coordinates related to the canvas.
+						// Therefore, we add the left and top values here to remove them from the calculation.
+						const { x: startX, y: startY } = UTILS.getCanvasPosition(
+							eX + element.spaceLeft,
+							eY + element.spaceTop,
+							layer
 						);
+						const { x: endX, y: endY } = UTILS.getCanvasPosition(
+							eX + eWidth + element.spaceLeft,
+							eY + eHeight + element.spaceTop,
+							layer
+						);
+
+						const width = endX - startX;
+						const height = endY - startY;
 
 						// Setup the fill and border.
 						ctx.fillStyle = element.fill;
@@ -99,10 +130,10 @@ const ExportCanvasButton: FC = () => {
 								// We use `ellipse` instead of `arc` since
 								// the shape can be resized to be an ellipse.
 								ctx.ellipse(
-									x + eWidth / 2,
-									y + eHeight / 2,
-									eWidth / 2,
-									eHeight / 2,
+									startX + width / 2,
+									startY + height / 2,
+									width / 2,
+									height / 2,
 									0,
 									0,
 									2 * Math.PI
@@ -114,28 +145,31 @@ const ExportCanvasButton: FC = () => {
 							}
 
 							case "rectangle": {
-								ctx.fillRect(x, y, eWidth, eHeight); // Fill the rectangle.
-								ctx.strokeRect(x, y, eWidth, eHeight); // Draw the border.
+								ctx.fillRect(startX, startY, width, height); // Fill the rectangle.
+								ctx.strokeRect(startX, startY, width, height); // Draw the border.
 
 								break;
 							}
 
 							case "triangle": {
-								ctx.moveTo(x + eWidth / 2, y);
-								ctx.lineTo(x + eWidth, y + eHeight);
-								ctx.lineTo(x, y + eHeight);
+								ctx.moveTo(startX + width / 2, startY);
+								ctx.lineTo(startX + width, startY + height);
+								ctx.lineTo(startX, startY + height);
 								ctx.fill(); // Fill the triangle.
 								ctx.stroke(); // Draw the border.
 
 								break;
 							}
 
-							default:
+							default: {
+								ctx.closePath();
 								throw new Error(
 									`Invalid shape ${element.shape} when exporting.`
 								);
+							}
 						}
 					}
+					ctx.closePath();
 
 					// Finished drawing the elements for this layer. Move on to the next.
 					resolve();
@@ -143,6 +177,7 @@ const ExportCanvasButton: FC = () => {
 			});
 		});
 
+		// Everything rendered successfully! Create the download.
 		Promise.all(promises).then(() => {
 			const image = substituteCanvas.toDataURL("image/jpeg", 1.0);
 			const a = document.createElement("a");

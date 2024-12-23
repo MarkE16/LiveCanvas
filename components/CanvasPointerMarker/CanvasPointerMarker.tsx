@@ -10,16 +10,17 @@ import type { Coordinates } from "../../types";
 
 type CanvasPointerMarker = {
 	canvasSpaceReference: RefObject<HTMLDivElement>;
-	isVisible: boolean;
+	shiftKey: boolean;
 };
 
 const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 	canvasSpaceReference,
-	isVisible
+	shiftKey
 }) => {
-	const { elements, deleteElement } = useCanvasElements();
+	const { deleteElement, movingElement } = useCanvasElements();
 	const ref = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
+	const [isVisible, setIsVisible] = useState<boolean>(false);
 	const { mode, drawStrength, eraserStrength, scale } = useAppSelector(
 		(state) => state.canvas,
 		(prev, next) => Object.is(prev, next)
@@ -32,8 +33,16 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		const canvasSpace = canvasSpaceReference.current;
 		if (!canvasSpace) return;
 
+		const hoveringOverSpace = (e: MouseEvent) =>
+			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
 		function computeCoordinates(e: MouseEvent) {
 			if (!canvasSpace) return;
+
+			if (hoveringOverSpace(e)) {
+				setIsVisible(true);
+			} else {
+				setIsVisible(false);
+			}
 
 			const { x, y, left, top, width, height } =
 				canvasSpace.getBoundingClientRect();
@@ -68,10 +77,10 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 			setPosition({ x: newX, y: newY });
 		}
 
-		canvasSpace.addEventListener("mousemove", computeCoordinates);
+		document.addEventListener("mousemove", computeCoordinates);
 
 		return () => {
-			canvasSpace.removeEventListener("mousemove", computeCoordinates);
+			document.removeEventListener("mousemove", computeCoordinates);
 		};
 	}, [canvasSpaceReference, POINTER_SIZE]);
 
@@ -85,19 +94,19 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 			if (!m) return;
 
-			elements.forEach((element) => {
-				const el = document.getElementById(element.id);
+			const elements = document.getElementsByClassName("element");
 
-				if (!el) return;
-
+			for (let i = 0; i < elements.length; i++) {
+				const node = elements[i];
 				if (
-					UTILS.isRectIntersecting(m, el) &&
+					UTILS.isRectIntersecting(m, node) &&
+					!movingElement.current &&
 					mode === "erase" &&
 					e.buttons === 1
 				) {
-					deleteElement(element.id);
+					deleteElement(node.id);
 				}
-			});
+			}
 		};
 
 		canvasSpace.addEventListener("mousemove", isIntersecting);
@@ -105,7 +114,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		return () => {
 			canvasSpace.removeEventListener("mousemove", isIntersecting);
 		};
-	}, [elements, deleteElement, mode, canvasSpaceReference]);
+	}, [deleteElement, mode, canvasSpaceReference, movingElement]);
 
 	return (
 		<div
@@ -119,7 +128,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 				backgroundColor: "black",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
-				display: isVisible ? "block" : "none",
+				display: isVisible && !shiftKey ? "block" : "none",
 				transform: `translate(${position.x}px, ${position.y}px)`,
 				zIndex: 100,
 				width: POINTER_SIZE,
