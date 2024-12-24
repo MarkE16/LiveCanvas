@@ -91,21 +91,28 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
  * @param y The y-coordinate to calculate.
  * @param canvas The canvas element.
  * @param dpi The device pixel ratio. Defaults to `window.devicePixelRatio`.
+ * @param accountForDpi Whether to account for the device pixel ratio. Defaults to `true`.
  * @returns The an X and Y coordinate relative to the canvas.
  */
 const getCanvasPosition = (
 	x: number,
 	y: number,
 	canvas: HTMLCanvasElement,
-	dpi: number = window.devicePixelRatio
+	dpi: number = window.devicePixelRatio,
+	accountForDpi: boolean = true
 ): Coordinates => {
 	const rect = canvas.getBoundingClientRect();
 	const scaleX = canvas.width / rect.width;
 	const scaleY = canvas.height / rect.height;
 	const calculatedDpi = dpi || window.devicePixelRatio || 1;
 
-	const computedX = ((x - rect.left) * scaleX) / calculatedDpi;
-	const computedY = ((y - rect.top) * scaleY) / calculatedDpi;
+	let computedX = (x - rect.left) * scaleX;
+	let computedY = (y - rect.top) * scaleY;
+
+	if (accountForDpi) {
+		computedX /= calculatedDpi;
+		computedY /= calculatedDpi;
+	}
 
 	return { x: computedX, y: computedY };
 };

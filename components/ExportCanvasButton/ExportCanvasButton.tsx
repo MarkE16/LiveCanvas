@@ -116,6 +116,8 @@ const ExportCanvasButton: FC = () => {
 						// However, when exporting to the canvas, these values do not matter (and screws up the calculation)
 						// for the x and y coordinates related to the canvas.
 						// Therefore, we add the left and top values here to remove them from the calculation.
+
+						// If the x or y values are NaN, we set them to the center of the canvas space.
 						if (isNaN(eX)) {
 							eX =
 								element.spaceLeft +
@@ -131,15 +133,20 @@ const ExportCanvasButton: FC = () => {
 								eHeight / 2 -
 								element.spaceTop;
 						}
+
 						const { x: startX, y: startY } = UTILS.getCanvasPosition(
 							eX + element.spaceLeft,
 							eY + element.spaceTop,
-							layer
+							layer,
+							0,
+							false
 						);
 						const { x: endX, y: endY } = UTILS.getCanvasPosition(
 							eX + eWidth + element.spaceLeft,
 							eY + eHeight + element.spaceTop,
-							layer
+							layer,
+							0,
+							false
 						);
 
 						// Dimensions relative to the canvas.
