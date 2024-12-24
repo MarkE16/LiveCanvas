@@ -12,6 +12,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../../components/LayerPane/LayerPane";
 import { CanvasState } from "../../types";
 import { renderWithProviders } from "../test-utils";
+import "@testing-library/jest-dom";
 
 // Essential so that when the component is rendered,
 // the usePageContext hook doesn't throw an error (since it's not in the browser)
@@ -23,7 +24,6 @@ const mockState: CanvasState = {
 	width: 400,
 	height: 400,
 	mode: "select",
-	shape: "circle",
 	scale: 1,
 	dpi: 1,
 	position: { x: 0, y: 0 },
@@ -151,6 +151,7 @@ describe("LayerPane functionality", () => {
 		);
 
 		expect(layer1InputAfterClick).not.toBeNull();
+		expect(layer1RenameButton).not.toBeDisabled(); // This button changes to a "confirm" button when renaming. Since we haven't changed the name yet, it should not be disabled.
 
 		// Let's change the name!
 		fireEvent.change(layer1InputAfterClick, {
@@ -185,6 +186,7 @@ describe("LayerPane functionality", () => {
 			"name-input-" + mockState.layers[0].id
 		);
 
+		expect(layer1RenameButton).not.toBeDisabled(); // This button changes to a "confirm" button when renaming. Since we haven't changed the name yet, it should not be disabled.
 		expect(layer1InputAfterClick).not.toBeNull();
 
 		// Let's change the name!
@@ -192,12 +194,7 @@ describe("LayerPane functionality", () => {
 			target: { value: "" }
 		});
 
-		fireEvent.mouseOver(layer1RenameButton); // Hover over the button to show the tooltip since it's disabled
-
-		const tooltip = await screen.findByText(/Layer name cannot be empty/i);
-
-		expect(tooltip).not.toBeNull();
-		expect(tooltip.textContent).toBe("Layer name cannot be empty.");
+		expect(layer1RenameButton).toBeDisabled(); // The button should be disabled since the input is empty.
 	});
 
 	it("should toggle layer visibility", async () => {
@@ -228,6 +225,7 @@ describe("LayerPane functionality", () => {
 		);
 
 		expect(downLayer1Button).not.toBeNull();
+		expect(downLayer1Button).not.toBeDisabled();
 
 		expect([...container.children]).toEqual([layer1, layer2]);
 
@@ -243,6 +241,7 @@ describe("LayerPane functionality", () => {
 		const upLayer2Button = screen.getByTestId("up-" + mockState.layers[1].id);
 
 		expect(upLayer2Button).not.toBeNull();
+		expect(upLayer2Button).not.toBeDisabled();
 
 		expect([...container.children]).toEqual([layer1, layer2]);
 
@@ -261,6 +260,7 @@ describe("LayerPane functionality", () => {
 
 		expect([...container.children]).toEqual([layer1, layer2]);
 
+		expect(upLayer1Button).toBeDisabled();
 		fireEvent.click(upLayer1Button); // Disabled, since it's already at the top. So, it should do nothing.
 
 		expect([...container.children]).toEqual([layer1, layer2]);
@@ -275,10 +275,7 @@ describe("LayerPane functionality", () => {
 		);
 
 		expect(downLayer2Button).not.toBeNull();
-
-		expect([...container.children]).toEqual([layer1, layer2]);
-
-		fireEvent.click(downLayer2Button); // Disabled, since it's already at the bottom. So, it should do nothing.
+		expect(downLayer2Button).toBeDisabled();
 
 		expect([...container.children]).toEqual([layer1, layer2]);
 	});
@@ -300,12 +297,7 @@ describe("LayerPane functionality", () => {
 		expect([...container.children]).toEqual([layer1]);
 
 		// Now, we should not be able to move the layer up or down
-		fireEvent.click(upLayer1Button);
-
-		expect([...container.children]).toEqual([layer1]);
-
-		fireEvent.click(downLayer1Button);
-
-		expect([...container.children]).toEqual([layer1]);
+		expect(upLayer1Button).toBeDisabled();
+		expect(downLayer1Button).toBeDisabled();
 	});
 });

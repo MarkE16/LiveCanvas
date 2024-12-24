@@ -37,26 +37,20 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	let sLeft = NaN,
 		sTop = NaN,
 		sWidth = NaN,
-		sHeight = NaN,
-		sX = NaN,
-		sY = NaN;
+		sHeight = NaN;
 
 	if (canvasSpaceReference.current) {
 		const {
 			left: l,
 			top: t,
 			width: w,
-			height: h,
-			x,
-			y
+			height: h
 		} = canvasSpaceReference.current.getBoundingClientRect();
 
 		sLeft = l;
 		sTop = t;
 		sWidth = w;
 		sHeight = h;
-		sX = x;
-		sY = y;
 	}
 
 	if (!activeLayer) {
@@ -428,8 +422,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				data-focused={focused}
 				data-canvas-space-left={sLeft}
 				data-canvas-space-top={sTop}
-				data-canvas-space-x={sX}
-				data-canvas-space-y={sY}
 				data-canvas-space-width={sWidth}
 				data-canvas-space-height={sHeight}
 			>

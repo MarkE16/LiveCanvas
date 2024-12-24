@@ -97,7 +97,7 @@ const SaveCanvasButton: FC = () => {
 				id="save-btn"
 				onClick={saveCanvas}
 			>
-			  <FloppyDisk checkmark={saved} />
+				<FloppyDisk checkmark={saved} />
 			</button>
 		</Tooltip>
 	);

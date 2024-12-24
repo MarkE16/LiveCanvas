@@ -1,7 +1,6 @@
 import { expect, describe, it, vi, afterEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-
 // Components
 import DrawingToolbar from "../../components/DrawingToolbar/DrawingToolbar";
 import { CanvasState } from "../../types";
@@ -43,10 +42,11 @@ describe("DrawingToolbar functionality", () => {
 		const noActionsText = screen.queryByText(
 			/Choose a different tool for actions./i
 		);
+		expect(noActionsText).toBeNull();
+
 		const input = screen.getByTestId("strength-range");
 		const value = screen.getByTestId("strength-value");
 
-		expect(noActionsText).toBeNull();
 		expect(input).not.toBeNull();
 		expect(value).not.toBeNull();
 
@@ -61,6 +61,13 @@ describe("DrawingToolbar functionality", () => {
 
 	it("should not go outside the min and max draw strength range", () => {
 		renderWithProviders(<DrawingToolbar />, { preloadedState });
+
+		const noActionsText = screen.queryByText(
+			/Choose a different tool for actions./i
+		);
+
+		expect(noActionsText).toBeNull();
+
 		const input = screen.getByTestId("strength-range");
 		const value = screen.getByTestId("strength-value");
 
@@ -90,10 +97,12 @@ describe("DrawingToolbar functionality", () => {
 		const noActionsText = screen.queryByText(
 			/Choose a different tool for actions./i
 		);
+
+		expect(noActionsText).toBeNull();
+
 		const input = screen.getByTestId("strength-range");
 		const value = screen.getByTestId("strength-value");
 
-		expect(noActionsText).toBeNull();
 		expect(input).not.toBeNull();
 		expect(value).not.toBeNull();
 

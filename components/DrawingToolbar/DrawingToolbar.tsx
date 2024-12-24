@@ -74,7 +74,7 @@ const DrawingToolbar: FC = () => {
 				};
 
 	const handleStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const strength = parseInt(e.target.value);
+		const strength = Number(e.target.value);
 
 		if (mode === "draw") {
 			dispatch(changeDrawStrength(strength));
@@ -165,6 +165,8 @@ const DrawingToolbar: FC = () => {
 	const additionalSettings: ReactElement[] = [];
 
 	if (mode === "draw") additionalSettings.push(renderedStrength, renderedBrush);
+
+	if (mode === "erase") additionalSettings.push(renderedStrength);
 
 	if (mode === "shapes") additionalSettings.push(<>{renderedShapes}</>);
 

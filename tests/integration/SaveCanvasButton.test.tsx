@@ -1,4 +1,5 @@
 import { screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 import { renderWithProviders } from "../test-utils";
 import { describe, it, expect, beforeEach } from "vitest";
 import SaveCanvasButton from "../../components/SaveCanvasButton/SaveCanvasButton";
@@ -35,10 +36,14 @@ describe("SaveCanvasButton functionality", () => {
 		const tooltip = await screen.findByText(/save canvas/i);
 
 		expect(tooltip).not.toBeNull();
-		expect(tooltip.textContent).toBe("Save Canvas (CTRL + S)");
+		expect(tooltip).toHaveTextContent("Save Canvas (CTRL + S)");
 
 		fireEvent.click(saveCanvasButton);
 
-		expect(tooltip.textContent).toBe("Saved!");
+		// Wait for the tooltip to change
+		const savedTooltip = await screen.findByText(/saved!/i);
+
+		expect(savedTooltip).not.toBeNull();
+		expect(savedTooltip).toHaveTextContent("Saved!");
 	});
 });
