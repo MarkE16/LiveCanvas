@@ -11,8 +11,6 @@ type ExportedElement = CanvasElement & {
 	spaceTop: number;
 	spaceWidth: number;
 	spaceHeight: number;
-	spaceX: number;
-	spaceY: number;
 };
 
 const ExportCanvasButton: FC = () => {
@@ -75,8 +73,6 @@ const ExportCanvasButton: FC = () => {
 						const spaceHeight = Number(
 							element.getAttribute("data-canvas-space-height")
 						);
-						const spaceX = Number(element.getAttribute("data-canvas-space-x"));
-						const spaceY = Number(element.getAttribute("data-canvas-space-y"));
 						const id = element.id;
 
 						return {
@@ -92,8 +88,6 @@ const ExportCanvasButton: FC = () => {
 							spaceTop,
 							spaceWidth,
 							spaceHeight,
-							spaceX,
-							spaceY,
 							id
 						} as unknown as ExportedElement;
 					})
@@ -112,7 +106,8 @@ const ExportCanvasButton: FC = () => {
 					// Draw the elements.
 					for (let i = 0; i < elements.length; i++) {
 						const element = elements[i];
-						let { x: eX, y: eY, width: eWidth, height: eHeight } = element;
+						let { x: eX, y: eY } = element;
+						const { width: eWidth, height: eHeight } = element;
 
 						// Note: `spaceLeft` and `spaceTop` are the left and top properties of the canvas space.
 						// (See CanvasPane.tsx where the reference is defined). In order for the elements
@@ -123,14 +118,16 @@ const ExportCanvasButton: FC = () => {
 						// Therefore, we add the left and top values here to remove them from the calculation.
 						if (isNaN(eX)) {
 							eX =
-								(element.spaceX + element.spaceWidth) / 2 -
+								element.spaceLeft +
+								element.spaceWidth / 2 -
 								eWidth / 2 -
 								element.spaceLeft;
 						}
 
 						if (isNaN(eY)) {
 							eY =
-								(element.spaceY + element.spaceHeight) / 2 -
+								element.spaceTop +
+								element.spaceHeight / 2 -
 								eHeight / 2 -
 								element.spaceTop;
 						}

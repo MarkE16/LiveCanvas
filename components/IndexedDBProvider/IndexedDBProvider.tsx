@@ -102,7 +102,6 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 							entries.push([cursor.key, cursor.value] as [string, unknown]);
 							cursor.continue();
 						} else {
-							console.log(entries);
 							resolve(entries as T);
 						}
 					};

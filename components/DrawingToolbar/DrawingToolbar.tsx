@@ -191,6 +191,7 @@ const DrawingToolbar: FC = () => {
 		<div
 			id="drawing-toolbar"
 			onMouseDown={stopPropagation}
+			onMouseMove={stopPropagation}
 		>
 			{additionalSettings.length > 0 ? (
 				additionalSettings

@@ -108,11 +108,23 @@ const CanvasPane: FC = () => {
 			).map((element) => element.id);
 
 			changeElementProperties(
-				(state) => ({
-					...state,
-					x: state.x + dx,
-					y: state.y + dy
-				}),
+				(state) => {
+					let { x, y } = state;
+
+					if (isNaN(x)) {
+						x = sLeft + sWidth / 2 - state.width / 2 - sLeft;
+					}
+
+					if (isNaN(y)) {
+						y = sTop + sHeight / 2 - state.height / 2 - sTop;
+					}
+
+					return {
+						...state,
+						x: x + dx,
+						y: y + dy
+					};
+				},
 				...elementIds
 			);
 
