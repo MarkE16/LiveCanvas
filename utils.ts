@@ -172,11 +172,37 @@ const isRectIntersecting = (rect1: Element, rect2: Element): boolean => {
 	);
 };
 
+/**
+ * Debounce a function by delaying its invocation by a specified number of milliseconds. If the debounced function is invoked again before the delay has elapsed, the timer is reset.
+ * @param fn A function.
+ * @param ms The number of milliseconds to wait before invoking the function.
+ * @returns The debounced function.
+ */
+const debounce = <T, A extends unknown[]>(
+	fn: (this: T, ...args: A) => T,
+	ms: number
+) => {
+	let id: ReturnType<typeof setTimeout> | null = null;
+
+	return function (this: T, ...args: A) {
+		if (id !== null) {
+			clearTimeout(id);
+			id = null;
+		} else {
+			id = setTimeout(() => {
+				fn.apply(this, args);
+				id = null;
+			}, ms);
+		}
+	};
+};
+
 export {
 	capitalize,
 	createLayer,
 	swapElements,
 	getCanvasPosition,
 	navigateTo,
-	isRectIntersecting
+	isRectIntersecting,
+	debounce
 };

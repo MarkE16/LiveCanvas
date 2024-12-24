@@ -54,14 +54,14 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				? "Done"
 				: "Rename";
 
-	let cn = "layer-info-container ";
+	let cn = "layer-info-container";
 
 	if (active) {
-		cn += " active ";
+		cn += " active";
 	}
 
 	if (isEditing) {
-		cn += " editing ";
+		cn += " editing";
 	}
 
 	const onToggle = () => dispatch(toggleLayer(id));

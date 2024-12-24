@@ -164,11 +164,13 @@ const DrawingToolbar: FC = () => {
 
 	const additionalSettings: ReactElement[] = [];
 
-	if (mode === "draw") additionalSettings.push(renderedStrength, renderedBrush);
-
-	if (mode === "erase") additionalSettings.push(renderedStrength);
-
-	if (mode === "shapes") additionalSettings.push(<>{renderedShapes}</>);
+	if (mode === "draw") {
+		additionalSettings.push(renderedStrength, renderedBrush);
+	} else if (mode === "erase") {
+		additionalSettings.push(renderedStrength);
+	} else if (mode === "shapes") {
+		additionalSettings.push(<>{renderedShapes}</>);
+	}
 
 	if (focusedElements.length > 0) {
 		additionalSettings.push(renderedShapeSettings);

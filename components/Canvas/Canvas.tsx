@@ -128,7 +128,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 				name="Background"
 				height={height}
 				active={false}
-				layerIndex={1}
+				layerIndex={layers.length === 1 ? 0 : 1}
 				isGrabbing={isGrabbing}
 			/>
 		</>

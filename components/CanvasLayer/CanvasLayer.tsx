@@ -1,7 +1,7 @@
 // Lib
 import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 // import useHistory from "../../state/hooks/useHistory";
-import { useRef, forwardRef, useEffect } from "react";
+import { useRef, forwardRef } from "react";
 import * as UTILS from "../../utils";
 import { parseColor } from "react-aria-components";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
@@ -214,27 +214,34 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 		};
 
 		// Update the resolution of the canvas when the DPI changes.
-		useEffect(() => {
-			if (!layerRef) return;
-			const layerCtx = layerRef.getContext("2d");
+		// Note: This will need to be refactored later when we allow for
+		// the changing of the DPI.
+		// useEffect(() => {
+		// 	if (!layerRef) return;
+		// 	const layerCtx = layerRef.getContext("2d");
 
-			if (!layerCtx) return;
+		// 	if (!layerCtx) return;
 
-			const { width, height } = layerRef.getBoundingClientRect();
-			layerRef.width = width * dpi;
-			layerRef.height = height * dpi;
+		// 	const { width, height } = layerRef.getBoundingClientRect();
+		// 	layerRef.width = width * dpi;
+		// 	layerRef.height = height * dpi;
 
-			layerCtx.scale(dpi, dpi);
+		// 	layerCtx.scale(dpi, dpi);
 
-			return () => {
-				layerCtx.scale(1 / dpi, 1 / dpi);
-			};
-		}, [dpi, layerRef]);
+		// 	return () => {
+		// 		layerCtx.scale(1 / dpi, 1 / dpi);
+		// 	};
+		// }, [dpi, layerRef]);
+
+		const deboundedMouseMove = UTILS.debounce(onMouseMove, 5);
 
 		return (
 			<canvas
 				ref={ref}
-				className={`canvas ${active ? "active" : ""} ${layerHidden ? "hidden" : ""}`}
+				// Temporary
+				width={width * dpi}
+				height={height * dpi}
+				className={`canvas${active ? " active" : ""}${layerHidden ? " hidden" : ""}`}
 				style={{
 					// These are the width and height of the canvas element visually.
 					width: `${width}px`,
@@ -246,7 +253,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 					zIndex: !layerHidden ? layerIndex : -2 // Layers from the top of the list are drawn first.
 				}}
 				onMouseDown={onMouseDown}
-				onMouseMove={onMouseMove}
+				onMouseMove={deboundedMouseMove}
 				onMouseUp={onMouseUp}
 				onMouseEnter={onMouseEnter}
 				onMouseLeave={onMouseLeave}

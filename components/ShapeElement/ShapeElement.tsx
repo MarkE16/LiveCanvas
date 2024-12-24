@@ -134,10 +134,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				"data-resizing"
 			) as ResizePosition | null;
 
-			const { left, top } = canvasSpace.getBoundingClientRect();
+			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
+
 			if (resizePos !== null) {
 				const pointerX = e.clientX - left;
 				const pointerY = e.clientY - top;
+
 				changeElementProperties((state) => {
 					let newState = { ...state };
 					const minSize = 18;
@@ -148,29 +150,41 @@ const ShapeElement: FC<ShapeElementProps> = ({
 					// is back into resizing limits, the element can be resized again.
 					// This is supposed to ensure that the element resize handle "follows"
 					// the cursor even when the cursor is outside the element.
+
+					// If the x or y is NaN, we set it to the center of the space.
+					// Dev note: `left` and `top` are being subtracted to
+					// account for the canvas space's left and top properties.
+					if (isNaN(newState.x)) {
+						newState.x = left + width / 2 - newState.width / 2 - left;
+					}
+
+					if (isNaN(newState.y)) {
+						newState.y = top + height / 2 - newState.height / 2 - top;
+					}
+
 					switch (resizePos) {
 						case "nw": {
 							let newX =
-								state.x +
-								(state.width - Math.max(minSize, state.width - deltaX));
+								newState.x +
+								(newState.width - Math.max(minSize, newState.width - deltaX));
 							let newY =
-								state.y +
-								(state.height - Math.max(minSize, state.height - deltaY));
-							let newWidth = Math.max(minSize, state.width - deltaX);
-							let newHeight = Math.max(minSize, state.height - deltaY);
+								newState.y +
+								(newState.height - Math.max(minSize, newState.height - deltaY));
+							let newWidth = Math.max(minSize, newState.width - deltaX);
+							let newHeight = Math.max(minSize, newState.height - deltaY);
 
 							if (pointerX > newX + newWidth - minSize) {
 								newWidth = minSize;
-								newX = state.x + state.width - minSize;
+								newX = newState.x + newState.width - minSize;
 							}
 
 							if (pointerY > newY + newHeight - minSize) {
 								newHeight = minSize;
-								newY = state.y + state.height - minSize;
+								newY = newState.y + newState.height - minSize;
 							}
 
 							newState = {
-								...state,
+								...newState,
 								width: newWidth,
 								height: newHeight,
 								x: newX,
@@ -181,22 +195,22 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 						case "ne": {
 							let newY =
-								state.y +
-								(state.height - Math.max(minSize, state.height - deltaY));
-							let newHeight = Math.max(minSize, state.height - deltaY);
-							let newWidth = Math.max(minSize, state.width + deltaX);
+								newState.y +
+								(newState.height - Math.max(minSize, newState.height - deltaY));
+							let newHeight = Math.max(minSize, newState.height - deltaY);
+							let newWidth = Math.max(minSize, newState.width + deltaX);
 
-							if (pointerX < state.x + minSize) {
+							if (pointerX < newState.x + minSize) {
 								newWidth = minSize;
 							}
 
 							if (pointerY > newY + newHeight - minSize) {
 								newHeight = minSize;
-								newY = state.y + state.height - minSize;
+								newY = newState.y + newState.height - minSize;
 							}
 
 							newState = {
-								...state,
+								...newState,
 								width: newWidth,
 								height: newHeight,
 								y: newY
@@ -206,22 +220,22 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 						case "sw": {
 							let newX =
-								state.x +
-								(state.width - Math.max(minSize, state.width - deltaX));
-							let newWidth = Math.max(minSize, state.width - deltaX);
-							let newHeight = Math.max(minSize, state.height + deltaY);
+								newState.x +
+								(newState.width - Math.max(minSize, newState.width - deltaX));
+							let newWidth = Math.max(minSize, newState.width - deltaX);
+							let newHeight = Math.max(minSize, newState.height + deltaY);
 
 							if (pointerX > newX + newWidth - minSize) {
 								newWidth = minSize;
-								newX = state.x + state.width - minSize;
+								newX = newState.x + state.width - minSize;
 							}
 
-							if (pointerY < state.y + minSize) {
+							if (pointerY < newState.y + minSize) {
 								newHeight = minSize;
 							}
 
 							newState = {
-								...state,
+								...newState,
 								width: newWidth,
 								height: newHeight,
 								x: newX
@@ -230,19 +244,19 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						}
 
 						case "se": {
-							let newWidth = Math.max(minSize, state.width + deltaX);
-							let newHeight = Math.max(minSize, state.height + deltaY);
+							let newWidth = Math.max(minSize, newState.width + deltaX);
+							let newHeight = Math.max(minSize, newState.height + deltaY);
 
-							if (pointerX < state.x + minSize) {
+							if (pointerX < newState.x + minSize) {
 								newWidth = minSize;
 							}
 
-							if (pointerY < state.y + minSize) {
+							if (pointerY < newState.y + minSize) {
 								newHeight = minSize;
 							}
 
 							newState = {
-								...state,
+								...newState,
 								width: newWidth,
 								height: newHeight
 							};
@@ -251,16 +265,16 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 						case "n": {
 							let newY =
-								state.y +
-								(state.height - Math.max(minSize, state.height - deltaY));
-							let newHeight = Math.max(minSize, state.height - deltaY);
+								newState.y +
+								(newState.height - Math.max(minSize, newState.height - deltaY));
+							let newHeight = Math.max(minSize, newState.height - deltaY);
 
 							if (pointerY > newY + newHeight - minSize) {
 								newHeight = minSize;
-								newY = state.y + state.height - minSize;
+								newY = newState.y + state.height - minSize;
 							}
 							newState = {
-								...state,
+								...newState,
 								height: newHeight,
 								y: newY
 							};
@@ -268,13 +282,13 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						}
 
 						case "s": {
-							let newHeight = Math.max(minSize, state.height + deltaY);
+							let newHeight = Math.max(minSize, newState.height + deltaY);
 
-							if (pointerY < state.y + minSize) {
+							if (pointerY < newState.y + minSize) {
 								newHeight = minSize;
 							}
 							newState = {
-								...state,
+								...newState,
 								height: newHeight
 							};
 							break;
@@ -282,16 +296,16 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 						case "w": {
 							let newX =
-								state.x +
-								(state.width - Math.max(minSize, state.width - deltaX));
-							let newWidth = Math.max(minSize, state.width - deltaX);
+								newState.x +
+								(newState.width - Math.max(minSize, newState.width - deltaX));
+							let newWidth = Math.max(minSize, newState.width - deltaX);
 
-							if (pointerX > state.x + newWidth - minSize) {
+							if (pointerX > newState.x + newWidth - minSize) {
 								newWidth = minSize;
-								newX = state.x + state.width - minSize;
+								newX = newState.x + newState.width - minSize;
 							}
 							newState = {
-								...state,
+								...newState,
 								width: newWidth,
 								x: newX
 							};
@@ -299,13 +313,13 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						}
 
 						case "e": {
-							let newWidth = Math.max(minSize, state.width + deltaX);
+							let newWidth = Math.max(minSize, newState.width + deltaX);
 
-							if (pointerX < state.x + minSize) {
+							if (pointerX < newState.x + minSize) {
 								newWidth = minSize;
 							}
 							newState = {
-								...state,
+								...newState,
 								width: newWidth
 							};
 							break;
@@ -408,6 +422,9 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				id={id}
 				fill={fill}
 				stroke={border}
+				style={{
+					zIndex: activeLayer.id === layerId ? layers.length + 1 : 1
+				}}
 				// Below is so that the size of the SVG element is the same as the size of the ResizeGrid.
 				preserveAspectRatio="none"
 				viewBox="0 0 100 100"
