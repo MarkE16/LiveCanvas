@@ -2,24 +2,30 @@
 import { forwardRef, useState, useCallback } from "react";
 
 // Types
-import type { PropsWithChildren, CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { ResizePosition } from "../../types";
 
 // Components
 import ResizeHandle from "../ResizeHandle/ResizeHandle";
 
-type ResizeGridProps = PropsWithChildren & {
+// Styles
+import "./ResizeGrid.styles.css";
+
+type ResizeGridProps = {
+	children: ReactNode | undefined;
 	x: number;
 	y: number;
 	width: number;
 	height: number;
 	focused: boolean;
+	zIndex?: number;
 };
 
 const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
-	function ResizeGrid({ x, y, width, height, focused, children }, ref) {
+	function ResizeGrid({ x, y, width, height, focused, zIndex, children }, ref) {
 		const [positionResizing, setPositionResizing] =
 			useState<ResizePosition | null>(null);
+
 		const OFFSET = 6;
 		const resizeHandles = [];
 		const styles: CSSProperties = {
@@ -27,10 +33,8 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			top: !isNaN(y) ? y : "auto",
 			width: width,
 			height: height,
-			position: "absolute",
 			outlineOffset: OFFSET,
-			outline: focused ? "1px solid #d1836a" : "none",
-			zIndex: 99
+			zIndex: zIndex ?? 99
 		};
 
 		const onResizeStart = (pos?: ResizePosition) => {
@@ -114,6 +118,7 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 		return (
 			<div
 				ref={ref}
+				className={`grid ${focused ? "focused" : ""}`}
 				style={styles}
 				data-resizing={positionResizing}
 			>

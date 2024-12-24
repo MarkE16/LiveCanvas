@@ -2,8 +2,11 @@
 import { useEffect } from "react";
 
 // Types
-import type { FC, CSSProperties, MouseEvent } from "react";
+import type { FC, CSSProperties } from "react";
 import type { ResizePosition } from "../../types";
+
+// Styles
+import "./ResizeHandle.styles.css";
 
 type ResizeHandleProps = {
 	placement: ResizePosition;
@@ -22,12 +25,8 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 	const HEIGHT = 10;
 
 	const styles: CSSProperties = {
-		position: "absolute",
-		background: "white",
-		border: "1px solid black",
 		width: `${WIDTH}px`,
 		height: `${HEIGHT}px`,
-		outline: "none",
 		cursor: `${placement}-resize`
 	};
 
@@ -91,7 +90,6 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 	}
 
 	const onMouseDown = () => {
-
 		onResizeStart && onResizeStart();
 	};
 
@@ -110,8 +108,7 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 
 	return (
 		<svg
-			width="100%"
-			height="100%"
+			className="handle"
 			style={styles}
 			onMouseDown={onMouseDown}
 		>

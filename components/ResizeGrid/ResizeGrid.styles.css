@@ -1,0 +1,8 @@
+.grid {
+	position: absolute;
+	outline: none;
+}
+
+.grid.focused {
+	outline: 1px solid #d1836a;
+}

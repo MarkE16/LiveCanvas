@@ -50,13 +50,13 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 
 				const sorted = entries.sort((a, b) => b[1].position - a[1].position); // Sort by position, where the highest position is the top layer.
 
-				sorted.forEach((entry) => {
+				sorted.forEach((entry, i) => {
 					const [layerId, layer] = entry;
 
 					newLayers.push({
 						name: layer.name,
 						id: layerId,
-						active: false,
+						active: i === 0,
 						hidden: false
 					});
 				});
@@ -65,7 +65,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					return;
 				}
 
-				newLayers[0].active = true;
 				dispatch(setLayers(newLayers));
 
 				resolve(sorted);
@@ -105,23 +104,21 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			{layers
 				.slice()
 				.reverse()
-				.map((layer, i) => {
-					return (
-						<CanvasLayer
-							key={layer.id}
-							id={layer.id}
-							width={width}
-							ref={(element: HTMLCanvasElement) => (refsOfLayers[i] = element)}
-							name={layer.name}
-							height={height}
-							active={layer.active}
-							layerHidden={layer.hidden}
-							layerRef={refsOfLayers[i]}
-							layerIndex={layer.active ? layers.length : layers.length - i - 1}
-							isGrabbing={isGrabbing}
-						/>
-					);
-				})}
+				.map((layer, i) => (
+					<CanvasLayer
+						key={layer.id}
+						id={layer.id}
+						width={width}
+						ref={(element: HTMLCanvasElement) => (refsOfLayers[i] = element)}
+						name={layer.name}
+						height={height}
+						active={layer.active}
+						layerHidden={layer.hidden}
+						layerRef={refsOfLayers[i]}
+						layerIndex={layer.active ? layers.length : layers.length - i}
+						isGrabbing={isGrabbing}
+					/>
+				))}
 
 			{/*eslint-disable-next-line*/}
 			{/*@ts-ignore */}
@@ -131,7 +128,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 				name="Background"
 				height={height}
 				active={false}
-				layerIndex={0}
+				layerIndex={1}
 				isGrabbing={isGrabbing}
 			/>
 		</>

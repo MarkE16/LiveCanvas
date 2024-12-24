@@ -9,6 +9,10 @@ import type { CanvasElement } from "../../types";
 type ExportedElement = CanvasElement & {
 	spaceLeft: number;
 	spaceTop: number;
+	spaceWidth: number;
+	spaceHeight: number;
+	spaceX: number;
+	spaceY: number;
 };
 
 const ExportCanvasButton: FC = () => {
@@ -65,6 +69,14 @@ const ExportCanvasButton: FC = () => {
 						const spaceTop = Number(
 							element.getAttribute("data-canvas-space-top")
 						);
+						const spaceWidth = Number(
+							element.getAttribute("data-canvas-space-width")
+						);
+						const spaceHeight = Number(
+							element.getAttribute("data-canvas-space-height")
+						);
+						const spaceX = Number(element.getAttribute("data-canvas-space-x"));
+						const spaceY = Number(element.getAttribute("data-canvas-space-y"));
 						const id = element.id;
 
 						return {
@@ -78,6 +90,10 @@ const ExportCanvasButton: FC = () => {
 							layerId,
 							spaceLeft,
 							spaceTop,
+							spaceWidth,
+							spaceHeight,
+							spaceX,
+							spaceY,
 							id
 						} as unknown as ExportedElement;
 					})
@@ -96,7 +112,7 @@ const ExportCanvasButton: FC = () => {
 					// Draw the elements.
 					for (let i = 0; i < elements.length; i++) {
 						const element = elements[i];
-						const { x: eX, y: eY, width: eWidth, height: eHeight } = element;
+						let { x: eX, y: eY, width: eWidth, height: eHeight } = element;
 
 						// Note: `spaceLeft` and `spaceTop` are the left and top properties of the canvas space.
 						// (See CanvasPane.tsx where the reference is defined). In order for the elements
@@ -105,6 +121,19 @@ const ExportCanvasButton: FC = () => {
 						// However, when exporting to the canvas, these values do not matter (and screws up the calculation)
 						// for the x and y coordinates related to the canvas.
 						// Therefore, we add the left and top values here to remove them from the calculation.
+						if (isNaN(eX)) {
+							eX =
+								(element.spaceX + element.spaceWidth) / 2 -
+								eWidth / 2 -
+								element.spaceLeft;
+						}
+
+						if (isNaN(eY)) {
+							eY =
+								(element.spaceY + element.spaceHeight) / 2 -
+								eHeight / 2 -
+								element.spaceTop;
+						}
 						const { x: startX, y: startY } = UTILS.getCanvasPosition(
 							eX + element.spaceLeft,
 							eY + element.spaceTop,
@@ -116,6 +145,9 @@ const ExportCanvasButton: FC = () => {
 							layer
 						);
 
+						// Dimensions relative to the canvas.
+						// The eWidth and eHeight are the width and height of the DOM,
+						// which are different from the canvas.
 						const width = endX - startX;
 						const height = endY - startY;
 
@@ -188,11 +220,7 @@ const ExportCanvasButton: FC = () => {
 		});
 	};
 
-	return (
-		<button onClick={handleExport}>
-			<span>Export Canvas</span>
-		</button>
-	);
+	return <button onClick={handleExport}>Export Canvas</button>;
 };
 
 export default ExportCanvasButton;

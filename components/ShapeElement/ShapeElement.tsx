@@ -5,7 +5,7 @@ import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
 import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
-import type { FC, CSSProperties, ReactElement, RefObject } from "react";
+import type { FC, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
@@ -34,15 +34,29 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const activeLayer = layers.find((layer) => layer.active);
-	let left = NaN,
-		top = NaN;
+	let sLeft = NaN,
+		sTop = NaN,
+		sWidth = NaN,
+		sHeight = NaN,
+		sX = NaN,
+		sY = NaN;
 
 	if (canvasSpaceReference.current) {
-		const { left: l, top: t } =
-			canvasSpaceReference.current.getBoundingClientRect();
+		const {
+			left: l,
+			top: t,
+			width: w,
+			height: h,
+			x,
+			y
+		} = canvasSpaceReference.current.getBoundingClientRect();
 
-		left = l;
-		top = t;
+		sLeft = l;
+		sTop = t;
+		sWidth = w;
+		sHeight = h;
+		sX = x;
+		sY = y;
 	}
 
 	if (!activeLayer) {
@@ -58,13 +72,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		deleteElement,
 		updateMovingState
 	} = useCanvasElements();
-
-	const styles: CSSProperties = {
-		position: "absolute",
-		outline: "none",
-		cursor: isSelecting.current ? "default" : "move",
-		zIndex: activeLayer.id === layerId ? layers.length + 1 : 0
-	};
 
 	useEffect(() => {
 		const element = ref.current;
@@ -107,13 +114,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			}
 
 			if (insideElement) {
-				if (e.ctrlKey) {
-					if (focused) {
-						unfocusElement(id);
-						return;
-					}
-				}
-
 				focusElement(id);
 			}
 
@@ -140,73 +140,194 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				"data-resizing"
 			) as ResizePosition | null;
 
+			const { left, top } = canvasSpace.getBoundingClientRect();
 			if (resizePos !== null) {
+				const pointerX = e.clientX - left;
+				const pointerY = e.clientY - top;
 				changeElementProperties((state) => {
+					let newState = { ...state };
+					const minSize = 18;
+
+					// Calculate new dimensions and positions
+					// Note: The `if` conditions are to prevent the element from being resized
+					// when the cursor is past resizing limits. This is to that when the cursor
+					// is back into resizing limits, the element can be resized again.
+					// This is supposed to ensure that the element resize handle "follows"
+					// the cursor even when the cursor is outside the element.
 					switch (resizePos) {
-						case "nw":
-							return {
-								...state,
-								width: state.width - deltaX,
-								height: state.height - deltaY,
-								x: state.x + deltaX,
-								y: state.y + deltaY
-							};
-						case "ne":
-							return {
-								...state,
-								width: state.width + deltaX,
-								height: state.height - deltaY,
-								y: state.y + deltaY
-							};
-						case "sw":
-							return {
-								...state,
-								width: state.width - deltaX,
-								height: state.height + deltaY,
-								x: state.x + deltaX
-							};
-						case "se":
-							return {
-								...state,
-								width: state.width + deltaX,
-								height: state.height + deltaY
-							};
+						case "nw": {
+							let newX =
+								state.x +
+								(state.width - Math.max(minSize, state.width - deltaX));
+							let newY =
+								state.y +
+								(state.height - Math.max(minSize, state.height - deltaY));
+							let newWidth = Math.max(minSize, state.width - deltaX);
+							let newHeight = Math.max(minSize, state.height - deltaY);
 
-						case "n":
-							return {
-								...state,
-								height: state.height - deltaY,
-								y: state.y + deltaY
-							};
-						case "s":
-							return {
-								...state,
-								height: state.height + deltaY
-							};
+							if (pointerX > newX + newWidth - minSize) {
+								newWidth = minSize;
+								newX = state.x + state.width - minSize;
+							}
 
-						case "w":
-							return {
+							if (pointerY > newY + newHeight - minSize) {
+								newHeight = minSize;
+								newY = state.y + state.height - minSize;
+							}
+
+							newState = {
 								...state,
-								width: state.width - deltaX,
-								x: state.x + deltaX
+								width: newWidth,
+								height: newHeight,
+								x: newX,
+								y: newY
 							};
-						case "e":
-							return {
+							break;
+						}
+
+						case "ne": {
+							let newY =
+								state.y +
+								(state.height - Math.max(minSize, state.height - deltaY));
+							let newHeight = Math.max(minSize, state.height - deltaY);
+							let newWidth = Math.max(minSize, state.width + deltaX);
+
+							if (pointerX < state.x + minSize) {
+								newWidth = minSize;
+							}
+
+							if (pointerY > newY + newHeight - minSize) {
+								newHeight = minSize;
+								newY = state.y + state.height - minSize;
+							}
+
+							newState = {
 								...state,
-								width: state.width + deltaX
+								width: newWidth,
+								height: newHeight,
+								y: newY
 							};
+							break;
+						}
+
+						case "sw": {
+							let newX =
+								state.x +
+								(state.width - Math.max(minSize, state.width - deltaX));
+							let newWidth = Math.max(minSize, state.width - deltaX);
+							let newHeight = Math.max(minSize, state.height + deltaY);
+
+							if (pointerX > newX + newWidth - minSize) {
+								newWidth = minSize;
+								newX = state.x + state.width - minSize;
+							}
+
+							if (pointerY < state.y + minSize) {
+								newHeight = minSize;
+							}
+
+							newState = {
+								...state,
+								width: newWidth,
+								height: newHeight,
+								x: newX
+							};
+							break;
+						}
+
+						case "se": {
+							let newWidth = Math.max(minSize, state.width + deltaX);
+							let newHeight = Math.max(minSize, state.height + deltaY);
+
+							if (pointerX < state.x + minSize) {
+								newWidth = minSize;
+							}
+
+							if (pointerY < state.y + minSize) {
+								newHeight = minSize;
+							}
+
+							newState = {
+								...state,
+								width: newWidth,
+								height: newHeight
+							};
+							break;
+						}
+
+						case "n": {
+							let newY =
+								state.y +
+								(state.height - Math.max(minSize, state.height - deltaY));
+							let newHeight = Math.max(minSize, state.height - deltaY);
+
+							if (pointerY > newY + newHeight - minSize) {
+								newHeight = minSize;
+								newY = state.y + state.height - minSize;
+							}
+							newState = {
+								...state,
+								height: newHeight,
+								y: newY
+							};
+							break;
+						}
+
+						case "s": {
+							let newHeight = Math.max(minSize, state.height + deltaY);
+
+							if (pointerY < state.y + minSize) {
+								newHeight = minSize;
+							}
+							newState = {
+								...state,
+								height: newHeight
+							};
+							break;
+						}
+
+						case "w": {
+							let newX =
+								state.x +
+								(state.width - Math.max(minSize, state.width - deltaX));
+							let newWidth = Math.max(minSize, state.width - deltaX);
+
+							if (pointerX > state.x + newWidth - minSize) {
+								newWidth = minSize;
+								newX = state.x + state.width - minSize;
+							}
+							newState = {
+								...state,
+								width: newWidth,
+								x: newX
+							};
+							break;
+						}
+
+						case "e": {
+							let newWidth = Math.max(minSize, state.width + deltaX);
+
+							if (pointerX < state.x + minSize) {
+								newWidth = minSize;
+							}
+							newState = {
+								...state,
+								width: newWidth
+							};
+							break;
+						}
 
 						default:
 							throw new Error(
 								"Cannot properly resize element: Invalid resize position."
 							);
 					}
+
+					return newState;
 				}, id);
 			} else {
 				changeElementProperties((state) => {
 					let { x, y } = state;
-					const { left, top } = canvasSpace.getBoundingClientRect();
-
 					// We subtract each coordinate by half of the width and height
 					// to get the cursor to appear in the middle of the element
 					if (isNaN(x)) {
@@ -232,42 +353,17 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			updateMovingState(false);
 		}
 
-		function onWindowResize(e: Event) {
-			// Move the element along with the window when the window is resized.
-
-			const element = ref.current;
-
-			if (!element || !canvasSpace) return;
-
-			const { x, y } = element.getBoundingClientRect();
-
-			const { left, top } = canvasSpace.getBoundingClientRect();
-
-			const deltaX = x - left;
-			const deltaY = y - top;
-
-			changeElementProperties((state) => {
-				return {
-					...state,
-					x: state.x + deltaX,
-					y: state.y + deltaY
-				};
-			}, id);
-		}
-
 		// Added to the document to allow the user to drag the element even when the mouse is outside the element.
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("keydown", handleKeyDown);
 		document.addEventListener("mouseup", onMouseUp);
-		window.addEventListener("resize", onWindowResize);
 
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
 			document.removeEventListener("keydown", handleKeyDown);
 			document.removeEventListener("mouseup", onMouseUp);
-			window.removeEventListener("resize", onWindowResize);
 		};
 	}, [
 		unfocusElement,
@@ -309,12 +405,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			width={width}
 			height={height}
 			focused={focused}
+			zIndex={activeLayer.id === layerId ? layers.length + 1 : 1}
 		>
 			<svg
 				className="element"
 				width="100%"
 				height="100%"
-				style={styles}
 				id={id}
 				fill={fill}
 				stroke={border}
@@ -330,8 +426,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				data-fill={fill}
 				data-border={border}
 				data-focused={focused}
-				data-canvas-space-left={left}
-				data-canvas-space-top={top}
+				data-canvas-space-left={sLeft}
+				data-canvas-space-top={sTop}
+				data-canvas-space-x={sX}
+				data-canvas-space-y={sY}
+				data-canvas-space-width={sWidth}
+				data-canvas-space-height={sHeight}
 			>
 				{jsx}
 			</svg>

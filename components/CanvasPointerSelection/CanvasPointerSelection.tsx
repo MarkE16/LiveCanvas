@@ -5,12 +5,12 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
-import type { FC, RefObject } from "react";
+import type { FC, MutableRefObject, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerSelectionProps = {
 	canvasSpaceReference: RefObject<HTMLDivElement>;
-	isSelecting: RefObject<boolean>;
+	isSelecting: MutableRefObject<boolean>;
 };
 
 const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
@@ -31,10 +31,20 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			const selectionRect = rectRef.current;
 
 			const elements = document.getElementsByClassName("element");
+			// const activeLayer = references.find((ref) =>
+			// 	ref.classList.contains("active")
+			// );
+
+			// if (!activeLayer)
+			// 	throw new Error("No active layer found. This is a bug.");
 
 			for (let i = 0; i < elements.length; i++) {
 				const node = elements[i];
-				if (UTILS.isRectIntersecting(selectionRect, node)) {
+
+				if (
+					UTILS.isRectIntersecting(selectionRect, node)
+					// && activeLayer.id === node.getAttribute("data-layerid")
+				) {
 					focusElement(node.id);
 				} else {
 					unfocusElement(node.id);

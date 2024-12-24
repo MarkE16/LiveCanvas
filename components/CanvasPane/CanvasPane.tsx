@@ -25,6 +25,7 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
+import useWindowDimensions from "../../state/hooks/useWindowDimesions";
 
 const MemoizedShapeElement = memo(ShapeElement);
 
@@ -33,7 +34,6 @@ const CanvasPane: FC = () => {
 		(state) => state.canvas.mode,
 		(prev, next) => prev === next
 	);
-	const scale = useAppSelector((state) => state.canvas.scale);
 	const dispatch = useAppDispatch();
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -41,7 +41,9 @@ const CanvasPane: FC = () => {
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const references = useLayerReferences();
-	const { elements, changeElementProperties } = useCanvasElements();
+	const dimensions = useWindowDimensions();
+	const { elements, changeElementProperties, copyElement, pasteElement } =
+		useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -62,13 +64,7 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (
-				e.buttons !== 1 ||
-				(mode !== "move" && !shiftKey) ||
-				!isGrabbing ||
-				!canvasSpace
-			)
-				return;
+			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
 
 			const layer = references[0];
 
@@ -138,6 +134,25 @@ const CanvasPane: FC = () => {
 				e.preventDefault();
 				dispatch(decreaseScale());
 			}
+
+			if (e.type === "keyup") {
+				return;
+			}
+
+			if (e.key === "c" && e.ctrlKey && !e.repeat) {
+				// We're copying elements here
+
+				const focusedIds = Array.from(
+					document.getElementsByClassName("element")
+				)
+					.filter((element) => element.getAttribute("data-focused") === "true")
+					.map((element) => element.id);
+
+				copyElement(...focusedIds);
+			} else if (e.key === "v" && e.ctrlKey && !e.repeat) {
+				// We're pasting elements here
+				pasteElement();
+			}
 		}
 
 		function handleZoom(e: Event) {
@@ -167,6 +182,23 @@ const CanvasPane: FC = () => {
 			}
 		}
 
+		function onWindowResize() {
+			const { changeInWidth, changeInHeight } = dimensions.current;
+
+			const elementIds = Array.from(
+				document.getElementsByClassName("element")
+			).map((element) => element.id);
+
+			changeElementProperties(
+				(state) => ({
+					...state,
+					x: state.x + changeInWidth,
+					y: state.y + changeInHeight
+				}),
+				...elementIds
+			);
+		}
+
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
@@ -177,6 +209,7 @@ const CanvasPane: FC = () => {
 		document.addEventListener("keydown", handleKeyDown);
 		document.addEventListener("keyup", handleKeyDown);
 
+		window.addEventListener("resize", onWindowResize);
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
@@ -186,14 +219,18 @@ const CanvasPane: FC = () => {
 
 			document.removeEventListener("keydown", handleKeyDown);
 			document.removeEventListener("keyup", handleKeyDown);
+			window.removeEventListener("resize", onWindowResize);
 		};
 	}, [
 		dispatch,
 		mode,
 		isGrabbing,
-		shiftKey,
+		canMove,
 		references,
-		changeElementProperties
+		changeElementProperties,
+		dimensions,
+		copyElement,
+		pasteElement
 	]);
 
 	return (
@@ -204,7 +241,7 @@ const CanvasPane: FC = () => {
 					shiftKey={shiftKey}
 				/>
 			)}
-			{mode === "select" && !isMoving && (
+			{(mode === "select" || mode === "shapes") && !isMoving && (
 				<CanvasPointerSelection
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
@@ -229,18 +266,6 @@ const CanvasPane: FC = () => {
 			>
 				<Canvas isGrabbing={isMoving} />
 			</div>
-
-			<span
-				style={{
-					backgroundColor: "rgba(0, 0, 0, 0.4)",
-					pointerEvents: "none",
-					position: "absolute",
-					left: 10,
-					bottom: 10
-				}}
-			>
-				Current Scale: {scale}
-			</span>
 		</div>
 	);
 };

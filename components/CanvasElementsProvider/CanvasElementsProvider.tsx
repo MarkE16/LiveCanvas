@@ -17,16 +17,21 @@ import type { Shape, CanvasElement } from "../../types";
 
 type CanvasElementsUtils = {
 	elements: CanvasElement[];
-	focusElement: (id: string) => void;
-	unfocusElement: (id: string) => void;
-	createElement: (shape: Shape) => void;
+	focusElement: (...ids: string[]) => void;
+	unfocusElement: (...ids: string[]) => void;
+	createElement: (
+		shape: Shape,
+		properties?: Omit<Partial<CanvasElement>, "id">
+	) => void;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
 		...ids: string[]
 	) => void;
-	deleteElement: (id: string) => void;
-  movingElement: RefObject<boolean>;
-  updateMovingState: (state: boolean) => void;
+	deleteElement: (...ids: string[]) => void;
+	movingElement: RefObject<boolean>;
+	updateMovingState: (state: boolean) => void;
+	copyElement: (...ids: string[]) => void;
+	pasteElement: () => void;
 };
 
 const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
@@ -35,13 +40,14 @@ const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
 
 const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [elements, setElements] = useState<CanvasElement[]>([]);
-  const movingElement = useRef<boolean>(false);
+	const movingElement = useRef<boolean>(false);
 	const references = useLayerReferences();
+	const copiedElements = useRef<CanvasElement[]>([]);
 	const { get } = useIndexed();
-	
-  const updateMovingState = useCallback((state: boolean) => {
-    movingElement.current = state;
-  }, []);
+
+	const updateMovingState = useCallback((state: boolean) => {
+		movingElement.current = state;
+	}, []);
 
 	/**
 	 * Marks an element as focused.
@@ -81,7 +87,7 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @returns void
 	 */
 	const createElement = useCallback(
-		(shape: Shape) => {
+		(shape: Shape, properties?: Omit<Partial<CanvasElement>, "id">) => {
 			const activeLayer = references.find((ref) =>
 				ref.classList.contains("active")
 			);
@@ -91,20 +97,21 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			}
 
 			// Used NaN to indicate that the x and y values are not set. They will be set later when the user moves the element.
-			const element: CanvasElement = {
+			const element = {
 				x: NaN,
 				y: NaN,
 				width: 100,
 				height: 100,
-				id: uuid(),
 				fill: "#000000",
 				border: "#000000",
 				focused: false,
 				layerId: activeLayer.id,
-				shape
+				shape,
+				...properties, // Override the default properties with the provided properties, if any.
+				id: uuid() // Keep the id as the last property to ensure that it is not overridden.
 			};
 
-			setElements((prev) => [...prev, element]);
+			setElements((prev) => [...prev, element as CanvasElement]);
 		},
 		[references]
 	);
@@ -150,7 +157,34 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @returns void
 	 */
 	const deleteElement = useCallback((...ids: string[]) => {
-    setElements((prev) => prev.filter((element) => !ids.includes(element.id)));
+		setElements((prev) => prev.filter((element) => !ids.includes(element.id)));
+	}, []);
+
+	/**
+	 * A
+	 */
+	const copyElement = useCallback((...ids: string[]) => {
+		copiedElements.current.length = 0; // Clear the copied elements.
+
+		// Using the state from the previous state mainly to avoid having
+		// to use the state variable in the callback function,
+		// which would cause the function to depend on the state variable.
+		setElements((prev) => {
+			const elements = prev.filter((element) => ids.includes(element.id));
+			copiedElements.current.push(...elements);
+			return prev;
+		});
+	}, []);
+
+	const pasteElement = useCallback(() => {
+		copiedElements.current = copiedElements.current.map((element) => ({
+			...element,
+			x: element.x + 10,
+			y: element.y + 10,
+			id: uuid() // Generate a new id for the element.
+		}));
+
+		setElements((prev) => [...prev, ...copiedElements.current]);
 	}, []);
 
 	const value = useMemo(
@@ -162,7 +196,9 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			changeElementProperties,
 			deleteElement,
 			movingElement,
-			updateMovingState
+			updateMovingState,
+			copyElement,
+			pasteElement
 		}),
 		[
 			elements,
@@ -171,7 +207,9 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 			createElement,
 			changeElementProperties,
 			deleteElement,
-			updateMovingState
+			updateMovingState,
+			copyElement,
+			pasteElement
 		]
 	);
 

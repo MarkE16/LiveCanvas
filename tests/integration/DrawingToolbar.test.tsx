@@ -1,12 +1,6 @@
 import { expect, describe, it, vi, afterEach } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as ReduxHooks from "../../state/hooks/reduxHooks";
-import * as UTILS from "../../utils";
-import { SHAPES } from "../../state/store";
-
-// Redux Actions
-import { changeShape } from "../../state/slices/canvasSlice";
 
 // Components
 import DrawingToolbar from "../../components/DrawingToolbar/DrawingToolbar";
@@ -22,7 +16,6 @@ const mockState: CanvasState = {
 	mode: "draw",
 	drawStrength: 5,
 	eraserStrength: 3,
-	shape: "circle",
 	dpi: 1,
 	color: "hsla(0, 0%, 0%, 1)",
 	scale: 1,
@@ -137,57 +130,5 @@ describe("DrawingToolbar functionality", () => {
 		fireEvent.change(input, { target: { value: "20" } });
 
 		expect(Number(value.textContent)).toBe(10);
-	});
-
-	it("should render with default shape", async () => {
-		const newMockState: CanvasState = { ...mockState, mode: "shapes" };
-		const newPreloadedState = { canvas: newMockState };
-		renderWithProviders(<DrawingToolbar />, {
-			preloadedState: newPreloadedState
-		});
-		const noActionsText = screen.queryByText(
-			/Choose a different tool for actions./i
-		);
-		const shape = screen.getByTestId(`shape-${mockState.shape}`);
-		const tooltipText = UTILS.capitalize(mockState.shape);
-
-		expect(noActionsText).toBeNull();
-		expect(shape).not.toBeNull();
-
-		fireEvent.mouseOver(shape);
-
-		const tooltip = await screen.findByText(new RegExp(tooltipText, "i"));
-
-		expect(tooltip).not.toBeNull();
-		expect(tooltip.textContent).toBe(tooltipText);
-
-		expect(shape.classList.contains("active")).toBe(true);
-	});
-
-	it("should change to other shapes", () => {
-		const newMockState: CanvasState = { ...mockState, mode: "shapes" };
-		const newPreloadedState = { canvas: newMockState };
-
-		const mockDispatch = vi.fn();
-		vi.spyOn(ReduxHooks, "useAppDispatch").mockReturnValue(mockDispatch);
-
-		renderWithProviders(<DrawingToolbar />, {
-			preloadedState: newPreloadedState
-		});
-
-		for (let i = 1; i < SHAPES.length; i++) {
-			const shape = screen.getByTestId(`shape-${SHAPES[i].name}`);
-
-			expect(shape).not.toBeNull();
-
-			expect(mockDispatch).toHaveBeenCalledTimes(i - 1);
-
-			fireEvent.click(shape);
-
-			expect(mockDispatch).toHaveBeenCalledTimes(i);
-			expect(mockDispatch).toHaveBeenCalledWith(changeShape(SHAPES[i].name));
-		}
-
-		expect(mockDispatch).toHaveBeenCalledTimes(SHAPES.length - 1);
 	});
 });

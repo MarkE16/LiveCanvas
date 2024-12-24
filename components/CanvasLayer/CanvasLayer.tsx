@@ -70,11 +70,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			e: MouseEvent<HTMLCanvasElement>
 		) => {
 			e.preventDefault();
-			isDrawing.current =
-				!isGrabbing &&
-				mode !== "select" &&
-				mode !== "move" &&
-				!movingElement.current;
+			isDrawing.current = mode !== "select" && !movingElement.current;
 
 			const ctx = layerRef!.getContext("2d");
 
@@ -116,7 +112,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				}
 
 				// The color picker only supports HSLA, so we need to convert the color to HSLA.
-				dispatch(changeColor(color.toFormat("hsla").toString()));
+				dispatch(changeColor(color.toString("hsla")));
 				dispatch(changeMode("select")); // Change the mode to select after the color is picked.
 			}
 
@@ -137,7 +133,7 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 			// If the left mouse button is not pressed, then we should not draw.
 			// If the layer is hidden, we should not draw.
 			// If the user is grabbing the canvas (for moving), we should not draw.
-			if (e.buttons !== 1 || layerHidden || !isDrawing.current) {
+			if (e.buttons !== 1 || layerHidden || !isDrawing.current || isGrabbing) {
 				return;
 			}
 

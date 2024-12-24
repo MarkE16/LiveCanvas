@@ -3,7 +3,14 @@ import { createSlice } from "@reduxjs/toolkit";
 import * as UTILS from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Mode, Shape, Layer, Coordinates, CanvasState } from "../../types";
+import type {
+	Mode,
+	Shape,
+	Layer,
+	Coordinates,
+	CanvasState,
+	Dimensions
+} from "../../types";
 
 const initialState: CanvasState = {
 	width: 400,
@@ -18,8 +25,6 @@ const initialState: CanvasState = {
 	dpi: 1,
 	position: { x: 0, y: 0 }
 };
-
-type Dimensions = { width: number; height: number };
 
 const canvasSlice = createSlice({
 	name: "canvas",

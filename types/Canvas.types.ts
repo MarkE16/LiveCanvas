@@ -7,7 +7,6 @@ export type CanvasState = {
 	color: string;
 	drawStrength: number;
 	eraserStrength: number;
-	shape: Shape;
 	layers: Layer[];
 	scale: number;
 	dpi: number;
@@ -61,4 +60,9 @@ export type CanvasElement = {
 	layerId: string;
 	focused: boolean;
 	// More properties later...
+};
+
+export type Dimensions = {
+	width: number;
+	height: number;
 };
