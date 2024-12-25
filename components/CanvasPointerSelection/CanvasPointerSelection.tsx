@@ -20,7 +20,6 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	const references = useLayerReferences();
 	const rectRef = useRef<HTMLDivElement>(null);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const endPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
 	const { focusElement, unfocusElement, movingElement } = useCanvasElements();
 
@@ -79,12 +78,10 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			});
 			isSelecting.current = isOverCanvasSpace(e);
 			startingPosition.current = { x, y };
-			endPosition.current = { x: 0, y: 0 };
 		};
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (e.buttons !== 1 || movingElement.current || !isSelecting.current)
-				return;
+			if (e.buttons !== 1 || movingElement.current) return;
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const { x, y } = startingPosition.current;
@@ -97,15 +94,9 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				width: Math.abs(x - currentX),
 				height: Math.abs(y - currentY)
 			});
-
-			endPosition.current = { x: currentX, y: currentY };
 		};
 
-		const handleMouseUp = (e: MouseEvent) => {
-			const x = e.clientX;
-			const y = e.clientY;
-
-			endPosition.current = { x, y };
+		const handleMouseUp = () => {
 			setRect({ x: 0, y: 0, width: 0, height: 0 });
 			isSelecting.current = false;
 		};
@@ -186,6 +177,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	return (
 		<div
 			id="selection-rect"
+			data-testid="selection-rect"
 			ref={rectRef}
 			style={{
 				display: rect.width + rect.height === 0 ? "none" : "block",

@@ -199,6 +199,20 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 				// Clear the current path.
 				currentPath.current = [];
 			}
+
+			// A custom event to notify that the image of the layer
+			// displayed in the layer list needs to be updated.
+			// This event should only really be listened for by the
+			// LayerInfo component; however, other components may
+			// listen for this event if they need to update the image,
+			// if needed.
+			const imageUpdate = new CustomEvent("imageupdate", {
+				detail: {
+					layer: layerRef
+				}
+			});
+
+			document.dispatchEvent(imageUpdate);
 		};
 
 		const onMouseEnter: MouseEventHandler<HTMLCanvasElement> = (

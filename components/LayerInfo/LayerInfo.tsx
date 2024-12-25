@@ -1,11 +1,10 @@
 // Lib
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, memo } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
 
 // Redux Actions
 import {
-	// setLayerId,
 	toggleVisibility,
 	toggleLayer,
 	removeLayer,
@@ -29,10 +28,13 @@ import "./LayerInfo.styles.css";
 
 // Components
 import { Tooltip } from "@mui/material";
+import LayerPreview from "../LayerPreview/LayerPreview";
 
 type LayerInfoProps = Layer & {
 	positionIndex: number;
 };
+
+const MemoizedLayerPreview = memo(LayerPreview);
 
 const LayerInfo: FC<LayerInfoProps> = ({
 	name,
@@ -154,6 +156,8 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					</span>
 				</Tooltip>
 			</div>
+
+			<MemoizedLayerPreview id={id} />
 			<div className="layer-info-actions">
 				{isEditing ? (
 					<input

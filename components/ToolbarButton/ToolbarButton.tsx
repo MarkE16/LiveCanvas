@@ -98,7 +98,7 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 					className={`toolbar-option ${active ? "active" : ""}`}
 					data-modename={name}
 					data-shortcut={shortcut}
-					data-testid={name}
+					data-testid={`tool-${name}`}
 					onClick={performAction}
 					disabled={
 						name === "undo"

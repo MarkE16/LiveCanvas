@@ -2,6 +2,7 @@
 import { useAppSelector } from "../../state/hooks/reduxHooks";
 import { useEffect, useRef } from "react";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
 import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
@@ -30,6 +31,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	isSelecting
 }) => {
 	const layers = useAppSelector((state) => state.canvas.layers);
+	const references = useLayerReferences();
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -359,6 +361,22 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 		function onMouseUp() {
 			updateMovingState(false);
+
+			const activeLayer = references.find((ref) =>
+				ref.classList.contains("active")
+			);
+
+			if (!activeLayer) {
+				throw new Error("No active layer found. This is a bug.");
+			}
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: activeLayer
+				}
+			});
+
+			document.dispatchEvent(event);
 		}
 
 		// Added to the document to allow the user to drag the element even when the mouse is outside the element.

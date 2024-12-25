@@ -33,7 +33,7 @@ describe("Left Toolbar functionality", () => {
 		expect(container.children).toHaveLength(MODES.length);
 
 		for (const mode of MODES) {
-			const button = screen.getByTestId(mode.name);
+			const button = screen.getByTestId(`tool-${mode.name}`);
 
 			expect(button).not.toBeNull();
 		}
@@ -41,7 +41,7 @@ describe("Left Toolbar functionality", () => {
 
 	it("should properly show tooltips on hover", async () => {
 		for (const mode of MODES) {
-			const button = screen.getByTestId(mode.name);
+			const button = screen.getByTestId(`tool-${mode.name}`);
 			const modeNameCapitalized = UTILS.capitalize(mode.name, {
 				titleCase: true,
 				delimiter: "_"
@@ -60,7 +60,7 @@ describe("Left Toolbar functionality", () => {
 	});
 
 	it("should properly change to all existing modes", () => {
-		const firstMode = screen.getByTestId(MODES[0].name);
+		const firstMode = screen.getByTestId(`tool-${MODES[0].name}`);
 
 		// First mode should be active by default
 		expect(firstMode).not.toBeNull();
@@ -68,8 +68,8 @@ describe("Left Toolbar functionality", () => {
 
 		// Click on all the other modes
 		for (let i = 1; i < MODES.length; i++) {
-			const mode = screen.getByTestId(MODES[i].name);
-			const previousMode = screen.getByTestId(MODES[i - 1].name);
+			const mode = screen.getByTestId(`tool-${MODES[i].name}`);
+			const previousMode = screen.getByTestId(`tool-${MODES[i - 1].name}`);
 
 			expect(mode).not.toBeNull();
 			expect(previousMode).not.toBeNull();

@@ -246,7 +246,10 @@ const CanvasPane: FC = () => {
 	]);
 
 	return (
-		<div id="canvas-pane">
+		<div
+			id="canvas-pane"
+			data-testid="canvas-pane"
+		>
 			{(mode === "draw" || mode == "erase") && (
 				<CanvasPointerMarker
 					canvasSpaceReference={canvasSpaceRef}

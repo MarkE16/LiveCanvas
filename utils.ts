@@ -197,6 +197,176 @@ const debounce = <T, A extends unknown[]>(
 	};
 };
 
+type ExportedElement = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	shape: string | null;
+	fill: string | null;
+	border: string | null;
+	layerId: string | null;
+	spaceLeft: number;
+	spaceTop: number;
+	spaceWidth: number;
+	spaceHeight: number;
+	id: string;
+};
+
+const generateCanvasImage = async (
+	layers: HTMLCanvasElement | HTMLCanvasElement[],
+	elements: Element[],
+	quality: number = 1
+): Promise<Blob> => {
+	if (quality > 1 || quality < 0) {
+		throw new Error(
+			"Quality must be in the range 0-1 in order to properly export."
+		);
+	}
+
+	const isArray = Array.isArray(layers);
+	if (isArray && layers.length === 0) {
+		throw new Error("No layers provided when attempting to export.");
+	}
+
+	const substituteCanvas = document.createElement("canvas");
+	const referenceLayer = isArray ? layers[0] : layers;
+	const { width, height } = referenceLayer;
+
+	substituteCanvas.width = width;
+	substituteCanvas.height = height;
+
+	const ctx = substituteCanvas.getContext("2d");
+	if (!ctx) {
+		throw new Error(
+			"Failed to get 2D context from canvas when attempting to export."
+		);
+	}
+
+	// Set white background
+	ctx.fillStyle = "white";
+	ctx.fillRect(0, 0, width, height);
+
+	const layersArray = isArray ? layers : [layers];
+
+	const promises = layersArray.map((layer) => {
+		return new Promise<void>((resolve) => {
+			const asObjects = elements
+				.map<ExportedElement>((element) => ({
+					x: Number(element.getAttribute("data-x")),
+					y: Number(element.getAttribute("data-y")),
+					width: Number(element.getAttribute("data-width")),
+					height: Number(element.getAttribute("data-height")),
+					shape: element.getAttribute("data-shape"),
+					fill: element.getAttribute("data-fill"),
+					border: element.getAttribute("data-border"),
+					layerId: element.getAttribute("data-layerid"),
+					spaceLeft: Number(element.getAttribute("data-canvas-space-left")),
+					spaceTop: Number(element.getAttribute("data-canvas-space-top")),
+					spaceWidth: Number(element.getAttribute("data-canvas-space-width")),
+					spaceHeight: Number(element.getAttribute("data-canvas-space-height")),
+					id: element.id
+				}))
+				.filter((element) => element.layerId === layer.id);
+
+			ctx.drawImage(layer, 0, 0);
+
+			// Draw the elements
+			asObjects.forEach((element) => {
+				let { x: eX, y: eY } = element;
+				const { width: eWidth, height: eHeight } = element;
+
+				if (isNaN(eX)) {
+					eX =
+						element.spaceLeft +
+						element.spaceWidth / 2 -
+						eWidth / 2 -
+						element.spaceLeft;
+				}
+
+				if (isNaN(eY)) {
+					eY =
+						element.spaceTop +
+						element.spaceHeight / 2 -
+						eHeight / 2 -
+						element.spaceTop;
+				}
+
+				const { x: startX, y: startY } = getCanvasPosition(
+					eX + element.spaceLeft,
+					eY + element.spaceTop,
+					layer,
+					0,
+					false
+				);
+				const { x: endX, y: endY } = getCanvasPosition(
+					eX + eWidth + element.spaceLeft,
+					eY + eHeight + element.spaceTop,
+					layer,
+					0,
+					false
+				);
+
+				const width = endX - startX;
+				const height = endY - startY;
+
+				ctx.fillStyle = element.fill || "";
+				ctx.strokeStyle = element.border || "";
+
+				ctx.beginPath();
+				switch (element.shape) {
+					case "circle": {
+						ctx.ellipse(
+							startX + width / 2,
+							startY + height / 2,
+							width / 2,
+							height / 2,
+							0,
+							0,
+							2 * Math.PI
+						);
+						ctx.fill();
+						ctx.stroke();
+						break;
+					}
+					case "rectangle": {
+						ctx.fillRect(startX, startY, width, height);
+						ctx.strokeRect(startX, startY, width, height);
+						break;
+					}
+					case "triangle": {
+						ctx.moveTo(startX + width / 2, startY);
+						ctx.lineTo(startX + width, startY + height);
+						ctx.lineTo(startX, startY + height);
+						ctx.fill();
+						ctx.stroke();
+						break;
+					}
+					default: {
+						ctx.closePath();
+						throw new Error(`Invalid shape ${element.shape} when exporting.`);
+					}
+				}
+			});
+			ctx.closePath();
+			resolve();
+		});
+	});
+
+	await Promise.all(promises);
+
+	return new Promise((resolve) => {
+		substituteCanvas.toBlob(
+			(blob) => {
+				if (!blob) throw new Error("Failed to extract blob when exporting.");
+				resolve(blob);
+			},
+			"image/jpeg",
+			quality
+		);
+	});
+};
+
 export {
 	capitalize,
 	createLayer,
@@ -204,5 +374,6 @@ export {
 	getCanvasPosition,
 	navigateTo,
 	isRectIntersecting,
-	debounce
+	debounce,
+	generateCanvasImage
 };
