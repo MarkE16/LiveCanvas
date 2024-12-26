@@ -7,7 +7,15 @@ export default defineConfig({
 		exclude: ["**/node_modules/**", "**/dist/**", "**/build/**"],
 		globals: true,
 		setupFiles: [
-			"fake-indexeddb/auto" // This is so that we can use the IndexedDB API in our tests
-		]
+			// This is so that we can use the IndexedDB API in our tests
+			"fake-indexeddb/auto",
+			// This is so that we can mock the canvas API in our tests
+			"vi-canvas-mock"
+		],
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "html"],
+			reportsDirectory: "coverage"
+		}
 	}
 });

@@ -1,5 +1,13 @@
 // Lib
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	beforeEach,
+	afterEach,
+	vi,
+	afterAll
+} from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
 import * as ReduxHooks from "../../state/hooks/reduxHooks";
@@ -66,7 +74,6 @@ describe("ColorWheel functionality", () => {
 			width: 400,
 			height: 400,
 			mode: "select",
-			shape: "circle",
 			drawStrength: 5,
 			eraserStrength: 3,
 			scale: 1,
@@ -88,7 +95,11 @@ describe("ColorWheel functionality", () => {
 	});
 
 	afterEach(() => {
-		vi.resetAllMocks();
+		vi.clearAllMocks();
+	});
+
+	afterAll(() => {
+		vi.restoreAllMocks();
 	});
 
 	it("should render the component", () => {

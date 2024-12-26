@@ -26,5 +26,5 @@ jobs:
       - name: Install dependencies
         run: pnpm ci
 
-      - name: Run tests
-        run: pnpm run test
+      - name: Run tests with coverage
+        run: pnpm run coverage

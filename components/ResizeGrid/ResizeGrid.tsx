@@ -1,5 +1,5 @@
 // Lib
-import { forwardRef, useState, useCallback } from "react";
+import { useCallback, useState, forwardRef } from "react";
 
 // Types
 import type { CSSProperties, ReactNode } from "react";
@@ -23,9 +23,7 @@ type ResizeGridProps = {
 
 const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 	function ResizeGrid({ x, y, width, height, focused, zIndex, children }, ref) {
-		const [positionResizing, setPositionResizing] =
-			useState<ResizePosition | null>(null);
-
+		const [resizing, setResizing] = useState<ResizePosition | null>(null);
 		const OFFSET = 6;
 		const resizeHandles = [];
 		const styles: CSSProperties = {
@@ -39,13 +37,13 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 
 		const onResizeStart = (pos?: ResizePosition) => {
 			if (!pos) throw new Error("Cannot resize without a position.");
-			setPositionResizing(pos);
+			setResizing(pos);
 		};
 
 		// using useCallback as this function is used in an effect in the ResizeHandle component
 		const onResizeEnd = useCallback(() => {
-			setPositionResizing(null);
-		}, []);
+			setResizing(null);
+		}, [setResizing]);
 
 		// Create the resize handles.
 		// Visually, the grid is divided into a 3x3 grid.
@@ -118,9 +116,10 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 		return (
 			<div
 				ref={ref}
-				className={`grid ${focused ? "focused" : ""}`}
+				className={`grid${focused ? " focused" : ""}`}
+				data-testid="resize-grid"
+				data-resizing={resizing}
 				style={styles}
-				data-resizing={positionResizing}
 			>
 				{focused && resizeHandles}
 				{children}

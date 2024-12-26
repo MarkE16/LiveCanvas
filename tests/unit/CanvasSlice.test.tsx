@@ -7,18 +7,18 @@ import reducer, {
 	changeColor,
 	changeDrawStrength,
 	changeEraserStrength,
-	changeShape,
 	createLayer,
 	removeLayer,
 	increaseScale,
 	decreaseScale,
 	setPosition,
+	setLayers,
 	changeX,
 	changeY
 } from "../../state/slices/canvasSlice";
 import { MODES } from "../../state/store";
 
-import type { CanvasState, Shape } from "../../types";
+import type { CanvasState } from "../../types";
 
 const mockState: CanvasState = {
 	width: 400,
@@ -28,7 +28,6 @@ const mockState: CanvasState = {
 	drawStrength: 5,
 	eraserStrength: 3,
 	dpi: 1,
-	shape: "rectangle",
 	layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 	scale: 1,
 	position: { x: 0, y: 0 }
@@ -52,6 +51,23 @@ describe("Test dimensions", () => {
 
 		expect(state.width).toBe(800);
 		expect(state.height).toBe(600);
+	});
+
+	it("should not change a dimension if not given", () => {
+		let state = reducer(undefined, changeDimensions({ width: 800 }));
+
+		expect(state.width).toBe(800);
+		expect(state.height).toBe(mockState.height);
+
+		state = reducer(undefined, changeDimensions({ height: 600 }));
+
+		expect(state.width).toBe(mockState.width);
+		expect(state.height).toBe(600);
+
+		state = reducer(undefined, changeDimensions({}));
+
+		expect(state.width).toBe(mockState.width);
+		expect(state.height).toBe(mockState.height);
 	});
 });
 
@@ -121,13 +137,13 @@ describe("Test draw strength", () => {
 	});
 
 	it("should not allow the draw strength to be outside 1-15", () => {
-		const state = reducer(undefined, changeDrawStrength(20));
+		let state = reducer(undefined, changeDrawStrength(20));
 
 		expect(state.drawStrength).toBe(15);
 
-		const state2 = reducer(undefined, changeDrawStrength(0));
+		state = reducer(undefined, changeDrawStrength(0));
 
-		expect(state2.drawStrength).toBe(1);
+		expect(state.drawStrength).toBe(1);
 	});
 });
 
@@ -145,31 +161,13 @@ describe("Test eraser strength", () => {
 	});
 
 	it("should not allow the eraser strength to be outside 3-10", () => {
-		const state = reducer(undefined, changeEraserStrength(20));
+		let state = reducer(undefined, changeEraserStrength(20));
 
 		expect(state.eraserStrength).toBe(10);
 
-		const state2 = reducer(undefined, changeEraserStrength(2));
+		state = reducer(undefined, changeEraserStrength(2));
 
-		expect(state2.eraserStrength).toBe(3);
-	});
-});
-
-describe("Test shape", () => {
-	it("should return the initial shape", () => {
-		const state = reducer(undefined, { type: "unknown" });
-
-		expect(state.shape).toBe(mockState.shape);
-	});
-
-	it("should properly update the shape", () => {
-		const shapes: Shape[] = ["rectangle", "circle", "triangle"];
-
-		for (const shape of shapes) {
-			const state = reducer(undefined, changeShape(shape));
-
-			expect(state.shape).toBe(shape);
-		}
+		expect(state.eraserStrength).toBe(3);
 	});
 });
 
@@ -222,7 +220,7 @@ describe("Test layer", () => {
 				}
 			]
 		};
-		const state = reducer(tempMockState, removeLayer("1234-5678-9123-4568"));
+		let state = reducer(tempMockState, removeLayer("1234-5678-9123-4568"));
 
 		expect(state.layers.length).toBe(2);
 		expect(state.layers).toEqual([
@@ -240,10 +238,10 @@ describe("Test layer", () => {
 			}
 		]);
 
-		const state2 = reducer(tempMockState, removeLayer("1234-5678-9123-4567"));
+		state = reducer(tempMockState, removeLayer("1234-5678-9123-4567"));
 
-		expect(state2.layers.length).toBe(2);
-		expect(state2.layers).toEqual([
+		expect(state.layers.length).toBe(2);
+		expect(state.layers).toEqual([
 			{
 				name: "Layer 2",
 				id: "1234-5678-9123-4568",
@@ -258,10 +256,10 @@ describe("Test layer", () => {
 			}
 		]);
 
-		const state3 = reducer(tempMockState, removeLayer("1234-5678-9123-4569"));
+		state = reducer(tempMockState, removeLayer("1234-5678-9123-4569"));
 
-		expect(state3.layers.length).toBe(2);
-		expect(state3.layers).toEqual([
+		expect(state.layers.length).toBe(2);
+		expect(state.layers).toEqual([
 			{
 				name: "Layer 1",
 				id: "1234-5678-9123-4567",
@@ -281,6 +279,26 @@ describe("Test layer", () => {
 		const state = reducer(mockState, removeLayer("1234-5678-9123-4568"));
 
 		expect(state.layers).toEqual(mockState.layers);
+	});
+
+	it("should set layers to given payload", () => {
+		const newLayers = [
+			{
+				name: "Layer 2",
+				id: "1234-5678-9123-4568",
+				active: false,
+				hidden: false
+			},
+			{
+				name: "Layer 3",
+				id: "1234-5678-9123-4569",
+				active: false,
+				hidden: false
+			}
+		];
+		const state = reducer(mockState, setLayers(newLayers));
+
+		expect(state.layers).toEqual(newLayers);
 	});
 });
 

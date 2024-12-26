@@ -62,10 +62,9 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		const canvasSpace = canvasSpaceReference.current;
 		if (!canvasSpace) return;
 
-		const isOverCanvasSpace = (e: MouseEvent) =>
-			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
-
 		const handleMouseDown = (e: MouseEvent) => {
+			const overCanvasSpace = UTILS.isMouseOverElement(e, canvasSpace);
+			if (!overCanvasSpace) return;
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const x = e.clientX;
 			const y = e.clientY;
@@ -76,12 +75,13 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				width: 0,
 				height: 0
 			});
-			isSelecting.current = isOverCanvasSpace(e);
+			isSelecting.current = overCanvasSpace;
 			startingPosition.current = { x, y };
 		};
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (e.buttons !== 1 || movingElement.current) return;
+			if (e.buttons !== 1 || movingElement.current || !isSelecting.current)
+				return;
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const { x, y } = startingPosition.current;

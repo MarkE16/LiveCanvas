@@ -69,12 +69,16 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 
 	return (
 		<div
+			data-testid={`${__for}-color-picker`}
 			onMouseDown={stopPropagation}
 			onMouseMove={stopPropagation}
 		>
 			<AriaColorPicker>
 				<DialogTrigger>
-					<Button className="color-picker">
+					<Button
+						className="color-picker"
+						data-testid={`${__for}-picker-button`}
+					>
 						<AriaColorSwatch
 							className="react-aria-ColorSwatch"
 							color={value}
@@ -84,6 +88,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 					<Popover
 						placement="bottom start"
 						className="react-aria-Popover"
+						data-testid={`${__for}-picker-popover`}
 					>
 						<Dialog className="color-picker-dialog">
 							<AriaColorArea
@@ -91,6 +96,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 								xChannel="saturation"
 								yChannel="brightness"
 								className="react-aria-ColorArea"
+								data-testid="picker-area"
 								onChange={handleColorChange}
 								value={value}
 							>
@@ -100,6 +106,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 								colorSpace="hsb"
 								channel="hue"
 								className="react-aria-ColorSlider"
+								data-testid="picker-slider"
 								onChange={handleColorChange}
 								value={value}
 							>
@@ -109,6 +116,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 								</SliderTrack>
 							</AriaColorSlider>
 							<ColorField
+								data-testid="picker-field"
 								label="Hex"
 								value={hex}
 								onChange={onHexChange}

@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type {
 	Mode,
-	Shape,
 	Layer,
 	Coordinates,
 	CanvasState,
@@ -19,7 +18,6 @@ const initialState: CanvasState = {
 	color: "hsla(0, 0%, 0%, 1)",
 	drawStrength: 5,
 	eraserStrength: 3,
-	shape: "rectangle",
 	layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 	scale: 1,
 	dpi: 1,
@@ -47,9 +45,6 @@ const canvasSlice = createSlice({
 		},
 		changeMode: (state, action: PayloadAction<Mode>) => {
 			state.mode = action.payload;
-		},
-		changeShape: (state, action: PayloadAction<Shape>) => {
-			state.shape = action.payload;
 		},
 		changeDrawStrength: (state, action: PayloadAction<number>) => {
 			state.drawStrength = Math.min(15, Math.max(1, action.payload));
@@ -124,20 +119,6 @@ const canvasSlice = createSlice({
 		setLayers: (state, action: PayloadAction<Layer[]>) => {
 			state.layers = action.payload;
 		},
-		setLayerId: (
-			state,
-			action: PayloadAction<{
-				id: string;
-				newId: string;
-			}>
-		) => {
-			state.layers = state.layers.map((layer) => {
-				if (layer.id === action.payload.id) {
-					layer.id = action.payload.newId;
-				}
-				return layer;
-			});
-		},
 		toggleVisibility: (state, action: PayloadAction<string>) => {
 			state.layers = state.layers.map((layer) => {
 				if (layer.id === action.payload) {
@@ -168,7 +149,6 @@ export const {
 	changeDimensions,
 	changeColor,
 	changeMode,
-	changeShape,
 	changeDrawStrength,
 	changeEraserStrength,
 	changeDPI,
@@ -179,7 +159,6 @@ export const {
 	moveLayerDown,
 	renameLayer,
 	setLayers,
-	setLayerId,
 	toggleVisibility,
 	increaseScale,
 	decreaseScale,

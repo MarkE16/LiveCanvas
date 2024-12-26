@@ -74,15 +74,10 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		const canvasSpace = canvasSpaceReference.current;
 		if (!element || !canvasSpace) return;
 
-		const handleUnfocus = () => unfocusElement(id);
-
-		const isInsideElement = (e: MouseEvent) =>
-			e.target === element || element.contains(e.target as Node);
-
 		function handleKeyDown(e: KeyboardEvent) {
 			// Handle Focus
 			if (e.key === "Escape") {
-				handleUnfocus();
+				unfocusElement(id);
 			}
 
 			// Handle Delete
@@ -95,27 +90,26 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			}
 		}
 
-		function handleMouseDown(e: MouseEvent) {
-			e.stopPropagation();
-			if (!canvasSpace) return;
+		function handleUnfocus(e: MouseEvent) {
+			if (!element) return;
 
-			// If the user clicks outside the element, unfocus it.
-			// However, if the user is holding the ctrl key, do not unfocus the element.
-			// This is so that the user can select multiple elements.
-			const insideElement = isInsideElement(e);
-
-			if (!insideElement && !e.ctrlKey) {
-				handleUnfocus();
-				return;
+			if (
+				e.target !== element &&
+				!element.contains(e.target as Node) &&
+				!e.ctrlKey
+			) {
+				unfocusElement(id);
 			}
+		}
 
-			if (insideElement) {
+		function handleMouseDown(e: MouseEvent) {
+			if (e.buttons === 1) {
 				focusElement(id);
+				updateMovingState(true);
 			}
 
 			startPos.current = { x: e.clientX, y: e.clientY };
 			clientPosition.current = { x: e.clientX, y: e.clientY };
-			updateMovingState(true);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -379,14 +373,17 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			document.dispatchEvent(event);
 		}
 
-		// Added to the document to allow the user to drag the element even when the mouse is outside the element.
-		document.addEventListener("mousedown", handleMouseDown);
+		// We add the mousedown event to the element to accurately
+		// differentiate which element is being clicked for focus.
+		element.addEventListener("mousedown", handleMouseDown);
+		document.addEventListener("mousedown", handleUnfocus);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("keydown", handleKeyDown);
 		document.addEventListener("mouseup", onMouseUp);
 
 		return () => {
-			document.removeEventListener("mousedown", handleMouseDown);
+			element.removeEventListener("mousedown", handleMouseDown);
+			document.removeEventListener("mousedown", handleUnfocus);
 			document.removeEventListener("mousemove", handleMouseMove);
 			document.removeEventListener("keydown", handleKeyDown);
 			document.removeEventListener("mouseup", onMouseUp);
@@ -400,7 +397,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		focused,
 		isSelecting,
 		canvasSpaceReference,
-		updateMovingState
+		updateMovingState,
+		references
 	]);
 
 	if (shape === "triangle") {
@@ -435,6 +433,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		>
 			<svg
 				className="element"
+				data-testid="element"
 				width="100%"
 				height="100%"
 				id={id}
