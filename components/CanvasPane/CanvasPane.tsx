@@ -274,6 +274,7 @@ const CanvasPane: FC = () => {
 			))}
 			<div
 				id="canvas-container"
+				data-testid="canvas-container"
 				ref={canvasSpaceRef}
 				data-moving={canMove}
 				data-grabbing={canMove && isGrabbing}

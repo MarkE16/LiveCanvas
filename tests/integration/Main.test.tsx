@@ -8,7 +8,6 @@ import {
 	vi
 } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
-import * as UTILS from "../../utils";
 import "@testing-library/jest-dom";
 import { renderWithProviders } from "../test-utils";
 import type { Color } from "react-aria-components";
@@ -87,10 +86,11 @@ describe("Canvas Interactive Functionality", () => {
 
 	describe("Selection Functionality", () => {
 		it("should be able to draw the selection rect when dragging south east", () => {
-			const mock = vi.spyOn(UTILS, "isMouseOverElement").mockReturnValue(true);
+			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
 
 			// When not dragging, the selection rect should not be visible.
+			expect(selectRect).toBeInTheDocument();
 			expect(selectRect).not.toBeVisible();
 
 			// Now, we start dragging.
@@ -101,11 +101,11 @@ describe("Canvas Interactive Functionality", () => {
 
 			// First, we need to click on the canvas to start the drag.
 			// Note: the rect should still not be visible.
-			fireEvent.mouseDown(document, {
+
+			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
-				buttons: 1,
-				target: new EventTarget()
+				buttons: 1
 			});
 
 			expect(selectRect).not.toBeVisible();
@@ -151,16 +151,15 @@ describe("Canvas Interactive Functionality", () => {
 			// The rect should disappear.
 
 			fireEvent.mouseUp(document);
-
 			expect(selectRect).not.toBeVisible();
-			expect(mock).toHaveBeenCalledOnce();
 		});
 
 		it("should be able to draw the selection rect when dragging north east", () => {
-			const mock = vi.spyOn(UTILS, "isMouseOverElement").mockReturnValue(true);
+			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
 
 			// When not dragging, the selection rect should not be visible.
+			expect(selectRect).toBeInTheDocument();
 			expect(selectRect).not.toBeVisible();
 
 			// Now, we start dragging.
@@ -172,7 +171,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			// First, we need to click on the canvas to start the drag.
 			// Note: the rect should still not be visible.
-			fireEvent.mouseDown(document, {
+			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
 				buttons: 1
@@ -213,17 +212,15 @@ describe("Canvas Interactive Functionality", () => {
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
-
 			expect(selectRect).not.toBeVisible();
-
-			expect(mock).toHaveBeenCalledOnce();
 		});
 
 		it("should be able to draw the selection rect when dragging north west", () => {
-			const mock = vi.spyOn(UTILS, "isMouseOverElement").mockReturnValue(true);
+			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
 
 			// When not dragging, the selection rect should not be visible.
+			expect(selectRect).toBeInTheDocument();
 			expect(selectRect).not.toBeVisible();
 
 			// Now, we start dragging.
@@ -233,7 +230,7 @@ describe("Canvas Interactive Functionality", () => {
 			const afterY = 50;
 
 			// First, we need to click on the canvas to start the drag.
-			fireEvent.mouseDown(document, {
+			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
 				buttons: 1
@@ -273,17 +270,15 @@ describe("Canvas Interactive Functionality", () => {
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
-
 			expect(selectRect).not.toBeVisible();
-
-			expect(mock).toHaveBeenCalledOnce();
 		});
 
 		it("should be able to draw the selection rect when dragging south west", () => {
-			const mock = vi.spyOn(UTILS, "isMouseOverElement").mockReturnValue(true);
+			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
 
 			// When not dragging, the selection rect should not be visible.
+			expect(selectRect).toBeInTheDocument();
 			expect(selectRect).not.toBeVisible();
 
 			// Now, we start dragging.
@@ -293,7 +288,7 @@ describe("Canvas Interactive Functionality", () => {
 			const afterY = 200;
 
 			// First, we need to click on the canvas to start the drag.
-			fireEvent.mouseDown(document, {
+			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
 				buttons: 1
@@ -334,17 +329,17 @@ describe("Canvas Interactive Functionality", () => {
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
-
 			expect(selectRect).not.toBeVisible();
-
-			expect(mock).toHaveBeenCalledOnce();
 		});
 
 		it("should not draw the selection rect if the mouse is not over the canvas", () => {
-			const mock = vi.spyOn(UTILS, "isMouseOverElement").mockReturnValue(false);
+			// Note: The toolbar is not inside of the canvas space; therefore,
+			// we can use the toolbar to simulate the mouse not being over the canvas.
+			const toolbar = screen.getByTestId("left-toolbar-container");
 			const selectRect = screen.getByTestId("selection-rect");
 
 			// When not dragging, the selection rect should not be visible.
+			expect(selectRect).toBeInTheDocument();
 			expect(selectRect).not.toBeVisible();
 
 			// Now, we start dragging.
@@ -354,7 +349,7 @@ describe("Canvas Interactive Functionality", () => {
 			const afterY = 200;
 
 			// First, we need to click on the canvas to start the drag.
-			fireEvent.mouseDown(document, {
+			fireEvent.mouseDown(toolbar, {
 				clientX: beforeX,
 				clientY: beforeY,
 				buttons: 1
@@ -374,10 +369,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
-
 			expect(selectRect).not.toBeVisible();
-
-			expect(mock).toHaveBeenCalledOnce();
 		});
 	});
 
@@ -485,7 +477,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(element).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -511,7 +503,7 @@ describe("Canvas Interactive Functionality", () => {
 			const element = elements[0];
 			expect(element).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 			expect(element).toHaveAttribute("data-focused", "true");
 
 			fireEvent.mouseDown(document);
@@ -546,12 +538,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(rect).toHaveAttribute("data-focused", "false");
 			expect(circle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(rect, { buttons: 1, target: rect });
+			fireEvent.mouseDown(rect, { buttons: 1 });
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(circle, { buttons: 1, target: circle });
+			fireEvent.mouseDown(circle, { buttons: 1 });
 
 			expect(rect).toHaveAttribute("data-focused", "false");
 			expect(circle).toHaveAttribute("data-focused", "true");
@@ -580,7 +572,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			const [rect, circle, triangle] = elements;
 
-			fireEvent.mouseDown(rect, { ctrlKey: true, buttons: 1, target: rect });
+			fireEvent.mouseDown(rect, { ctrlKey: true, buttons: 1 });
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "false");
@@ -589,8 +581,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseUp(rect);
 			fireEvent.mouseDown(circle, {
 				ctrlKey: true,
-				buttons: 1,
-				target: circle
+				buttons: 1
 			});
 
 			expect(rect).toHaveAttribute("data-focused", "true");
@@ -600,15 +591,14 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseUp(circle);
 			fireEvent.mouseDown(triangle, {
 				ctrlKey: true,
-				buttons: 1,
-				target: triangle
+				buttons: 1
 			});
 
 			expect(
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "true"
 				)
-			);
+			).toBeTruthy();
 
 			fireEvent.mouseDown(document);
 
@@ -616,7 +606,7 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "false"
 				)
-			);
+			).toBeTruthy();
 		});
 
 		it("should delete an element with the delete key", () => {
@@ -636,7 +626,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			const element = elements[0];
 
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -664,7 +654,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			const element = elements[0];
 
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -719,8 +709,7 @@ describe("Canvas Interactive Functionality", () => {
 			for (const element of elements) {
 				fireEvent.mouseDown(element, {
 					ctrlKey: true,
-					buttons: 1,
-					target: element
+					buttons: 1
 				});
 			}
 
@@ -728,7 +717,7 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "true"
 				)
-			);
+			).toBeTruthy();
 
 			fireEvent.keyDown(document, { key: "Delete" });
 
@@ -757,7 +746,7 @@ describe("Canvas Interactive Functionality", () => {
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("fill-picker-button");
@@ -805,7 +794,7 @@ describe("Canvas Interactive Functionality", () => {
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("border-picker-button");
@@ -857,7 +846,7 @@ describe("Canvas Interactive Functionality", () => {
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1, target: element });
+			fireEvent.mouseDown(element, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("fill-picker-button");
@@ -882,9 +871,67 @@ describe("Canvas Interactive Functionality", () => {
 			expect(element).toHaveAttribute("data-fill", color.toUpperCase());
 		});
 
-		it.todo(
-			"should change the fill color for multiple focused elements",
-			() => {}
-		);
+		it("should change the fill color for multiple focused elements", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let elements = screen.queryAllByTestId("element");
+			let pickerButton = screen.queryByTestId("fill-picker-button");
+
+			expect(elements).toHaveLength(0);
+			expect(pickerButton).not.toBeInTheDocument();
+			fireEvent.click(shapeTool);
+
+			const shapes = ["rectangle", "circle", "triangle"];
+
+			for (let i = 0; i < shapes.length; i++) {
+				const option = screen.getByTestId(`shape-${shapes[i]}`);
+
+				fireEvent.click(option);
+
+				elements = screen.queryAllByTestId("element");
+				expect(elements).toHaveLength(i + 1);
+			}
+
+			for (const element of elements) {
+				fireEvent.mouseDown(element, {
+					ctrlKey: true,
+					buttons: 1
+				});
+			}
+
+			expect(
+				elements.every(
+					(element) => element.getAttribute("data-focused") === "true"
+				)
+			).toBeTruthy();
+
+			const color = "#ff0000";
+			pickerButton = screen.getByTestId("fill-picker-button");
+			let popover = screen.queryByTestId("fill-picker-popover");
+
+			expect(pickerButton).toBeInTheDocument();
+			expect(popover).not.toBeInTheDocument();
+
+			fireEvent.click(pickerButton);
+
+			popover = screen.getByTestId("fill-picker-popover");
+			expect(popover).toBeInTheDocument();
+
+			const colorArea = screen.getByTestId("picker-area");
+
+			// Default color is black.
+			expect(
+				elements.every(
+					(element) => element.getAttribute("data-fill") === "#000000"
+				)
+			).toBeTruthy();
+
+			fireEvent.click(colorArea);
+
+			expect(
+				elements.every(
+					(element) => element.getAttribute("data-fill") === color.toUpperCase()
+				)
+			).toBeTruthy();
+		});
 	});
 });

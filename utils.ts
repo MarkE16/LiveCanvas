@@ -367,10 +367,6 @@ const generateCanvasImage = async (
 	});
 };
 
-const isMouseOverElement = (e: MouseEvent, element: Element) => {
-	return e.target === element || element.contains(e.target as Node);
-};
-
 export {
 	capitalize,
 	createLayer,
@@ -380,5 +376,4 @@ export {
 	isRectIntersecting,
 	debounce,
 	generateCanvasImage,
-	isMouseOverElement
 };
