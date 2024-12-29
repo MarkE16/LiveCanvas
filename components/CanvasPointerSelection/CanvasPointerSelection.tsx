@@ -63,11 +63,13 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		if (!canvasSpace) return;
 
 		const handleMouseDown = (e: MouseEvent) => {
+			const overSpace =
+				e.target === canvasSpace || canvasSpace.contains(e.target as Node);
+			if (!overSpace) return;
+
 			const { left, top } = canvasSpace.getBoundingClientRect();
 			const x = e.clientX;
 			const y = e.clientY;
-
-			console.log(e.target);
 
 			setRect({
 				x: x - left,
@@ -75,8 +77,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 				width: 0,
 				height: 0
 			});
-			isSelecting.current =
-				e.target === canvasSpace || canvasSpace.contains(e.target as Node);
+			isSelecting.current = true;
 			startingPosition.current = { x, y };
 		};
 

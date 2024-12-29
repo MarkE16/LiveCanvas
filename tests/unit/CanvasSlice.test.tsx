@@ -1,5 +1,5 @@
 import { parseColor } from "react-aria-components";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach, afterAll } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import reducer, {
 	changeDimensions,
@@ -34,6 +34,14 @@ const mockState: CanvasState = {
 };
 
 vi.mock("uuid", () => ({ v4: () => "1234-5678-9123-4567" }));
+
+afterEach(() => {
+	vi.clearAllMocks();
+});
+
+afterAll(() => {
+	vi.restoreAllMocks();
+});
 
 describe("Test dimensions", () => {
 	it("should return the initial state", () => {

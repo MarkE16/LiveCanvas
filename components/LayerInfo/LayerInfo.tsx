@@ -87,7 +87,6 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	};
 
 	const onRename = useCallback(() => {
-		if (editedName.length === 0) return;
 		setIsEditing((prev) => !prev);
 
 		if (isEditing) {

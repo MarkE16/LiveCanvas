@@ -12,7 +12,6 @@ import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../../components/LayerPane/LayerPane";
 import { CanvasState } from "../../types";
 import { renderWithProviders } from "../test-utils";
-import "@testing-library/jest-dom";
 
 // Essential so that when the component is rendered,
 // the usePageContext hook doesn't throw an error (since it's not in the browser)
@@ -140,7 +139,7 @@ describe("LayerPane functionality", () => {
 		);
 
 		expect(layer1Name).not.toBeNull();
-		expect(layer1Name.textContent).toBe("Layer 1");
+		expect(layer1Name).toHaveTextContent("Layer 1");
 		expect(layer1RenameButton).not.toBeNull();
 		expect(layer1Input).toBeNull();
 
@@ -176,7 +175,7 @@ describe("LayerPane functionality", () => {
 		);
 
 		expect(layer1Name).not.toBeNull();
-		expect(layer1Name.textContent).toBe("Layer 1");
+		expect(layer1Name).toHaveTextContent("Layer 1");
 		expect(layer1RenameButton).not.toBeNull();
 		expect(layer1Input).toBeNull();
 
@@ -197,6 +196,78 @@ describe("LayerPane functionality", () => {
 		expect(layer1RenameButton).toBeDisabled(); // The button should be disabled since the input is empty.
 	});
 
+	it("should rename when pressing enter", () => {
+		const layer1Name = screen.getByTestId("name-" + mockState.layers[0].id);
+		const layer1RenameButton = screen.getByTestId(
+			"rename-" + mockState.layers[0].id
+		);
+		const layer1Input = screen.queryByTestId(
+			"name-input-" + mockState.layers[0].id
+		);
+
+		expect(layer1Name).not.toBeNull();
+		expect(layer1Name).toHaveTextContent("Layer 1");
+		expect(layer1RenameButton).not.toBeNull();
+		expect(layer1Input).toBeNull();
+
+		fireEvent.click(layer1RenameButton);
+
+		const layer1InputAfterClick = screen.getByTestId(
+			"name-input-" + mockState.layers[0].id
+		);
+
+		expect(layer1InputAfterClick).not.toBeNull();
+		expect(layer1RenameButton).not.toBeDisabled();
+
+		// Let's change the name!
+		fireEvent.change(layer1InputAfterClick, {
+			target: { value: "This is a new name" }
+		});
+
+		fireEvent.keyDown(layer1InputAfterClick, { key: "Enter" });
+
+		const layer1NameAfterChange = screen.getByText(/This is a new name/i);
+
+		expect(layer1NameAfterChange).not.toBeNull();
+		expect(layer1NameAfterChange).toHaveTextContent("This is a new name");
+	});
+
+	it("should exit renaming when pressing escape while not modifiying the name", () => {
+		const layer1Name = screen.getByTestId("name-" + mockState.layers[0].id);
+		const layer1RenameButton = screen.getByTestId(
+			"rename-" + mockState.layers[0].id
+		);
+		const layer1Input = screen.queryByTestId(
+			"name-input-" + mockState.layers[0].id
+		);
+
+		expect(layer1Name).not.toBeNull();
+		expect(layer1Name).toHaveTextContent("Layer 1");
+		expect(layer1RenameButton).not.toBeNull();
+		expect(layer1Input).toBeNull();
+
+		fireEvent.click(layer1RenameButton);
+
+		const layer1InputAfterClick = screen.getByTestId(
+			"name-input-" + mockState.layers[0].id
+		);
+
+		expect(layer1InputAfterClick).not.toBeNull();
+		expect(layer1RenameButton).not.toBeDisabled();
+
+		// Let's change the name, but then cancel it
+		fireEvent.change(layer1InputAfterClick, {
+			target: { value: "Name not saved" }
+		});
+
+		fireEvent.keyDown(layer1InputAfterClick, { key: "Escape" });
+
+		const layer1NameAfterChange = screen.getByText(/Layer 1/i);
+
+		expect(layer1NameAfterChange).not.toBeNull();
+		expect(layer1NameAfterChange).toHaveTextContent("Layer 1");
+	});
+
 	it("should toggle layer visibility", async () => {
 		const toggleButton = screen.getByTestId("toggle-" + mockState.layers[0].id);
 
@@ -207,13 +278,13 @@ describe("LayerPane functionality", () => {
 		// Layer is visible by default
 		const tooltip = await screen.findByText(/Hide/i);
 		expect(tooltip).not.toBeNull();
-		expect(tooltip.textContent).toBe("Hide");
+		expect(tooltip).toHaveTextContent("Hide");
 
 		fireEvent.click(toggleButton);
-		expect(tooltip.textContent).toBe("Show");
+		expect(tooltip).toHaveTextContent("Show");
 
 		fireEvent.click(toggleButton);
-		expect(tooltip.textContent).toBe("Hide");
+		expect(tooltip).toHaveTextContent("Hide");
 	});
 
 	it("should move a layer down", () => {

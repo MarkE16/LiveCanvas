@@ -107,6 +107,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 				.map((layer, i) => (
 					<CanvasLayer
 						key={layer.id}
+						data-testid="canvas-layer"
 						id={layer.id}
 						width={width}
 						ref={(element: HTMLCanvasElement) => (refsOfLayers[i] = element)}

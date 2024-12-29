@@ -109,6 +109,7 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 	return (
 		<svg
 			className="handle"
+			data-testid={`handle-${placement}`}
 			style={styles}
 			onMouseDown={onMouseDown}
 		>

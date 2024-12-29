@@ -64,7 +64,7 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
+			if (e.button !== 0 || !canMove || !isGrabbing || !canvasSpace) return;
 
 			const layer = references[0];
 

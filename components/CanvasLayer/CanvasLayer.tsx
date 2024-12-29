@@ -63,6 +63,10 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 		const currentPath = useRef<Coordinates[]>([]);
 
 		const ERASER_RADIUS = 7;
+		
+		let cn = "canvas";
+		if (active) cn += " active";
+		if (layerHidden) cn += " hidden";
 
 		// Handler for when the mouse is pressed down on the canvas.
 		// This should initiate the drawing process.
@@ -249,21 +253,21 @@ const CanvasLayer = forwardRef<HTMLCanvasElement, CanvasLayerProps>(
 
 		const deboundedMouseMove = UTILS.debounce(onMouseMove, 5);
 
+		// Moved the transform to a variable to make it easier to read.
+		const transform = `translate(${xPosition}px, ${yPosition}px) scale(${scale})`;
+
 		return (
 			<canvas
 				ref={ref}
 				// Temporary
 				width={width * dpi}
 				height={height * dpi}
-				className={`canvas${active ? " active" : ""}${layerHidden ? " hidden" : ""}`}
+				className={cn}
 				style={{
 					// These are the width and height of the canvas element visually.
 					width: `${width}px`,
 					height: `${height}px`,
-					transform: `translate(
-        ${xPosition}px,
-        ${yPosition}px
-        ) scale(${scale})`,
+					transform,
 					zIndex: !layerHidden ? layerIndex : -2 // Layers from the top of the list are drawn first.
 				}}
 				onMouseDown={onMouseDown}

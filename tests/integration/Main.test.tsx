@@ -5,14 +5,13 @@ import {
 	afterAll,
 	describe,
 	it,
-	vi
+	vi,
+	afterEach
 } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import { renderWithProviders } from "../test-utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
-
 import Main from "../../components/Main/Main";
 import { PropsWithChildren } from "react";
 
@@ -21,6 +20,9 @@ type MockProps = PropsWithChildren & {
 };
 
 const MOCK_COLOR = parseColor("#ff0000");
+
+const stripUnits = (values: string[], unit: string) =>
+	values.map((value) => Number(value.replace(unit, "")));
 
 vi.mock("../../utils", async (importOriginal) => {
 	const original = (await importOriginal()) as NonNullable<
@@ -60,6 +62,17 @@ vi.mock("react-aria-components", async (importOriginal) => {
 describe("Canvas Interactive Functionality", () => {
 	let createObjectURLOriginal: typeof URL.createObjectURL;
 	let revokeObjectURLOriginal: typeof URL.revokeObjectURL;
+	const boundingClientRect: DOMRect = {
+		x: 50,
+		y: 64,
+		width: 1364,
+		height: 939,
+		top: 64,
+		right: 1414,
+		bottom: 1003,
+		left: 50,
+		toJSON: vi.fn()
+	};
 
 	beforeEach(() => {
 		renderWithProviders(<Main />);
@@ -71,6 +84,10 @@ describe("Canvas Interactive Functionality", () => {
 
 		URL.createObjectURL = vi.fn(() => "blob:http://localhost:3000/1234");
 		URL.revokeObjectURL = vi.fn();
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
 	});
 
 	afterAll(() => {
@@ -88,6 +105,9 @@ describe("Canvas Interactive Functionality", () => {
 		it("should be able to draw the selection rect when dragging south east", () => {
 			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
 
 			// When not dragging, the selection rect should not be visible.
 			expect(selectRect).toBeInTheDocument();
@@ -109,6 +129,17 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(selectRect).not.toBeVisible();
+
+			let { left, top, width, height } = selectRect.style;
+			let stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				0,
+				0
+			]);
+
+			expect(boundingRectMock).toHaveBeenCalled();
 
 			// Now, let's move the mouse to create the selection rect.
 			// Dev note: Do not forget to pass the buttons property to simulate a mouse click.
@@ -127,25 +158,20 @@ describe("Canvas Interactive Functionality", () => {
 			// Note that because it is a testing environment, we cannot use
 			// the getBoundingClientRect method to get the rect dimensions and position.
 			// Instead, we will use the x, y, width, and height attributes of the rect element.
-			const styles = selectRect.style;
-			const left = styles.left;
-			const top = styles.top;
-			const width = styles.width;
-			const height = styles.height;
+			left = selectRect.style.left;
+			top = selectRect.style.top;
+			width = selectRect.style.width;
+			height = selectRect.style.height;
 
-			const asArray = [left, top, width, height];
-			const errors = asArray.findIndex((v) => v === undefined);
+			stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				afterX - beforeX,
+				afterY - beforeY
+			]);
 
-			expect(errors).toBe(-1);
-
-			const [x, y, w, h] = asArray.map((v) =>
-				parseInt(v!.toString().replace("px", ""))
-			);
-
-			expect(x).toBe(beforeX);
-			expect(y).toBe(beforeY);
-			expect(w).toBe(afterX - beforeX);
-			expect(h).toBe(afterY - beforeY);
+			expect(boundingRectMock).toHaveBeenCalledTimes(2);
 
 			// Now, we release the mouse button.
 			// The rect should disappear.
@@ -157,6 +183,9 @@ describe("Canvas Interactive Functionality", () => {
 		it("should be able to draw the selection rect when dragging north east", () => {
 			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
 
 			// When not dragging, the selection rect should not be visible.
 			expect(selectRect).toBeInTheDocument();
@@ -179,6 +208,18 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(selectRect).not.toBeVisible();
 
+			let { left, top, width, height } = selectRect.style;
+
+			let stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				0,
+				0
+			]);
+
+			expect(boundingRectMock).toHaveBeenCalled();
+
 			// Now, let's move the mouse to create the selection rect.
 			fireEvent.mouseMove(document, {
 				clientX: afterX,
@@ -190,25 +231,20 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			const styles = selectRect.style;
-			const left = styles.left;
-			const top = styles.top;
-			const width = styles.width;
-			const height = styles.height;
+			left = selectRect.style.left;
+			top = selectRect.style.top;
+			width = selectRect.style.width;
+			height = selectRect.style.height;
 
-			const asArray = [left, top, width, height];
-			const errors = asArray.findIndex((v) => v === undefined);
+			stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				afterY - boundingClientRect.top,
+				afterX - beforeX,
+				beforeY - afterY
+			]);
 
-			expect(errors).toBe(-1);
-
-			const [x, y, w, h] = asArray.map((v) =>
-				parseInt(v!.toString().replace("px", ""))
-			);
-
-			expect(x).toBe(beforeX);
-			expect(y).toBe(afterY);
-			expect(w).toBe(afterX - beforeX);
-			expect(h).toBe(beforeY - afterY);
+			expect(boundingRectMock).toHaveBeenCalledTimes(2);
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -218,6 +254,9 @@ describe("Canvas Interactive Functionality", () => {
 		it("should be able to draw the selection rect when dragging north west", () => {
 			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
 
 			// When not dragging, the selection rect should not be visible.
 			expect(selectRect).toBeInTheDocument();
@@ -237,6 +276,18 @@ describe("Canvas Interactive Functionality", () => {
 			});
 			expect(selectRect).not.toBeVisible();
 
+			let { left, top, width, height } = selectRect.style;
+
+			let stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				0,
+				0
+			]);
+
+			expect(boundingRectMock).toHaveBeenCalled();
+
 			// Now, let's move the mouse to create the selection rect.
 			fireEvent.mouseMove(document, {
 				clientX: afterX,
@@ -248,25 +299,20 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			const styles = selectRect.style;
-			const left = styles.left;
-			const top = styles.top;
-			const width = styles.width;
-			const height = styles.height;
+			left = selectRect.style.left;
+			top = selectRect.style.top;
+			width = selectRect.style.width;
+			height = selectRect.style.height;
 
-			const asArray = [left, top, width, height];
-			const errors = asArray.findIndex((v) => v === undefined);
+			stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				afterX - boundingClientRect.left,
+				afterY - boundingClientRect.top,
+				beforeX - afterX,
+				beforeY - afterY
+			]);
 
-			expect(errors).toBe(-1);
-
-			const [x, y, w, h] = asArray.map((v) =>
-				parseInt(v!.toString().replace("px", ""))
-			);
-
-			expect(x).toBe(afterX);
-			expect(y).toBe(afterY);
-			expect(w).toBe(beforeX - afterX);
-			expect(h).toBe(beforeY - afterY);
+			expect(boundingRectMock).toHaveBeenCalledTimes(2);
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -276,6 +322,9 @@ describe("Canvas Interactive Functionality", () => {
 		it("should be able to draw the selection rect when dragging south west", () => {
 			const space = screen.getByTestId("canvas-container");
 			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
 
 			// When not dragging, the selection rect should not be visible.
 			expect(selectRect).toBeInTheDocument();
@@ -294,7 +343,17 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
+			let { left, top, width, height } = selectRect.style;
+			let stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				beforeX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				0,
+				0
+			]);
+
 			expect(selectRect).not.toBeVisible();
+			expect(boundingRectMock).toHaveBeenCalled();
 
 			// Now, let's move the mouse to create the selection rect.
 			fireEvent.mouseMove(document, {
@@ -307,25 +366,20 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			const styles = selectRect.style;
-			const left = styles.left;
-			const top = styles.top;
-			const width = styles.width;
-			const height = styles.height;
+			left = selectRect.style.left;
+			top = selectRect.style.top;
+			width = selectRect.style.width;
+			height = selectRect.style.height;
 
-			const asArray = [left, top, width, height];
-			const errors = asArray.findIndex((v) => v === undefined);
+			stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([
+				afterX - boundingClientRect.left,
+				beforeY - boundingClientRect.top,
+				beforeX - afterX,
+				afterY - beforeY
+			]);
 
-			expect(errors).toBe(-1);
-
-			const [x, y, w, h] = asArray.map((v) =>
-				parseInt(v!.toString().replace("px", ""))
-			);
-
-			expect(x).toBe(afterX);
-			expect(y).toBe(beforeY);
-			expect(w).toBe(beforeX - afterX);
-			expect(h).toBe(afterY - beforeY);
+			expect(boundingRectMock).toHaveBeenCalledTimes(2);
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -337,6 +391,7 @@ describe("Canvas Interactive Functionality", () => {
 			// we can use the toolbar to simulate the mouse not being over the canvas.
 			const toolbar = screen.getByTestId("left-toolbar-container");
 			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi.spyOn(toolbar, "getBoundingClientRect");
 
 			// When not dragging, the selection rect should not be visible.
 			expect(selectRect).toBeInTheDocument();
@@ -355,6 +410,10 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
+			let { left, top, width, height } = selectRect.style;
+			let stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([0, 0, 0, 0]);
+
 			expect(selectRect).not.toBeVisible();
 
 			// Now, let's move the mouse to create the selection rect.
@@ -364,12 +423,203 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
+			left = selectRect.style.left;
+			top = selectRect.style.top;
+			width = selectRect.style.width;
+			height = selectRect.style.height;
+
+			stripped = stripUnits([left, top, width, height], "px");
+			expect(stripped).toEqual([0, 0, 0, 0]);
+
 			// The rect should not be visible.
 			expect(selectRect).not.toBeVisible();
+
+			expect(boundingRectMock).not.toHaveBeenCalled();
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
 			expect(selectRect).not.toBeVisible();
+		});
+	});
+
+	describe("Moving canvas functionality", () => {
+		it("should move the canvas with move tool", () => {
+			const moveTool = screen.getByTestId("tool-move");
+			const space = screen.getByTestId("canvas-container");
+			const canvases = screen.queryAllByTestId("canvas-layer");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			expect(canvases).toHaveLength(1);
+
+			const beforeX = 100;
+			const beforeY = 100;
+			const afterX = 200;
+			const afterY = 200;
+
+			// Verify that the canvas is in its default position.
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+
+			// First, we need to click on the tool and then click on the canvas to start the drag.
+
+			fireEvent.click(moveTool);
+
+			expect(moveTool.classList).toContain("active");
+
+			fireEvent.mouseDown(space, {
+				clientX: beforeX,
+				clientY: beforeY,
+				button: 0
+			});
+
+			// Now, let's move the mouse to move the canvas.
+			fireEvent.mouseMove(document, {
+				clientX: afterX,
+				clientY: afterY,
+				button: 0
+			});
+			fireEvent.mouseUp(document);
+
+			// The canvas should be moved.
+			expect(canvas.style.transform).toBe(
+				`translate(${afterX - beforeX}px, ${afterY - beforeY}px) scale(1)`
+			);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should move the canvas with the shift key", () => {
+			const space = screen.getByTestId("canvas-container");
+			const canvases = screen.queryAllByTestId("canvas-layer");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			expect(canvases).toHaveLength(1);
+
+			const beforeX = 100;
+			const beforeY = 100;
+			const afterX = 200;
+			const afterY = 200;
+
+			// Verify that the canvas is in its default position.
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+
+			fireEvent.keyDown(document, {
+				shiftKey: true
+			});
+
+			// First, we need to click on the canvas to start the drag.
+			fireEvent.mouseDown(space, {
+				clientX: beforeX,
+				clientY: beforeY,
+				button: 0
+			});
+
+			// Now, let's move the mouse to move the canvas.
+			fireEvent.mouseMove(document, {
+				clientX: afterX,
+				clientY: afterY,
+				button: 0
+			});
+			fireEvent.mouseUp(document);
+
+			// The canvas should be moved.
+			expect(canvas.style.transform).toBe(
+				`translate(${afterX - beforeX}px, ${afterY - beforeY}px) scale(1)`
+			);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+	});
+
+	it("should not move the canvas when the mode is not move or shift key is held", () => {
+		const space = screen.getByTestId("canvas-container");
+		const canvases = screen.queryAllByTestId("canvas-layer");
+		vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+			boundingClientRect
+		);
+
+		expect(canvases).toHaveLength(1);
+
+		const beforeX = 100;
+		const beforeY = 100;
+		const afterX = 200;
+		const afterY = 200;
+
+		// Verify that the canvas is in its default position.
+		const canvas = canvases[0];
+		expect(canvas).toBeInTheDocument();
+		expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+
+		fireEvent.mouseDown(space, {
+			clientX: beforeX,
+			clientY: beforeY,
+			button: 0
+		});
+
+		// Now, let's move the mouse to move the canvas.
+		fireEvent.mouseMove(document, {
+			clientX: afterX,
+			clientY: afterY,
+			button: 0
+		});
+		fireEvent.mouseUp(document);
+
+		// The canvas should not be moved.
+		expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+	});
+
+	describe("Zoom functionality", () => {
+		it("should zoom the canvas in and out using the toolbar button", () => {
+			let toolButton = screen.getByTestId("tool-zoom_in");
+			const space = screen.getByTestId("canvas-container");
+			const canvases = screen.queryAllByTestId("canvas-layer");
+
+			expect(canvases).toHaveLength(1);
+
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+
+			// First, let's zoom in.
+			fireEvent.click(toolButton);
+			expect(toolButton.classList).toContain("active");
+
+			fireEvent.click(space);
+
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1.1)");
+
+			// Now, let's zoom out.
+			toolButton = screen.getByTestId("tool-zoom_out");
+
+			fireEvent.click(toolButton);
+			expect(toolButton.classList).toContain("active");
+
+			fireEvent.click(space);
+
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+		});
+
+		it("should zoom the canvas in and out using the keyboard shortcuts", () => {
+			const canvases = screen.queryAllByTestId("canvas-layer");
+
+			expect(canvases).toHaveLength(1);
+
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+
+			fireEvent.keyDown(document, { key: "+" });
+
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1.1)");
+
+			fireEvent.keyDown(document, { key: "_" });
+
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 		});
 	});
 
@@ -923,7 +1173,7 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-fill") === "#000000"
 				)
-			).toBeTruthy();
+			).toBe(true);
 
 			fireEvent.click(colorArea);
 
@@ -931,7 +1181,62 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-fill") === color.toUpperCase()
 				)
-			).toBeTruthy();
+			).toBe(true);
+		});
+
+		it.todo("should resize the element north", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let elements = screen.queryAllByTestId("element");
+			let resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			expect(elements).toHaveLength(0);
+			expect(resizeGrids).toHaveLength(0);
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			elements = screen.queryAllByTestId("element");
+			resizeGrids = screen.queryAllByTestId("resize-grid");
+			expect(elements).toHaveLength(1);
+			expect(resizeGrids).toHaveLength(1);
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			// fireEvent.mouseDown(element, { buttons: 1 });
+			expect(element).toHaveAttribute("data-focused", "false");
+			expect(resizeGrid).toHaveAttribute("data-resizing", "false");
+
+			const resizeHandle = screen.getByTestId("resize-n");
+
+			fireEvent.mouseDown(resizeHandle, { buttons: 1 });
+
+			expect(element).toHaveAttribute("data-focused", "true");
+			expect(resizeGrid).toHaveAttribute("data-resizing", "n");
+
+			// Move upward.
+			// The element should increase in height and decrease in y.
+
+			fireEvent.mouseMove(document, { clientY: 50, buttons: 1 });
+
+			expect(element).toHaveAttribute(
+				"data-x",
+				exampleElementProperies.x.toString()
+			);
+			expect(element).toHaveAttribute(
+				"data-y",
+				(exampleElementProperies.y - 50).toString()
+			);
+			expect(element).toHaveAttribute(
+				"data-width",
+				exampleElementProperies.width.toString()
+			);
+			expect(element).toHaveAttribute(
+				"data-height",
+				(exampleElementProperies.height + 50).toString()
+			);
 		});
 	});
 });
