@@ -1,7 +1,6 @@
 // Lib
-import { useState, useEffect, useRef } from "react";
-import useLayerReferences from "../../state/hooks/useLayerReferences";
-import * as UTILS from "../../utils";
+import { useState, useEffect } from "react";
+import * as Utils from "../../utils";
 
 // Styles
 import "./LayerPreview.styles.css";
@@ -24,22 +23,16 @@ declare global {
 
 const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 	const [url, setUrl] = useState<string | null>(null);
-	const references = useLayerReferences();
-	const imgRef = useRef<HTMLImageElement>(null);
 
 	useEffect(() => {
-		async function updateImage() {
-			const layer = references.find((ref) => ref.id === id);
-
-			if (!layer) {
-				setUrl(null);
-				return;
-			}
+		async function updateImage(event: ImageUpdateEvent) {
+			const layer = event.detail.layer;
+			if (layer.id !== id) return;
 
 			const elements = Array.from(document.getElementsByClassName("element"));
 
 			// Use 0.3 quality for the preview to save space and make it faster on performance.
-			const blob = await UTILS.generateCanvasImage(layer, elements, 0.3);
+			const blob = await Utils.generateCanvasImage(layer, elements, 0.3);
 
 			setUrl(URL.createObjectURL(blob));
 		}
@@ -49,32 +42,28 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 		return () => {
 			document.removeEventListener("imageupdate", updateImage);
 		};
-	}, [id, references]);
+	}, [id]);
 
-	useEffect(() => {
-		if (!imgRef.current) return;
-
-		const ref = imgRef.current;
-
-		function onLoad() {
-			URL.revokeObjectURL(ref.src);
+	const onImageLoad = () => {
+		if (url) {
+			URL.revokeObjectURL(url);
 		}
-
-		ref.addEventListener("load", onLoad);
-
-		return () => {
-			ref.removeEventListener("load", onLoad);
-		};
-	}, []);
+	};
 
 	if (!url) {
-		return <div className="layer-preview" />;
+		return (
+			<div
+				className="layer-preview"
+				data-testid={`preview-${id}`}
+			/>
+		);
 	}
 
 	return (
 		<img
-			ref={imgRef}
+			onLoad={onImageLoad}
 			className="layer-preview"
+			data-testid={`preview-${id}`}
 			src={url}
 			alt="Layer Preview"
 		/>

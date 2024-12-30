@@ -22,7 +22,6 @@ import ColorPicker from "../ColorPicker/ColorPicker";
 
 // Styles
 import "./DrawingToolbar.styles.css";
-// import ColorField from "../ColorField/ColorField";
 
 const MemoizedColorPicker = memo(ColorPicker);
 
@@ -183,6 +182,7 @@ const DrawingToolbar: FC = () => {
 				index,
 				0,
 				<span
+					key={`break-${index}`}
 					style={{ margin: "0 15px", border: "1px solid gray", height: "100%" }}
 				/>
 			);

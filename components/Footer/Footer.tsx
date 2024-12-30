@@ -13,8 +13,7 @@ const Footer: FC = () => {
 	const MAINTAINER_URL = "https://github.com/MarkE16";
 	const REPO_URL = MAINTAINER_URL + "/LiveCanvas";
 	// const CONTRIBUTORS_URL = REPO_URL + "/graphs/contributors";
-	// const MAINTAINER_NAME =
-	MAINTAINER_URL.split("/").pop() ?? "Unknown Maintainer";
+	// const MAINTAINER_NAME = MAINTAINER_URL.split("/").pop() ?? "Unknown Maintainer";
 
 	// Basic implementation of fetching the version.
 	// In the future, this will be fetched from GitHub or some other service.

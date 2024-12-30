@@ -452,7 +452,7 @@ describe("Canvas Interactive Functionality", () => {
 			const beforeX = 200;
 			const beforeY = 200;
 
-			// The rect should be larget enough to contain the element.
+			// The rect should be larget enough to intersect with the element.
 			const afterX = 350;
 			const afterY = 500;
 
@@ -696,6 +696,46 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 		});
+
+    it('should zoom the canvas in and out using the mouse wheel with shift key held', () => {
+      const space = screen.getByTestId('canvas-container');
+      const canvases = screen.queryAllByTestId('canvas-layer');
+
+      expect(canvases).toHaveLength(1);
+
+      const canvas = canvases[0];
+      expect(canvas).toBeInTheDocument();
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+
+      // Shift key must be held to zoom in and out with the mouse wheel.
+      fireEvent.wheel(space, { deltaY: -100, shiftKey: true });
+
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1.1)');
+
+      fireEvent.wheel(space, { deltaY: 100, shiftKey: true });
+
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+    });
+    
+    it('should not zoom the canvas in and out using the mouse wheel without shift key held', () => {
+      const space = screen.getByTestId('canvas-container');
+      const canvases = screen.queryAllByTestId('canvas-layer');
+
+      expect(canvases).toHaveLength(1);
+
+      const canvas = canvases[0];
+      expect(canvas).toBeInTheDocument();
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+
+      // Shift key must be held to zoom in and out with the mouse wheel.
+      fireEvent.wheel(space, { deltaY: -100 });
+
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+
+      fireEvent.wheel(space, { deltaY: 100 });
+
+      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+    })
 	});
 
 	describe("Element functionality", () => {
