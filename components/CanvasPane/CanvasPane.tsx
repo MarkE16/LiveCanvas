@@ -57,14 +57,14 @@ const CanvasPane: FC = () => {
 			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
 
 		function handleMouseDown(e: MouseEvent) {
-			if (e.button !== 0) return;
+			if (e.buttons !== 1) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 			setIsGrabbing(isClickingOnSpace(e));
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.button !== 0 || !canMove || !isGrabbing || !canvasSpace) return;
+			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
 
 			const layer = references[0];
 

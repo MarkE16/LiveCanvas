@@ -61,8 +61,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 
 	let jsx: ReactElement;
 
-	console.log("rerendered " + shape);
-
 	const {
 		focusElement,
 		unfocusElement,

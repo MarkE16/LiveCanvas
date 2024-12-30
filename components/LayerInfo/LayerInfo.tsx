@@ -43,7 +43,9 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	hidden,
 	positionIndex
 }) => {
-	const totalLayers = useAppSelector((state) => state.canvas.layers.length);
+	const layers = useAppSelector((state) => state.canvas.layers);
+	const totalLayers = layers.length;
+	const hiddenLayers = layers.filter((layer) => layer.hidden).length;
 	const dispatch = useAppDispatch();
 	const references = useLayerReferences();
 	const nameRef = useRef<HTMLSpanElement>(null);
@@ -114,6 +116,14 @@ const LayerInfo: FC<LayerInfoProps> = ({
 			ref.removeEventListener("dblclick", onRename);
 		};
 	}, [dispatch, onRename]);
+
+	let hiddenTooltipText = "Hide";
+
+	if (hiddenLayers === totalLayers - 1 && !hidden) {
+		hiddenTooltipText = "One layer must be visible";
+	} else if (hidden) {
+		hiddenTooltipText = "Show";
+	}
 
 	return (
 		<label
@@ -235,12 +245,13 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								</Tooltip>
 							)}
 							<Tooltip
-								title={hidden ? "Show" : "Hide"}
+								title={hiddenTooltipText}
 								arrow
 								placement="top"
 							>
 								<button
 									onClick={onToggleVisibility}
+									disabled={hiddenLayers === totalLayers - 1 && !hidden}
 									data-testid={`toggle-${id}`}
 								>
 									<Eye lineCross={hidden} />

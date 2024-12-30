@@ -1,8 +1,5 @@
-.canvas,
-#background-canvas {
+.canvas {
 	position: absolute;
-	/* top: 0;
-  left: 0; */
 	background-color: white;
 	cursor: inherit;
 	z-index: 0;

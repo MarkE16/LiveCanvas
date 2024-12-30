@@ -54,6 +54,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	const isDrawing = useRef<boolean>(false);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
+	const backgroundRef = useRef<HTMLImageElement>(null);
 
 	const ERASER_RADIUS = 7;
 

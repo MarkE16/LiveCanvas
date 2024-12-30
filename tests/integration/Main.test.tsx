@@ -472,14 +472,14 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
-				button: 0
+				buttons: 1
 			});
 
 			// Now, let's move the mouse to move the canvas.
 			fireEvent.mouseMove(document, {
 				clientX: afterX,
 				clientY: afterY,
-				button: 0
+				buttons: 1
 			});
 			fireEvent.mouseUp(document);
 
@@ -517,14 +517,14 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, {
 				clientX: beforeX,
 				clientY: beforeY,
-				button: 0
+				buttons: 1
 			});
 
 			// Now, let's move the mouse to move the canvas.
 			fireEvent.mouseMove(document, {
 				clientX: afterX,
 				clientY: afterY,
-				button: 0
+				buttons: 1
 			});
 			fireEvent.mouseUp(document);
 
@@ -558,14 +558,14 @@ describe("Canvas Interactive Functionality", () => {
 		fireEvent.mouseDown(space, {
 			clientX: beforeX,
 			clientY: beforeY,
-			button: 0
+			buttons: 1
 		});
 
 		// Now, let's move the mouse to move the canvas.
 		fireEvent.mouseMove(document, {
 			clientX: afterX,
 			clientY: afterY,
-			button: 0
+			buttons: 1
 		});
 		fireEvent.mouseUp(document);
 
