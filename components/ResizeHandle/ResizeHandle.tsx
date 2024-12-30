@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 
 // Types
-import type { FC, CSSProperties } from "react";
+import type { FC, CSSProperties, MouseEvent } from "react";
 import type { ResizePosition } from "../../types";
 
 // Styles
@@ -89,7 +89,8 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 		}
 	}
 
-	const onMouseDown = () => {
+	const onMouseDown = (e: MouseEvent) => {
+		if (e.buttons !== 1) return;
 		onResizeStart && onResizeStart();
 	};
 

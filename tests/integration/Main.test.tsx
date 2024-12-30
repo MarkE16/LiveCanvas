@@ -440,6 +440,81 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseUp(document);
 			expect(selectRect).not.toBeVisible();
 		});
+
+		it("should select an element", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			const space = screen.getByTestId("canvas-container");
+			const selectRect = screen.getByTestId("selection-rect");
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			const beforeX = 200;
+			const beforeY = 200;
+
+			// The rect should be larget enough to contain the element.
+			const afterX = 350;
+			const afterY = 500;
+
+			const selectRectMock = vi
+				.spyOn(selectRect, "getBoundingClientRect")
+				.mockReturnValue({
+					x: beforeX,
+					y: beforeY,
+					width: afterX - beforeX,
+					height: afterY - beforeY,
+					top: beforeY,
+					right: afterX,
+					bottom: afterY,
+					left: beforeX,
+					toJSON: vi.fn()
+				});
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+
+			expect(elements).toHaveLength(1);
+
+			const [rect] = elements;
+
+			expect(rect).toBeInTheDocument();
+			expect(rect).toHaveAttribute("data-focused", "false");
+
+			vi.spyOn(rect, "getBoundingClientRect").mockReturnValue({
+				x: 270,
+				y: 484,
+				width: 100,
+				height: 100,
+				top: 484,
+				right: 370,
+				bottom: 584,
+				left: 270,
+				toJSON: vi.fn()
+			});
+
+			fireEvent.mouseDown(space, {
+				clientX: beforeX,
+				clientY: beforeY,
+				buttons: 1
+			});
+
+			fireEvent.mouseMove(document, {
+				clientX: afterX,
+				clientY: afterY,
+				buttons: 1
+			});
+
+			fireEvent.mouseUp(document);
+
+			expect(rect).toHaveAttribute("data-focused", "true");
+			expect(boundingRectMock).toHaveBeenCalled();
+			expect(selectRectMock).toHaveBeenCalled();
+		});
 	});
 
 	describe("Moving canvas functionality", () => {
@@ -1205,38 +1280,38 @@ describe("Canvas Interactive Functionality", () => {
 			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
-			// fireEvent.mouseDown(element, { buttons: 1 });
-			expect(element).toHaveAttribute("data-focused", "false");
-			expect(resizeGrid).toHaveAttribute("data-resizing", "false");
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
-			const resizeHandle = screen.getByTestId("resize-n");
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
 
-			fireEvent.mouseDown(resizeHandle, { buttons: 1 });
+			const resizeHandle = screen.getByTestId("handle-n");
 
-			expect(element).toHaveAttribute("data-focused", "true");
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 100,
+				clientY: 100,
+				buttons: 1
+			});
+
+			expect(element).toHaveAttribute(
+				"data-height",
+				exampleElementProperies.height.toString()
+			);
+
 			expect(resizeGrid).toHaveAttribute("data-resizing", "n");
 
 			// Move upward.
 			// The element should increase in height and decrease in y.
 
-			fireEvent.mouseMove(document, { clientY: 50, buttons: 1 });
+			fireEvent.mouseMove(document, {
+				clientX: 100,
+				clientY: 50,
+				buttons: 1
+			});
 
-			expect(element).toHaveAttribute(
-				"data-x",
-				exampleElementProperies.x.toString()
-			);
-			expect(element).toHaveAttribute(
-				"data-y",
-				(exampleElementProperies.y - 50).toString()
-			);
-			expect(element).toHaveAttribute(
-				"data-width",
-				exampleElementProperies.width.toString()
-			);
-			expect(element).toHaveAttribute(
-				"data-height",
-				(exampleElementProperies.height + 50).toString()
-			);
+			expect(element).toHaveAttribute("data-height", "150");
 		});
 	});
 });

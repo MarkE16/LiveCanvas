@@ -12,7 +12,7 @@ import ResizeHandle from "../ResizeHandle/ResizeHandle";
 import "./ResizeGrid.styles.css";
 
 type ResizeGridProps = {
-	children: ReactNode | undefined;
+	children: ReactNode;
 	x: number;
 	y: number;
 	width: number;
