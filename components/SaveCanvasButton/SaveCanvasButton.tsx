@@ -20,7 +20,10 @@ const SaveCanvasButton: FC = () => {
 	const { set } = useIndexed();
 
 	const saveCanvas = useCallback(async () => {
-    if (!references.length) throw new Error("Cannot export canvas: no references found. This is a bug.");
+		if (!references.length)
+			throw new Error(
+				"Cannot export canvas: no references found. This is a bug."
+			);
 		const elements = Array.from(document.getElementsByClassName("element"));
 		references.forEach((canvas, index) => {
 			canvas.toBlob(async (blob) => {

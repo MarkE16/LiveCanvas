@@ -175,7 +175,11 @@ describe("getCanvasPosition functionality", () => {
 		});
 		expect(spy).toHaveBeenCalled();
 	});
-	
-  it.todo("should calculate the x and y coordinates with dpi accounted with CSS scale 1");
-  it.todo("should calculate the x and y coordinates with dpi accounted with CSS scale 3");
+
+	it.todo(
+		"should calculate the x and y coordinates with dpi accounted with CSS scale 1"
+	);
+	it.todo(
+		"should calculate the x and y coordinates with dpi accounted with CSS scale 3"
+	);
 });

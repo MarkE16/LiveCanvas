@@ -375,5 +375,5 @@ export {
 	navigateTo,
 	isRectIntersecting,
 	debounce,
-	generateCanvasImage,
+	generateCanvasImage
 };
