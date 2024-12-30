@@ -38,8 +38,8 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 
 			const elements = Array.from(document.getElementsByClassName("element"));
 
-			// Use 0.5 quality for the preview to save space and make it faster on performance.
-			const blob = await UTILS.generateCanvasImage(layer, elements, 0.5);
+			// Use 0.3 quality for the preview to save space and make it faster on performance.
+			const blob = await UTILS.generateCanvasImage(layer, elements, 0.3);
 
 			setUrl(URL.createObjectURL(blob));
 		}

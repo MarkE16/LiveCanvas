@@ -9,7 +9,7 @@ import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerMarker = {
-	canvasSpaceReference: RefObject<HTMLDivElement>;
+	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	shiftKey: boolean;
 };
 
@@ -121,11 +121,8 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 			ref={ref}
 			id="canvas-pointer-marker"
 			style={{
-				position: "absolute",
 				// Remove pointer events so the pointer doesn't interfere with the canvas.
-				pointerEvents: "none",
 				borderRadius: mode === "draw" ? "50%" : "0%",
-				backgroundColor: "black",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
 				display: isVisible && !shiftKey ? "block" : "none",

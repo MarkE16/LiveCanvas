@@ -5,12 +5,12 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Types
-import type { FC, MutableRefObject, RefObject } from "react";
+import type { FC, RefObject } from "react";
 import type { Coordinates } from "../../types";
 
 type CanvasPointerSelectionProps = {
-	canvasSpaceReference: RefObject<HTMLDivElement>;
-	isSelecting: MutableRefObject<boolean>;
+	canvasSpaceReference: RefObject<HTMLDivElement | null>;
+	isSelecting: RefObject<boolean>;
 };
 
 const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({

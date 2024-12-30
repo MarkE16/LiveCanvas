@@ -2,7 +2,7 @@
 import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useCallback, useEffect, useRef, useState, memo } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
-
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 // Redux Actions
 import {
 	toggleVisibility,
@@ -45,6 +45,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 }) => {
 	const totalLayers = useAppSelector((state) => state.canvas.layers.length);
 	const dispatch = useAppDispatch();
+	const references = useLayerReferences();
 	const nameRef = useRef<HTMLSpanElement>(null);
 	const { remove } = useIndexed();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -76,6 +77,13 @@ const LayerInfo: FC<LayerInfoProps> = ({
 
 		dispatch(removeLayer(id));
 		remove("layers", id);
+		const idx = references.findIndex((ref) => ref.id === id);
+		console.log(references);
+		if (idx !== -1) {
+			references.splice(idx, 1);
+		}
+
+		console.log(references);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {

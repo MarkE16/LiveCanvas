@@ -16,8 +16,11 @@
 }
 
 #canvas-pane:hover > #canvas-pointer-marker {
-	opacity: 0.3;
-	transition: opacity 200ms;
+	position: absolute;
+	border: 3px solid black;
+	outline: 1px solid white;
+	outline-offset: -3px;
+	pointer-events: none;
 }
 
 #canvas-container {
@@ -44,7 +47,7 @@
 
 #canvas-container[data-mode="draw"],
 #canvas-container[data-mode="erase"] {
-	cursor: crosshair;
+	cursor: none;
 }
 
 #canvas-container[data-mode="zoom_in"] {

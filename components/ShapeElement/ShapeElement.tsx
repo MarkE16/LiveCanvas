@@ -12,7 +12,7 @@ import type { FC, ReactElement, RefObject } from "react";
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
 
 type ShapeElementProps = CanvasElement & {
-	canvasSpaceReference: RefObject<HTMLDivElement>;
+	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	isSelecting: RefObject<boolean>;
 };
 
@@ -60,6 +60,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	}
 
 	let jsx: ReactElement;
+
+	console.log("rerendered " + shape);
 
 	const {
 		focusElement,
