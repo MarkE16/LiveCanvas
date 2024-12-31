@@ -16,16 +16,20 @@ import { Tooltip } from "@mui/material";
 const SaveCanvasButton: FC = () => {
 	const [saved, setSaved] = useState<boolean>(false);
 	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-	const references = useLayerReferences();
+	const { references, remove } = useLayerReferences();
 	const { set } = useIndexed();
 
 	const saveCanvas = useCallback(async () => {
-		if (!references.length)
+		if (!references.current.length)
 			throw new Error(
 				"Cannot export canvas: no references found. This is a bug."
 			);
 		const elements = Array.from(document.getElementsByClassName("element"));
-		references.forEach((canvas, index) => {
+		references.current.forEach((canvas, index) => {
+			if (canvas === null) {
+				remove(index);
+				return;
+			}
 			canvas.toBlob(async (blob) => {
 				if (!blob) {
 					throw new Error(
@@ -41,29 +45,45 @@ const SaveCanvasButton: FC = () => {
 			});
 		});
 
-		const allUnfocused = elements.map((element) => {
-			const x = Number(element.getAttribute("data-x"));
-			const y = Number(element.getAttribute("data-y"));
-			const width = Number(element.getAttribute("data-width"));
-			const height = Number(element.getAttribute("data-height"));
-			const shape = element.getAttribute("data-shape");
-			const fill = element.getAttribute("data-fill");
-			const border = element.getAttribute("data-border");
-			const layerId = element.getAttribute("data-layerid");
-			const id = element.id;
+		const allUnfocused = elements.map<Omit<CanvasElement, "focused">>(
+			(element) => {
+				const x = Number(element.getAttribute("data-x"));
+				const y = Number(element.getAttribute("data-y"));
+				const width = Number(element.getAttribute("data-width"));
+				const height = Number(element.getAttribute("data-height"));
+				const type = element.getAttribute("data-type");
+				const fill = element.getAttribute("data-fill") ?? "#000000";
+				const stroke = element.getAttribute("data-stroke") ?? "#000000";
+				const layerId = element.getAttribute("data-layerid");
+				const fontSize = element.getAttribute("data-fontsize") ?? 25;
+				const fontFamily = element.getAttribute("data-fontfamily") ?? undefined;
+				const fontContent =
+					element.getAttribute("data-fontcontent") ?? undefined;
 
-			return {
-				x,
-				y,
-				width,
-				height,
-				shape,
-				fill,
-				border,
-				layerId,
-				id
-			} as CanvasElement;
-		});
+				const id = element.id;
+
+				if (!layerId) {
+					throw new Error(
+						"Cannot save canvas: no layer id found. This is a bug."
+					);
+				}
+
+				return {
+					type: type as CanvasElement["type"],
+					fontSize: Number(fontSize),
+					fontFamily,
+					fontContent,
+					x,
+					y,
+					width,
+					height,
+					fill,
+					stroke,
+					layerId,
+					id
+				};
+			}
+		);
 
 		await set("elements", "items", allUnfocused);
 
@@ -73,7 +93,7 @@ const SaveCanvasButton: FC = () => {
 		timeout.current = setTimeout(() => {
 			setSaved(false);
 		}, 1000);
-	}, [references, set]);
+	}, [references, set, remove]);
 
 	useEffect(() => {
 		function handleKeyboardSave(e: KeyboardEvent) {

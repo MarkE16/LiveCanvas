@@ -26,7 +26,9 @@ describe("SaveCanvasButton functionality", () => {
 		mockCanvas3.id = "789";
 		mockCanvas3.setAttribute("data-name", "test canvas 3");
 
-		toBlobSpies = [mockCanvas1, mockCanvas2, mockCanvas3].map((canvas) => {
+		const array = [mockCanvas1, mockCanvas2, mockCanvas3];
+
+		toBlobSpies = array.map((canvas) => {
 			const toBlobSpy = vi
 				.spyOn(canvas, "toBlob")
 				.mockImplementation(async (cb) => {
@@ -36,11 +38,11 @@ describe("SaveCanvasButton functionality", () => {
 			return toBlobSpy;
 		});
 
-		vi.spyOn(useLayerReferences, "default").mockReturnValue([
-			mockCanvas1,
-			mockCanvas2,
-			mockCanvas3
-		]);
+		vi.spyOn(useLayerReferences, "default").mockReturnValue({
+			references: { current: array },
+			add: vi.fn(),
+			remove: vi.fn()
+		});
 
 		renderWithProviders(<SaveCanvasButton />);
 	});

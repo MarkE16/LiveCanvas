@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import type { Layer, Coordinates } from "./types";
+import type { Layer, Coordinates, CanvasElementType } from "./types";
 
 type CapitalizeOptions = {
 	titleCase: boolean;
@@ -202,9 +202,12 @@ type ExportedElement = {
 	y: number;
 	width: number;
 	height: number;
-	shape: string | null;
+	type: CanvasElementType;
 	fill: string | null;
-	border: string | null;
+	stroke: string | null;
+	fontSize?: number;
+	fontFamily?: string;
+	fontContent?: string;
 	layerId: string | null;
 	spaceLeft: number;
 	spaceTop: number;
@@ -257,9 +260,12 @@ const generateCanvasImage = async (
 					y: Number(element.getAttribute("data-y")),
 					width: Number(element.getAttribute("data-width")),
 					height: Number(element.getAttribute("data-height")),
-					shape: element.getAttribute("data-shape"),
+					type: element.getAttribute("data-type") as CanvasElementType,
 					fill: element.getAttribute("data-fill"),
-					border: element.getAttribute("data-border"),
+					stroke: element.getAttribute("data-stroke"),
+					fontSize: Number(element.getAttribute("data-fontsize")),
+					fontFamily: element.getAttribute("data-fontfamily") ?? "Arial",
+					fontContent: element.getAttribute("data-fontcontent") ?? "",
 					layerId: element.getAttribute("data-layerid"),
 					spaceLeft: Number(element.getAttribute("data-canvas-space-left")),
 					spaceTop: Number(element.getAttribute("data-canvas-space-top")),
@@ -311,10 +317,10 @@ const generateCanvasImage = async (
 				const height = endY - startY;
 
 				ctx.fillStyle = element.fill || "";
-				ctx.strokeStyle = element.border || "";
+				ctx.strokeStyle = element.stroke || "";
 
 				ctx.beginPath();
-				switch (element.shape) {
+				switch (element.type) {
 					case "circle": {
 						ctx.ellipse(
 							startX + width / 2,
@@ -342,9 +348,21 @@ const generateCanvasImage = async (
 						ctx.stroke();
 						break;
 					}
+					case "text": {
+						if (!element?.fontContent) {
+							throw new Error(
+								`Failed to extract text from element with id ${element.id}.`
+							);
+						}
+
+						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
+						ctx.fillText(element.fontContent, startX, startY, width);
+						ctx.strokeText(element.fontContent, startX, startY, width);
+						break;
+					}
 					default: {
 						ctx.closePath();
-						throw new Error(`Invalid shape ${element.shape} when exporting.`);
+						throw new Error(`Invalid shape ${element.type} when exporting.`);
 					}
 				}
 			});

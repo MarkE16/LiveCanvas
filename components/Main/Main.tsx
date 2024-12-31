@@ -17,7 +17,7 @@ const Main: FC = () => {
 	const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
 
 	return (
-		<main id="main-content">
+		<main id="main-content" data-testid="main-content">
 			<AlphaSoftwareAgreementModal
 				open={showAlphaModal}
 				onClose={() => {

@@ -146,8 +146,8 @@ const DrawingToolbar: FC = () => {
 			/>
 			<MemoizedColorPicker
 				label="Border"
-				__for="border"
-				value={focusedElements[0]?.border}
+				__for="stroke"
+				value={focusedElements[0]?.stroke}
 			/>
 			{/* <ColorField
 				label="Border Width"

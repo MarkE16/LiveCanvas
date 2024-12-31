@@ -6,11 +6,11 @@ import * as UTILS from "../../utils";
 import type { FC } from "react";
 
 const ExportCanvasButton: FC = () => {
-	const references = useLayerReferences();
+	const { references } = useLayerReferences();
 
 	const handleExport = async () => {
 		const elements = Array.from(document.getElementsByClassName("element"));
-		const blob = await UTILS.generateCanvasImage(references, elements);
+		const blob = await UTILS.generateCanvasImage(references.current, elements);
 
 		const url = URL.createObjectURL(blob);
 

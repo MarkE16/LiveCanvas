@@ -697,45 +697,49 @@ describe("Canvas Interactive Functionality", () => {
 			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 		});
 
-    it('should zoom the canvas in and out using the mouse wheel with shift key held', () => {
-      const space = screen.getByTestId('canvas-container');
-      const canvases = screen.queryAllByTestId('canvas-layer');
+		it("should zoom the canvas in and out using the mouse wheel with shift key held", () => {
+			const space = screen.getByTestId("canvas-container");
+			const canvases = screen.queryAllByTestId("canvas-layer");
 
-      expect(canvases).toHaveLength(1);
+			expect(canvases).toHaveLength(1);
 
-      const canvas = canvases[0];
-      expect(canvas).toBeInTheDocument();
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 
-      // Shift key must be held to zoom in and out with the mouse wheel.
-      fireEvent.wheel(space, { deltaY: -100, shiftKey: true });
+			// Shift key must be held to zoom in and out with the mouse wheel.
+			fireEvent.wheel(space, { deltaY: -100, shiftKey: true });
 
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1.1)');
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1.1)");
 
-      fireEvent.wheel(space, { deltaY: 100, shiftKey: true });
+			fireEvent.wheel(space, { deltaY: 100, shiftKey: true });
 
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
-    });
-    
-    it('should not zoom the canvas in and out using the mouse wheel without shift key held', () => {
-      const space = screen.getByTestId('canvas-container');
-      const canvases = screen.queryAllByTestId('canvas-layer');
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+		});
 
-      expect(canvases).toHaveLength(1);
+		it("should not zoom the canvas in and out using the mouse wheel without shift key held", () => {
+			const space = screen.getByTestId("canvas-container");
+			const canvases = screen.queryAllByTestId("canvas-layer");
 
-      const canvas = canvases[0];
-      expect(canvas).toBeInTheDocument();
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+			expect(canvases).toHaveLength(1);
 
-      // Shift key must be held to zoom in and out with the mouse wheel.
-      fireEvent.wheel(space, { deltaY: -100 });
+			const canvas = canvases[0];
+			expect(canvas).toBeInTheDocument();
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
+			// Shift key must be held to zoom in and out with the mouse wheel.
+			fireEvent.wheel(space, { deltaY: -100 });
 
-      fireEvent.wheel(space, { deltaY: 100 });
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 
-      expect(canvas.style.transform).toBe('translate(0px, 0px) scale(1)');
-    })
+			fireEvent.wheel(space, { deltaY: 100 });
+
+			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
+		});
+	});
+
+	describe("LayerPreview functionality", () => {
+		it.todo("renders the layer preview");
 	});
 
 	describe("Element functionality", () => {
@@ -745,7 +749,7 @@ describe("Canvas Interactive Functionality", () => {
 			width: 100,
 			height: 100,
 			fill: "#000000",
-			border: "#000000"
+			stroke: "#000000"
 		};
 		it("should create a rectangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
@@ -763,7 +767,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(elements).toHaveLength(1);
 			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-shape", "rectangle");
+			expect(elements[0]).toHaveAttribute("data-type", "rectangle");
 			for (const key in exampleElementProperies) {
 				expect(elements[0]).toHaveAttribute(
 					`data-${key}`,
@@ -788,7 +792,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(elements).toHaveLength(1);
 			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-shape", "circle");
+			expect(elements[0]).toHaveAttribute("data-type", "circle");
 			for (const key in exampleElementProperies) {
 				expect(elements[0]).toHaveAttribute(
 					`data-${key}`,
@@ -813,7 +817,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(elements).toHaveLength(1);
 			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-shape", "triangle");
+			expect(elements[0]).toHaveAttribute("data-type", "triangle");
 			for (const key in exampleElementProperies) {
 				expect(elements[0]).toHaveAttribute(
 					`data-${key}`,
@@ -1091,6 +1095,46 @@ describe("Canvas Interactive Functionality", () => {
 			expect(elements).toHaveLength(0);
 		});
 
+		it("should copy and paste an element", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let elements = screen.queryAllByTestId("element");
+
+			expect(elements).toHaveLength(0);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			elements = screen.queryAllByTestId("element");
+			expect(elements).toHaveLength(1);
+
+			const element = elements[0];
+
+			fireEvent.mouseDown(element, { buttons: 1 });
+
+			expect(element).toHaveAttribute("data-focused", "true");
+
+			fireEvent.keyDown(document, { key: "c", ctrlKey: true });
+
+			fireEvent.keyDown(document, { key: "v", ctrlKey: true });
+
+			elements = screen.queryAllByTestId("element");
+			expect(elements).toHaveLength(2);
+
+			const [element1, element2] = elements;
+			const el1X = Number(element1.getAttribute("data-x"));
+			const el1Y = Number(element1.getAttribute("data-y"));
+			const el1Width = element1.getAttribute("data-width");
+			const el1Height = element1.getAttribute("data-height");
+
+			expect(element2).toHaveAttribute("data-x", (el1X + 10).toString());
+			expect(element2).toHaveAttribute("data-y", (el1Y + 10).toString());
+			expect(element2).toHaveAttribute("data-width", el1Width);
+			expect(element2).toHaveAttribute("data-height", el1Height);
+		});
+
 		it("should change the fill color of an element through hex field", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			let elements = screen.queryAllByTestId("element");
@@ -1142,7 +1186,7 @@ describe("Canvas Interactive Functionality", () => {
 		it("should change the border color of an element through hex field", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			let elements = screen.queryAllByTestId("element");
-			let pickerButton = screen.queryByTestId("border-picker-button");
+			let pickerButton = screen.queryByTestId("stroke-picker-button");
 
 			expect(elements).toHaveLength(0);
 			expect(pickerButton).not.toBeInTheDocument();
@@ -1162,15 +1206,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(element, { buttons: 1 });
 
 			const color = "#ff0000";
-			pickerButton = screen.getByTestId("border-picker-button");
-			let popover = screen.queryByTestId("border-picker-popover");
+			pickerButton = screen.getByTestId("stroke-picker-button");
+			let popover = screen.queryByTestId("stroke-picker-popover");
 
 			expect(pickerButton).toBeInTheDocument();
 			expect(popover).not.toBeInTheDocument();
 
 			fireEvent.click(pickerButton);
 
-			popover = screen.getByTestId("border-picker-popover");
+			popover = screen.getByTestId("stroke-picker-popover");
 			expect(popover).toBeInTheDocument();
 
 			const colorFieldDiv = screen.getByTestId("picker-field");
@@ -1178,13 +1222,13 @@ describe("Canvas Interactive Functionality", () => {
 			const colorField = colorFieldDiv.lastChild;
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-border", "#000000");
+			expect(element).toHaveAttribute("data-stroke", "#000000");
 
 			fireEvent.change(colorField as Node, { target: { value: color } });
 
 			// Color field is automatically converted to uppercase.
 			// So, we need to convert the color to uppercase to compare.
-			expect(element).toHaveAttribute("data-border", color.toUpperCase());
+			expect(element).toHaveAttribute("data-stroke", color.toUpperCase());
 		});
 
 		// Note: Since the color picker is a third-party component, we will

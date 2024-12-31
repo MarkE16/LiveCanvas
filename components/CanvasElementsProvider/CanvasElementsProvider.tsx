@@ -20,7 +20,7 @@ type CanvasElementsUtils = {
 	focusElement: (...ids: string[]) => void;
 	unfocusElement: (...ids: string[]) => void;
 	createElement: (
-		shape: Shape,
+		type: Shape | "text",
 		properties?: Omit<Partial<CanvasElement>, "id">
 	) => void;
 	changeElementProperties: (
@@ -41,7 +41,7 @@ const CanvasElementsContext = createContext<CanvasElementsUtils | undefined>(
 const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	const [elements, setElements] = useState<CanvasElement[]>([]);
 	const movingElement = useRef<boolean>(false);
-	const references = useLayerReferences();
+	const { references } = useLayerReferences();
 	const copiedElements = useRef<CanvasElement[]>([]);
 	const { get } = useIndexed();
 
@@ -87,8 +87,21 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 	 * @returns void
 	 */
 	const createElement = useCallback(
-		(shape: Shape, properties?: Omit<Partial<CanvasElement>, "id">) => {
-			const activeLayer = references.find((ref) =>
+		(type: Shape | "text", properties?: Omit<Partial<CanvasElement>, "id">) => {
+			if (
+				type === "text" &&
+				!(
+					properties?.fontContent &&
+					properties?.fontSize &&
+					properties?.fontFamily
+				)
+			) {
+				throw new Error(
+					"Cannot create text element without additional text properties."
+				);
+			}
+
+			const activeLayer = references.current.find((ref) =>
 				ref.classList.contains("active")
 			);
 
@@ -103,10 +116,10 @@ const CanvasElementsProvider: FC<PropsWithChildren> = ({ children }) => {
 				width: 100,
 				height: 100,
 				fill: "#000000",
-				border: "#000000",
+				stroke: "#000000",
 				focused: false,
 				layerId: activeLayer.id,
-				shape,
+				type,
 				...properties, // Override the default properties with the provided properties, if any.
 				id: uuid() // Keep the id as the last property to ensure that it is not overridden.
 			};

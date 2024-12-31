@@ -40,10 +40,15 @@ const CanvasPane: FC = () => {
 	const isSelecting = useRef<boolean>(false);
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
-	const references = useLayerReferences();
+	const { references } = useLayerReferences();
 	const dimensions = useWindowDimensions();
-	const { elements, changeElementProperties, copyElement, pasteElement } =
-		useCanvasElements();
+	const {
+		elements,
+		changeElementProperties,
+		copyElement,
+		pasteElement,
+		createElement
+	} = useCanvasElements();
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -60,13 +65,32 @@ const CanvasPane: FC = () => {
 			if (e.buttons !== 1) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
-			setIsGrabbing(isClickingOnSpace(e));
+			const isOnCanvas = isClickingOnSpace(e);
+			setIsGrabbing(isOnCanvas);
+
+			if (
+				mode === "text" &&
+				canvasSpace?.contains(e.target as Node) &&
+				e.target !== canvasSpace
+			) {
+				const rect = canvasSpace.getBoundingClientRect();
+				createElement("text", {
+					x: e.clientX - rect.left,
+					y: e.clientY - rect.top,
+					width: 100,
+					height: 30,
+					focused: true,
+					fontSize: 26,
+					fontFamily: "Arial",
+					fontContent: "Text"
+				});
+			}
 		}
 
 		function handleMouseMove(e: MouseEvent) {
 			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
 
-			const layer = references[0];
+			const layer = references.current[0];
 
 			const {
 				left: lLeft,
@@ -242,8 +266,11 @@ const CanvasPane: FC = () => {
 		changeElementProperties,
 		dimensions,
 		copyElement,
-		pasteElement
+		pasteElement,
+		createElement
 	]);
+
+	console.log(elements);
 
 	return (
 		<div

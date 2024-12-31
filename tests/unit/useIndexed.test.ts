@@ -8,6 +8,7 @@ import {
 	expect
 } from "vitest";
 import { renderHookWithProviders } from "../test-utils";
+import { renderHook } from "@testing-library/react";
 import type { RenderHookResult } from "@testing-library/react";
 import useIndexed from "../../state/hooks/useIndexed";
 
@@ -260,9 +261,17 @@ describe("useIndexed functionality", () => {
 		expect(result.result.current.get("layers")).resolves.toEqual(arr);
 	});
 
-	it("should throw for a non-existant store", () => {
-		expect(
-			result.result.current.get("non-existant-store", "123")
-		).rejects.toThrow();
+	describe("useIndexed error cases", () => {
+		it("should throw for a non-existant store", () => {
+			expect(
+				result.result.current.get("non-existant-store", "123")
+			).rejects.toThrow();
+		});
+
+		it("should throw if not rendered within provider", () => {
+			expect(() => renderHook(useIndexed)).toThrow(
+				"useIndexed must be used within the IndexedDBProvider"
+			);
+		});
 	});
 });

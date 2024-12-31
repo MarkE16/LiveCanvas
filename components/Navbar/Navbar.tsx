@@ -25,7 +25,7 @@ const Navbar: FC = () => {
 	};
 
 	return (
-		<header>
+		<header data-testid="nav-bar">
 			<nav id="navbar-container">
 				<section id="navbar-links-section">
 					<div id="navbar-logo-container">

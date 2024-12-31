@@ -17,7 +17,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	canvasSpaceReference,
 	isSelecting
 }) => {
-	const references = useLayerReferences();
+	const { references } = useLayerReferences();
 	const rectRef = useRef<HTMLDivElement>(null);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });

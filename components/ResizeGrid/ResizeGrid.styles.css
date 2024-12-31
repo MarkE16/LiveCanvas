@@ -3,6 +3,17 @@
 	outline: none;
 }
 
+.grid > textarea,
+.grid > span {
+	width: 100%;
+	min-width: 50px;
+	border: none;
+	outline: none;
+	resize: none;
+	background: transparent;
+	overflow: hidden;
+}
+
 .grid.focused {
 	outline: 1px solid #d1836a;
 }

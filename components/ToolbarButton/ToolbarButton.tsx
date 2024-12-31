@@ -23,6 +23,7 @@ import ZoomOut from "../icons/ZoomOut/ZoomOut";
 import Move from "../icons/Move/Move";
 import Undo from "../icons/Undo/Undo";
 import Redo from "../icons/Redo/Redo";
+import Text from "../icons/Text/Text";
 
 type ToolbarButtonProps = ToolbarMode & {
 	active: boolean;
@@ -33,6 +34,7 @@ const ICONS: Record<Mode, ReactElement> = {
 	draw: <Pen />,
 	erase: <Eraser />,
 	shapes: <Shapes />,
+	text: <Text />,
 	eye_drop: <EyeDropper />,
 	zoom_in: <ZoomIn />,
 	zoom_out: <ZoomOut />,

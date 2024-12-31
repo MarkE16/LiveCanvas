@@ -29,7 +29,7 @@ import type { CanvasElement } from "../../types";
 
 type ColorPickerProps = {
 	label: string;
-	__for: keyof Pick<CanvasElement, "fill" | "border">;
+	__for: keyof Pick<CanvasElement, "fill" | "stroke">;
 	value: string;
 };
 

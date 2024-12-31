@@ -8,7 +8,15 @@ import { LayerReferencesContext } from "../../components/LayerReferencesProvider
  * @returns An array consisting of HTMLCanvasElements that references the canvas layers.
  */
 const useLayerReferences = () => {
-	return useContext(LayerReferencesContext);
+	const context = useContext(LayerReferencesContext);
+
+	if (context === undefined) {
+		throw new Error(
+			"useLayerReferences must be used within a LayerReferencesProvider"
+		);
+	}
+
+	return context;
 };
 
 export default useLayerReferences;

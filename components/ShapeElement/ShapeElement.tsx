@@ -6,7 +6,12 @@ import useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Types
 import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
-import type { FC, ReactElement, RefObject } from "react";
+import type {
+	FC,
+	ReactElement,
+	RefObject,
+	KeyboardEvent as ReactKeyboardEvent
+} from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
@@ -18,11 +23,14 @@ type ShapeElementProps = CanvasElement & {
 
 const ShapeElement: FC<ShapeElementProps> = ({
 	canvasSpaceReference,
-	shape,
+	type,
 	width,
 	height,
 	fill,
-	border,
+	fontSize,
+	fontFamily,
+	fontContent,
+	stroke,
 	focused,
 	x,
 	y,
@@ -31,7 +39,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	isSelecting
 }) => {
 	const layers = useAppSelector((state) => state.canvas.layers);
-	const references = useLayerReferences();
+	const { references } = useLayerReferences();
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -356,7 +364,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		function onMouseUp() {
 			updateMovingState(false);
 
-			const activeLayer = references.find((ref) =>
+			const activeLayer = references.current.find((ref) =>
 				ref.classList.contains("active")
 			);
 
@@ -401,11 +409,69 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		references
 	]);
 
-	if (shape === "triangle") {
+	if (type === "text") {
+		const stopPropagation = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+			e.stopPropagation();
+		};
+
+		return (
+			<ResizeGrid
+				ref={ref}
+				x={x}
+				y={y}
+				width={width}
+				height={height}
+				focused={focused}
+				zIndex={activeLayer.id === layerId ? layers.length + 1 : 1}
+			>
+				<textarea
+					style={{
+						fontSize,
+						fontFamily,
+						color: fill,
+						WebkitTextStroke: `1px ${stroke}`
+					}}
+					spellCheck={false}
+					value={fontContent}
+					onChange={(e) => {
+						changeElementProperties(
+							(state) => ({
+								...state,
+								fontContent: e.target.value
+							}),
+							id
+						);
+					}}
+					onKeyDown={stopPropagation}
+					id={id}
+					className="element"
+					data-testid="element"
+					data-type="text"
+					data-layerid={layerId}
+					data-width={width}
+					data-height={height}
+					data-fill={fill}
+					data-stroke={stroke}
+					data-focused={focused}
+					data-x={x}
+					data-y={y}
+					data-fontsize={fontSize}
+					data-fontfamily={fontFamily}
+					data-fontcontent={fontContent}
+					data-canvas-space-left={sLeft}
+					data-canvas-space-top={sTop}
+					data-canvas-space-width={sWidth}
+					data-canvas-space-height={sHeight}
+				></textarea>
+			</ResizeGrid>
+		);
+	}
+
+	if (type === "triangle") {
 		jsx = <polygon points="50,0 100,100 0,100" />;
 	} else {
 		jsx =
-			shape === "circle" ? (
+			type === "circle" ? (
 				<circle
 					cx="50"
 					cy="50"
@@ -438,7 +504,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				height="100%"
 				id={id}
 				fill={fill}
-				stroke={border}
+				stroke={stroke}
 				style={{
 					zIndex: activeLayer.id === layerId ? layers.length + 1 : 1
 				}}
@@ -447,12 +513,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				viewBox="0 0 100 100"
 				data-x={x}
 				data-y={y}
-				data-shape={shape}
+				data-type={type}
 				data-layerid={layerId}
 				data-width={width}
 				data-height={height}
 				data-fill={fill}
-				data-border={border}
+				data-stroke={stroke}
 				data-focused={focused}
 				data-canvas-space-left={sLeft}
 				data-canvas-space-top={sTop}

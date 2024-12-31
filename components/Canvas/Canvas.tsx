@@ -48,13 +48,12 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	} = state;
 
 	const { movingElement } = useCanvasElements();
-	const references = useLayerReferences();
+	const { references, add } = useLayerReferences();
 	const { get } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
-	const backgroundRef = useRef<HTMLImageElement>(null);
 
 	const ERASER_RADIUS = 7;
 
@@ -64,7 +63,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		e.preventDefault();
 		isDrawing.current = mode !== "select" && !movingElement.current;
 
-		const activeLayer = references.find((ref) =>
+		const activeLayer = references.current.find((ref) =>
 			ref.classList.contains("active")
 		);
 
@@ -132,7 +131,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
 			return;
 		}
-		const activeLayer = references.find((ref) =>
+		const activeLayer = references.current.find((ref) =>
 			ref.classList.contains("active")
 		);
 		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
@@ -209,7 +208,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		// listen for this event if they need to update the image,
 		// if needed.
 
-		const activeLayer = references.find((ref) =>
+		const activeLayer = references.current.find((ref) =>
 			ref.classList.contains("active")
 		);
 
@@ -272,7 +271,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		function updateLayerContents(entries: [string, DBLayer][]) {
 			entries.forEach((entry) => {
 				const [, layer] = entry;
-				const canvas = references[layer.position];
+				const canvas = references.current[layer.position];
 
 				if (!canvas) return;
 
@@ -322,7 +321,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 							transform
 						}}
 						ref={(element: HTMLCanvasElement) => {
-							references[i] = element;
+							add(element, i);
 						}}
 						id={layer.id}
 						width={width * dpi}

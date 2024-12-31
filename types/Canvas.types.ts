@@ -18,6 +18,7 @@ export type Mode =
 	| "draw"
 	| "erase"
 	| "shapes"
+	| "text"
 	| "eye_drop"
 	| "zoom_in"
 	| "zoom_out"
@@ -48,15 +49,20 @@ export type Modes = ToolbarMode[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 
+export type CanvasElementType = Shape | "text";
+
 export type CanvasElement = {
 	x: number;
 	y: number;
 	width: number;
 	height: number;
-	shape: Shape;
+	type: CanvasElementType;
 	fill: string;
-	border: string;
+	stroke: string;
 	id: string;
+	fontSize?: number;
+	fontFamily?: string;
+	fontContent?: string;
 	layerId: string;
 	focused: boolean;
 	// More properties later...

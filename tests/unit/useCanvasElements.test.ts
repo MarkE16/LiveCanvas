@@ -8,6 +8,7 @@ import {
 	expect
 } from "vitest";
 import { renderHookWithProviders } from "../test-utils";
+import { renderHook } from "@testing-library/react";
 import type { RenderHookResult } from "@testing-library/react";
 import useCanvasElements from "../../state/hooks/useCanvasElements";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
@@ -23,7 +24,11 @@ describe("useCanvasElements functionality", () => {
 
 		layerReferencesSpy = vi
 			.spyOn(useLayerReferences, "default")
-			.mockReturnValue([dummyCanvas]);
+			.mockReturnValue({
+				references: { current: [dummyCanvas] },
+				add: vi.fn(),
+				remove: vi.fn()
+			});
 
 		result = renderHookWithProviders(useCanvasElements);
 	});
@@ -53,7 +58,7 @@ describe("useCanvasElements functionality", () => {
 		});
 	});
 
-	it("should create one element with default properties", () => {
+	it("should create one shape with default properties", () => {
 		expect(result.result.current.elements).toEqual([]);
 
 		result.result.current.createElement("rectangle");
@@ -64,19 +69,19 @@ describe("useCanvasElements functionality", () => {
 			{
 				id: expect.any(String),
 				layerId: expect.any(String),
-				shape: "rectangle",
+				type: "rectangle",
 				x: NaN,
 				y: NaN,
 				width: 100,
 				height: 100,
 				fill: "#000000",
-				border: "#000000",
+				stroke: "#000000",
 				focused: false
 			}
 		]);
 	});
 
-	it("should create one element with given properties", () => {
+	it("should create one shape with given properties", () => {
 		expect(result.result.current.elements).toEqual([]);
 
 		result.result.current.createElement("rectangle", {
@@ -85,7 +90,7 @@ describe("useCanvasElements functionality", () => {
 			width: 200,
 			height: 200,
 			fill: "#ff0000",
-			border: "#ff0000"
+			stroke: "#ff0000"
 		});
 
 		result.rerender(); // Rerender to update the state.
@@ -94,13 +99,40 @@ describe("useCanvasElements functionality", () => {
 			{
 				id: expect.any(String),
 				layerId: expect.any(String),
-				shape: "rectangle",
+				type: "rectangle",
 				x: 200,
 				y: 200,
 				width: 200,
 				height: 200,
 				fill: "#ff0000",
-				border: "#ff0000",
+				stroke: "#ff0000",
+				focused: false
+			}
+		]);
+	});
+
+	it("should create one text element with text properties", () => {
+		expect(result.result.current.elements).toEqual([]);
+		result.result.current.createElement("text", {
+			fontContent: "Text",
+			fontSize: 25,
+			fontFamily: "Arial"
+		});
+		result.rerender();
+		expect(result.result.current.elements).toEqual([
+			{
+				id: expect.any(String),
+				layerId: expect.any(String),
+				type: "text",
+				x: NaN,
+				y: NaN,
+				width: 100,
+				height: 100,
+				fill: "#000000",
+				stroke: "#000000",
+				fontSize: 25,
+				fontFamily: "Arial",
+				fontContent: "Text",
 				focused: false
 			}
 		]);
@@ -251,11 +283,11 @@ describe("useCanvasElements functionality", () => {
 		expect(element2.x).toBe(element1.x + 10);
 		expect(element2.y).toBe(element1.y + 10);
 		expect(element2.id).not.toBe(element1.id);
-		expect(element2.shape).toBe(element1.shape);
+		expect(element2.type).toBe(element1.type);
 		expect(element2.width).toBe(element1.width);
 		expect(element2.height).toBe(element1.height);
 		expect(element2.fill).toBe(element1.fill);
-		expect(element2.border).toBe(element1.border);
+		expect(element2.stroke).toBe(element1.stroke);
 		expect(element2.focused).toBe(element1.focused);
 	});
 
@@ -279,17 +311,21 @@ describe("useCanvasElements functionality", () => {
 		expect(element2.x).toBe(element1.x + 10);
 		expect(element2.y).toBe(element1.y + 10);
 		expect(element2.id).not.toBe(element1.id);
-		expect(element2.shape).toBe(element1.shape);
+		expect(element2.type).toBe(element1.type);
 		expect(element2.width).toBe(element1.width);
 		expect(element2.height).toBe(element1.height);
 		expect(element2.fill).toBe(element1.fill);
-		expect(element2.border).toBe(element1.border);
+		expect(element2.stroke).toBe(element1.stroke);
 		expect(element2.focused).toBe(element1.focused);
 	});
 
 	describe("useCanvasElements error cases", () => {
 		beforeEach(() => {
-			layerReferencesSpy.mockReturnValue([]);
+			layerReferencesSpy.mockReturnValue({
+				references: { current: [] },
+				add: vi.fn(),
+				remove: vi.fn()
+			});
 
 			result = renderHookWithProviders(useCanvasElements);
 		});
@@ -302,6 +338,35 @@ describe("useCanvasElements functionality", () => {
 			expect(() =>
 				result.result.current.createElement("circle", { x: 200, y: 200 })
 			).toThrow("Cannot create element: No existing layer.");
+		});
+
+		it("should throw if text properties are not given when creating text", () => {
+			const err =
+				"Cannot create text element without additional text properties.";
+			expect(() => result.result.current.createElement("text")).toThrow(err);
+
+			expect(() =>
+				result.result.current.createElement("text", {
+					x: 200,
+					y: 200,
+					fontSize: 25
+				})
+			).toThrow(err);
+
+			expect(() =>
+				result.result.current.createElement("text", {
+					x: 200,
+					y: 200,
+					fontFamily: "Arial",
+					fontContent: "Text"
+				})
+			).toThrow(err);
+		});
+
+		it("should throw if not rendered within the provider", () => {
+			expect(() => renderHook(useCanvasElements)).toThrow(
+				"useCanvasElements must be used within a CanvasElementsProvider"
+			);
 		});
 	});
 });
