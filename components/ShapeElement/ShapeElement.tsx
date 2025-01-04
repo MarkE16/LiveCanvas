@@ -1,20 +1,17 @@
 // Lib
-import { useAppSelector } from "../../state/hooks/reduxHooks";
 import { useEffect, useRef } from "react";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
+import { useShallow } from "zustand/react/shallow";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useStore from "../../state/hooks/useStore";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 // Types
 import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
-import type {
-	FC,
-	ReactElement,
-	RefObject,
-	KeyboardEvent as ReactKeyboardEvent
-} from "react";
+import type { FC, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
+import ElementTextField from "../ElementTextField/ElementTextField";
 
 type ShapeElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;
@@ -38,7 +35,10 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	layerId,
 	isSelecting
 }) => {
-	const layers = useAppSelector((state) => state.canvas.layers);
+	const layers = useStore(
+		(state) => state.layers,
+	);
+	const movingElement = useStoreSubscription((state) => state.elementMoving);
 	const { references } = useLayerReferences();
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
@@ -48,6 +48,10 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		sTop = NaN,
 		sWidth = NaN,
 		sHeight = NaN;
+
+	if (!activeLayer) {
+		throw new Error("No active layer found. This is a bug.");
+	}
 
 	if (canvasSpaceReference.current) {
 		const {
@@ -63,10 +67,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		sHeight = h;
 	}
 
-	if (!activeLayer) {
-		throw new Error("No active layer. This is a bug that should be fixed.");
-	}
-
 	let jsx: ReactElement;
 
 	const {
@@ -75,7 +75,15 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		changeElementProperties,
 		deleteElement,
 		updateMovingState
-	} = useCanvasElements();
+	} = useStore(
+		useShallow((state) => ({
+			focusElement: state.focusElement,
+			unfocusElement: state.unfocusElement,
+			changeElementProperties: state.changeElementProperties,
+			deleteElement: state.deleteElement,
+			updateMovingState: state.updateMovingState
+		}))
+	);
 
 	useEffect(() => {
 		const element = ref.current;
@@ -121,13 +129,14 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			e.stopPropagation();
 			if (
 				e.buttons !== 1 ||
 				!element ||
 				!focused ||
 				isSelecting.current ||
-				!canvasSpace
+				!canvasSpace ||
+				(e.target instanceof HTMLTextAreaElement &&
+					e.target === document.activeElement)
 			)
 				return;
 
@@ -362,8 +371,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function onMouseUp() {
-			updateMovingState(false);
-
 			const activeLayer = references.current.find((ref) =>
 				ref.classList.contains("active")
 			);
@@ -372,13 +379,16 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				throw new Error("No active layer found. This is a bug.");
 			}
 
-			const event = new CustomEvent("imageupdate", {
-				detail: {
-					layer: activeLayer
-				}
-			});
+			if (movingElement.current) {
+				const event = new CustomEvent("imageupdate", {
+					detail: {
+						layer: activeLayer
+					}
+				});
 
-			document.dispatchEvent(event);
+				document.dispatchEvent(event);
+			}
+			updateMovingState(false);
 		}
 
 		// We add the mousedown event to the element to accurately
@@ -406,14 +416,11 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		isSelecting,
 		canvasSpaceReference,
 		updateMovingState,
-		references
+		references,
+		movingElement
 	]);
 
 	if (type === "text") {
-		const stopPropagation = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-			e.stopPropagation();
-		};
-
 		return (
 			<ResizeGrid
 				ref={ref}
@@ -424,45 +431,17 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				focused={focused}
 				zIndex={activeLayer.id === layerId ? layers.length + 1 : 1}
 			>
-				<textarea
-					style={{
-						fontSize,
-						fontFamily,
-						color: fill,
-						WebkitTextStroke: `1px ${stroke}`
-					}}
-					spellCheck={false}
+				<ElementTextField
+					id={id}
 					value={fontContent}
 					onChange={(e) => {
 						changeElementProperties(
-							(state) => ({
-								...state,
-								fontContent: e.target.value
-							}),
+							(state) => ({ ...state, fontContent: e.target.value }),
 							id
 						);
 					}}
-					onKeyDown={stopPropagation}
-					id={id}
-					className="element"
-					data-testid="element"
-					data-type="text"
 					data-layerid={layerId}
-					data-width={width}
-					data-height={height}
-					data-fill={fill}
-					data-stroke={stroke}
-					data-focused={focused}
-					data-x={x}
-					data-y={y}
-					data-fontsize={fontSize}
-					data-fontfamily={fontFamily}
-					data-fontcontent={fontContent}
-					data-canvas-space-left={sLeft}
-					data-canvas-space-top={sTop}
-					data-canvas-space-width={sWidth}
-					data-canvas-space-height={sHeight}
-				></textarea>
+				/>
 			</ResizeGrid>
 		);
 	}

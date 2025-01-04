@@ -1,18 +1,12 @@
 // Lib
 import { useEffect, useRef } from "react";
-import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import useIndexed from "../../state/hooks/useIndexed";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
+import useStore from "../../state/hooks/useStore";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import { parseColor } from "react-aria-components";
-import * as utils from "../../utils";
-
-// Redux Actions
-import {
-	setLayers,
-	changeMode,
-	changeColor
-} from "../../state/slices/canvasSlice";
+import * as Utils from "../../utils";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { FC, MouseEvent } from "react";
@@ -32,8 +26,6 @@ type DBLayer = {
 };
 
 const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
-	const state = useAppSelector((state) => state.canvas);
-	const dispatch = useAppDispatch();
 	const {
 		mode,
 		width,
@@ -44,14 +36,33 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		drawStrength,
 		color,
 		scale,
-		position
-	} = state;
+		position,
+		changeMode,
+		changeColor,
+		setLayers
+	} = useStore(
+		useShallow((state) => ({
+			mode: state.mode,
+			width: state.width,
+			height: state.height,
+			layers: state.layers,
+			dpi: state.dpi,
+			eraserStrength: state.eraserStrength,
+			drawStrength: state.drawStrength,
+			color: state.color,
+			scale: state.scale,
+			position: state.position,
+			changeMode: state.changeMode,
+			changeColor: state.changeColor,
+			setLayers: state.setLayers
+		}))
+	);
 
-	const { movingElement } = useCanvasElements();
 	const { references, add } = useLayerReferences();
 	const { get } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
+	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
 
@@ -61,7 +72,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	// This should initiate the drawing process.
 	const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
 		e.preventDefault();
-		isDrawing.current = mode !== "select" && !movingElement.current;
+		isDrawing.current = mode !== "select" && !isMovingElement.current;
 
 		const activeLayer = references.current.find((ref) =>
 			ref.classList.contains("active")
@@ -74,17 +85,12 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		});
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = utils.getCanvasPosition(
-			e.clientX,
-			e.clientY,
-			activeLayer,
-			dpi
-		);
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
 		if (mode === "draw") {
 			currentPath2D.current = new Path2D();
 			currentPath2D.current.moveTo(x, y);
-		} else if (mode === "eye_drop" && !isGrabbing && !movingElement.current) {
+		} else if (mode === "eye_drop" && !isGrabbing) {
 			// `.getImageData()` retreives the x and y coordinates of the pixel
 			// differently if the canvas is scaled. So, we need to multiply the
 			// x and y coordinates by the DPI to get the correct pixel.
@@ -111,8 +117,8 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			}
 
 			// The color picker only supports HSLA, so we need to convert the color to HSLA.
-			dispatch(changeColor(color.toString("hsla")));
-			dispatch(changeMode("select")); // Change the mode to select after the color is picked.
+			changeColor(color.toString("hsla"));
+			changeMode("select");
 		}
 
 		if (mode === "draw" || mode === "erase") {
@@ -141,12 +147,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = utils.getCanvasPosition(
-			e.clientX,
-			e.clientY,
-			activeLayer,
-			dpi
-		);
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
 		switch (mode) {
 			case "draw": {
@@ -155,7 +156,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					return;
 				}
 				ctx.strokeStyle = color;
-				ctx.lineWidth = drawStrength;
+				ctx.lineWidth = drawStrength * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
 
@@ -169,10 +170,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 
 			case "erase": {
 				ctx.clearRect(
-					x - (ERASER_RADIUS * eraserStrength) / 2,
-					y - (ERASER_RADIUS * eraserStrength) / 2,
-					ERASER_RADIUS * eraserStrength,
-					ERASER_RADIUS * eraserStrength
+					x - ((ERASER_RADIUS * eraserStrength) / 2) * dpi,
+					y - ((ERASER_RADIUS * eraserStrength) / 2) * dpi,
+					ERASER_RADIUS * eraserStrength * dpi,
+					ERASER_RADIUS * eraserStrength * dpi
 				);
 				break;
 			}
@@ -187,6 +188,32 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		if (isGrabbing) return;
 		isDrawing.current = false;
 
+		// A custom event to notify that the image of the layer
+		// displayed in the layer list needs to be updated.
+		// This event should only really be listened for by the
+		// LayerInfo component; however, other components may
+		// listen for this event if they need to update the image,
+		// if needed.
+
+		// Only fire the imageupdate event if the
+		// user actually drew/erased something.
+		if (currentPath.current.length > 0) {
+			const activeLayer = references.current.find((ref) =>
+				ref.classList.contains("active")
+			);
+
+			if (!activeLayer)
+				throw new Error("No active layer found. This is a bug.");
+
+			const imageUpdate = new CustomEvent("imageupdate", {
+				detail: {
+					layer: activeLayer
+				}
+			});
+
+			document.dispatchEvent(imageUpdate);
+		}
+
 		if (mode === "draw" || mode === "erase") {
 			// Save the action to the history.
 			// history.addHistory({
@@ -200,26 +227,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			// Clear the current path.
 			currentPath.current = [];
 		}
-
-		// A custom event to notify that the image of the layer
-		// displayed in the layer list needs to be updated.
-		// This event should only really be listened for by the
-		// LayerInfo component; however, other components may
-		// listen for this event if they need to update the image,
-		// if needed.
-
-		const activeLayer = references.current.find((ref) =>
-			ref.classList.contains("active")
-		);
-
-		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
-		const imageUpdate = new CustomEvent("imageupdate", {
-			detail: {
-				layer: activeLayer
-			}
-		});
-
-		document.dispatchEvent(imageUpdate);
 	};
 
 	const onMouseEnter = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -262,7 +269,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					return;
 				}
 
-				dispatch(setLayers(newLayers));
+				setLayers(newLayers);
 
 				resolve(sorted);
 			});
@@ -298,7 +305,27 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}
 
 		updateLayers();
-	}, [dispatch, get, references]);
+	}, [setLayers, get, references]);
+
+	useEffect(() => {
+		const canvas = references.current.find((ref) =>
+			ref.classList.contains("active")
+		);
+
+		if (!canvas) return;
+
+		const ctx = canvas.getContext("2d");
+
+		if (!ctx) return;
+
+		ctx.scale(dpi, dpi);
+
+		return () => {
+			if (ctx) {
+				ctx.scale(1 / dpi, 1 / dpi);
+			}
+		};
+	}, [dpi, references]);
 
 	const transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
 
@@ -313,7 +340,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 						key={layer.id}
 						data-testid="canvas-layer"
 						className={`canvas${layer.active ? " active" : ""}${
-							layer.hidden ? " hidden" : ""
+							layer.hidden && layers.length > 1 ? " hidden" : ""
 						}`}
 						style={{
 							width: `${width}px`,

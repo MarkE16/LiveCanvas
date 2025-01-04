@@ -2,7 +2,9 @@
 import { useRef, useEffect, useState } from "react";
 import * as UTILS from "../../utils";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { FC, RefObject } from "react";
@@ -18,10 +20,16 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 	isSelecting
 }) => {
 	const { references } = useLayerReferences();
+	const { focusElement, unfocusElement } = useStore(
+		useShallow((state) => ({
+			focusElement: state.focusElement,
+			unfocusElement: state.unfocusElement
+		}))
+	);
+	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const rectRef = useRef<HTMLDivElement>(null);
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [rect, setRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
-	const { focusElement, unfocusElement, movingElement } = useCanvasElements();
 
 	useEffect(() => {
 		const checkIntersections = (e: MouseEvent) => {
@@ -82,7 +90,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 		};
 
 		const handleMouseMove = (e: MouseEvent) => {
-			if (e.buttons !== 1 || movingElement.current || !isSelecting.current)
+			if (e.buttons !== 1 || isMovingElement.current || !isSelecting.current)
 				return;
 
 			const { left, top } = canvasSpace.getBoundingClientRect();
@@ -174,7 +182,7 @@ const CanvasPointerSelection: FC<CanvasPointerSelectionProps> = ({
 			// document.removeEventListener("keydown", handleKeyboardDown);
 			// window.removeEventListener("resize", handleReset);
 		};
-	}, [canvasSpaceReference, references, movingElement, isSelecting]);
+	}, [canvasSpaceReference, references, isSelecting, isMovingElement]);
 
 	return (
 		<div

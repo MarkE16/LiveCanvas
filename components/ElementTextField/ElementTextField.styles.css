@@ -1,0 +1,18 @@
+textarea.element,
+span.element {
+	display: block;
+	width: 100%;
+	min-width: 20px;
+	border: none;
+	word-break: break-word;
+	outline: none;
+	resize: none;
+	background: transparent;
+	overflow: hidden;
+}
+
+textarea.element {
+	font-size: 1em;
+	color: white;
+	height: 100%;
+}

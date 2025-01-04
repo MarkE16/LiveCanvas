@@ -1,62 +1,51 @@
 // Lib
-import * as UTILS from "../../utils";
-import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import { SHAPES } from "../../state/store";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
 import { memo, Fragment } from "react";
-
-// Redux Actions
-import {
-	changeDrawStrength,
-	changeEraserStrength,
-	changeColor
-} from "../../state/slices/canvasSlice";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Type
 import type { FC, ChangeEvent, ReactElement, MouseEvent } from "react";
-import type { Shape } from "../../types";
 
 // Components
-import { Tooltip } from "@mui/material";
 import ColorPicker from "../ColorPicker/ColorPicker";
+import ShapeOption from "../ShapeOption/ShapeOption";
 
 // Styles
 import "./DrawingToolbar.styles.css";
 
 const MemoizedColorPicker = memo(ColorPicker);
-
-const ShapeOption = ({ icon, name }: { icon: string; name: Shape }) => {
-	const { createElement } = useCanvasElements();
-
-	const handleShapeChange = () => {
-		createElement(name);
-	};
-
-	return (
-		<Tooltip
-			title={UTILS.capitalize(name)}
-			arrow
-			placement="bottom"
-		>
-			<span>
-				<button
-					className="shape-option"
-					onClick={handleShapeChange}
-					data-testid={`shape-${name}`}
-				>
-					<i className={`fa ${icon}`} />
-				</button>
-			</span>
-		</Tooltip>
-	);
-};
+const MemoizedShapeOption = memo(ShapeOption);
 
 const DrawingToolbar: FC = () => {
-	const { drawStrength, eraserStrength, mode, color } = useAppSelector(
-		(state) => state.canvas
+	const {
+		mode,
+		drawStrength,
+		eraserStrength,
+		changeDrawStrength,
+		changeEraserStrength,
+		changeColorAlpha
+	} = useStore(
+		useShallow((state) => ({
+			mode: state.mode,
+			drawStrength: state.drawStrength,
+			eraserStrength: state.eraserStrength,
+			changeDrawStrength: state.changeDrawStrength,
+			changeEraserStrength: state.changeEraserStrength,
+			changeColorAlpha: state.changeColorAlpha
+		}))
 	);
-	const { elements } = useCanvasElements();
-	const dispatch = useAppDispatch();
+	const elements = useStore(
+		(state) => state.elements,
+		(a, b) =>
+			a.length === b.length &&
+			a.every(
+				(el, i) =>
+					el.focused === b[i].focused &&
+					el.fill === b[i].fill &&
+					el.stroke === b[i].stroke
+			)
+	);
 	const focusedElements = elements.filter((element) => element.focused);
 
 	const strengthSettings =
@@ -76,28 +65,22 @@ const DrawingToolbar: FC = () => {
 		const strength = Number(e.target.value);
 
 		if (mode === "draw") {
-			dispatch(changeDrawStrength(strength));
+			changeDrawStrength(strength);
 		} else {
-			dispatch(changeEraserStrength(strength));
+			changeEraserStrength(strength);
 		}
 	};
 
-	// Looks ugly. Might need to refactor
 	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
-		const value = e.target.value;
-
-		const currentColorAsArray = color.slice(5, -1).split(",");
-
-		const newColor = `hsla(${currentColorAsArray[0]}, ${currentColorAsArray[1]}, ${currentColorAsArray[2]}, ${value})`;
-
-		dispatch(changeColor(newColor));
+		const value = Number(e.target.value);
+		changeColorAlpha(value);
 	};
 
 	const renderedShapes = SHAPES.map((s) => {
 		const { icon, name } = s;
 
 		return (
-			<ShapeOption
+			<MemoizedShapeOption
 				key={name}
 				icon={icon}
 				name={name}
@@ -194,6 +177,8 @@ const DrawingToolbar: FC = () => {
 	return (
 		<div
 			id="drawing-toolbar"
+			data-testid="drawing-toolbar"
+			role="toolbar"
 			onMouseDown={stopPropagation}
 			onMouseMove={stopPropagation}
 		>

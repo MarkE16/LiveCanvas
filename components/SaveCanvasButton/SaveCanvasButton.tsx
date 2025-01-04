@@ -55,7 +55,7 @@ const SaveCanvasButton: FC = () => {
 				const fill = element.getAttribute("data-fill") ?? "#000000";
 				const stroke = element.getAttribute("data-stroke") ?? "#000000";
 				const layerId = element.getAttribute("data-layerid");
-				const fontSize = element.getAttribute("data-fontsize") ?? 25;
+				const fontSize = element.getAttribute("data-fontsize") ?? undefined;
 				const fontFamily = element.getAttribute("data-fontfamily") ?? undefined;
 				const fontContent =
 					element.getAttribute("data-fontcontent") ?? undefined;
@@ -64,7 +64,7 @@ const SaveCanvasButton: FC = () => {
 
 				if (!layerId) {
 					throw new Error(
-						"Cannot save canvas: no layer id found. This is a bug."
+						`No layerId found for element with id: ${id}. This is a bug.`
 					);
 				}
 

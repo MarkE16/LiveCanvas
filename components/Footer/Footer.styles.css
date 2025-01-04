@@ -1,11 +1,7 @@
 #footer-container {
-	display: flex;
-	align-items: flex-start;
-	padding: 1rem 0 0 8px;
 	flex-direction: column;
 	min-height: fit-content;
 	height: auto;
-	overflow-x: hidden;
 	border-top: 1px solid gray;
 }
 

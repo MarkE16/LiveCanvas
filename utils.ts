@@ -90,29 +90,19 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
  * @param x The x-coordinate to calculate.
  * @param y The y-coordinate to calculate.
  * @param canvas The canvas element.
- * @param dpi The device pixel ratio. Defaults to `window.devicePixelRatio`.
- * @param accountForDpi Whether to account for the device pixel ratio. Defaults to `true`.
  * @returns The an X and Y coordinate relative to the canvas.
  */
 const getCanvasPosition = (
 	x: number,
 	y: number,
-	canvas: HTMLCanvasElement,
-	dpi: number = window.devicePixelRatio,
-	accountForDpi: boolean = true
+	canvas: HTMLCanvasElement
 ): Coordinates => {
 	const rect = canvas.getBoundingClientRect();
 	const scaleX = canvas.width / rect.width;
 	const scaleY = canvas.height / rect.height;
-	const calculatedDpi = dpi || window.devicePixelRatio || 1;
 
-	let computedX = (x - rect.left) * scaleX;
-	let computedY = (y - rect.top) * scaleY;
-
-	if (accountForDpi) {
-		computedX /= calculatedDpi;
-		computedY /= calculatedDpi;
-	}
+	const computedX = (x - rect.left) * scaleX;
+	const computedY = (y - rect.top) * scaleY;
 
 	return { x: computedX, y: computedY };
 };
@@ -219,7 +209,8 @@ type ExportedElement = {
 const generateCanvasImage = async (
 	layers: HTMLCanvasElement | HTMLCanvasElement[],
 	elements: Element[],
-	quality: number = 1
+	quality: number = 1,
+	accountForDPI: boolean = false
 ): Promise<Blob> => {
 	if (quality > 1 || quality < 0) {
 		throw new Error(
@@ -235,6 +226,11 @@ const generateCanvasImage = async (
 	const substituteCanvas = document.createElement("canvas");
 	const referenceLayer = isArray ? layers[0] : layers;
 	const { width, height } = referenceLayer;
+	const dpi = Number(referenceLayer.getAttribute("data-dpi"));
+
+	if (!dpi) {
+		throw new Error("Failed to get DPI from canvas when attempting to export.");
+	}
 
 	substituteCanvas.width = width;
 	substituteCanvas.height = height;
@@ -244,6 +240,12 @@ const generateCanvasImage = async (
 		throw new Error(
 			"Failed to get 2D context from canvas when attempting to export."
 		);
+	}
+
+	if (accountForDPI) {
+		substituteCanvas.width *= dpi;
+		substituteCanvas.height *= dpi;
+		ctx.scale(dpi, dpi);
 	}
 
 	// Set white background
@@ -301,16 +303,12 @@ const generateCanvasImage = async (
 				const { x: startX, y: startY } = getCanvasPosition(
 					eX + element.spaceLeft,
 					eY + element.spaceTop,
-					layer,
-					0,
-					false
+					layer
 				);
 				const { x: endX, y: endY } = getCanvasPosition(
 					eX + eWidth + element.spaceLeft,
 					eY + eHeight + element.spaceTop,
-					layer,
-					0,
-					false
+					layer
 				);
 
 				const width = endX - startX;

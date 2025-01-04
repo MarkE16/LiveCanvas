@@ -2,12 +2,8 @@
 import { expect, it, describe, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as ReduxHooks from "../../state/hooks/reduxHooks";
 import { MODES } from "../../state/store";
-import * as UTILS from "../../utils";
-
-// Redux Actions
-import { changeMode } from "../../state/slices/canvasSlice";
+import * as Utils from "../../utils";
 
 // Components
 import LeftToolbar from "../../components/LeftToolbar/LeftToolbar";
@@ -17,9 +13,7 @@ vi.mock("../../renderer/usePageContext", () => ({
 }));
 
 describe("Left Toolbar functionality", () => {
-	const mockDispatch = vi.fn();
 	beforeEach(() => {
-		vi.spyOn(ReduxHooks, "useAppDispatch").mockReturnValue(mockDispatch);
 		renderWithProviders(<LeftToolbar />);
 	});
 
@@ -35,14 +29,14 @@ describe("Left Toolbar functionality", () => {
 		for (const mode of MODES) {
 			const button = screen.getByTestId(`tool-${mode.name}`);
 
-			expect(button).not.toBeNull();
+			expect(button).toBeInTheDocument();
 		}
 	});
 
 	it("should properly show tooltips on hover", async () => {
 		for (const mode of MODES) {
 			const button = screen.getByTestId(`tool-${mode.name}`);
-			const modeNameCapitalized = UTILS.capitalize(mode.name, {
+			const modeNameCapitalized = Utils.capitalize(mode.name, {
 				titleCase: true,
 				delimiter: "_"
 			}).replace("_", " ");
@@ -78,14 +72,13 @@ describe("Left Toolbar functionality", () => {
 				// These aren't necessarily modes that we can change to; they're just actions. So, we skip them.
 				break;
 			}
-			expect(mockDispatch).toHaveBeenCalledTimes(i - 1);
+			expect(mode.classList).not.toContain("active");
+			expect(previousMode.classList).toContain("active");
 
 			fireEvent.click(mode);
 
-			expect(mockDispatch).toHaveBeenCalledTimes(i);
-			expect(mockDispatch).toHaveBeenCalledWith(changeMode(MODES[i].name));
+			expect(mode.classList).toContain("active");
+			expect(previousMode.classList).not.toContain("active");
 		}
-
-		expect(mockDispatch).toHaveBeenCalledTimes(MODES.length - 3);
 	});
 });

@@ -10,14 +10,10 @@ import {
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as ReduxHooks from "../../state/hooks/reduxHooks";
 import ColorWheel from "../../components/ColorWheel/ColorWheel";
 
-// Redux Actions
-import { changeColor } from "../../state/slices/canvasSlice";
-
 // Types
-import type { CanvasState } from "../../types";
+import type { CanvasStore } from "../../types";
 import { Color, parseColor } from "react-aria-components";
 import { PropsWithChildren } from "react";
 
@@ -67,30 +63,24 @@ vi.mock("react-aria-components", async (importOriginal) => {
 });
 
 describe("ColorWheel functionality", () => {
-	const dispatchMock = vi.fn();
-
-	const preloadedState: { canvas: CanvasState } = {
-		canvas: {
-			width: 400,
-			height: 400,
-			mode: "select",
-			drawStrength: 5,
-			eraserStrength: 3,
-			scale: 1,
-			dpi: 1,
-			position: { x: 0, y: 0 },
-			layers: [
-				{ name: "Layer 1", id: "1", active: true, hidden: false },
-				{ name: "Layer 2", id: "2", active: false, hidden: false }
-			],
-			color: "hsla(0, 100%, 50%, 1)" // Default red color
-		}
+	const preloadedState: Partial<CanvasStore> = {
+		width: 400,
+		height: 400,
+		mode: "select",
+		drawStrength: 5,
+		eraserStrength: 3,
+		scale: 1,
+		dpi: 1,
+		position: { x: 0, y: 0 },
+		layers: [
+			{ name: "Layer 1", id: "1", active: true, hidden: false },
+			{ name: "Layer 2", id: "2", active: false, hidden: false }
+		],
+		color: "hsla(0, 100%, 50%, 1)", // Default red color,
+		changeColor: vi.fn()
 	};
 
 	beforeEach(() => {
-		// Mock Redux dispatch function
-		vi.spyOn(ReduxHooks, "useAppDispatch").mockReturnValue(dispatchMock);
-
 		renderWithProviders(<ColorWheel />, { preloadedState });
 	});
 
@@ -120,13 +110,13 @@ describe("ColorWheel functionality", () => {
 		// Check initial Redux state
 		expect(mockColorWheelProps).toHaveBeenCalledWith(
 			expect.objectContaining({
-				value: preloadedState.canvas.color
+				value: preloadedState.color
 			})
 		);
 
 		expect(mockColorAreaProps).toHaveBeenCalledWith(
 			expect.objectContaining({
-				value: preloadedState.canvas.color
+				value: preloadedState.color
 			})
 		);
 	});
@@ -137,10 +127,9 @@ describe("ColorWheel functionality", () => {
 		fireEvent.click(colorWheel);
 
 		// Assert that dispatch was called with the correct action
-		expect(dispatchMock).toHaveBeenCalledWith(
-			changeColor(mockColor.toString())
+		expect(preloadedState.changeColor).toHaveBeenCalledWith(
+			mockColor.toString()
 		);
-		expect(dispatchMock).toHaveBeenCalledOnce();
 	});
 
 	it("should properly update to a new color when changing through color area", () => {
@@ -149,10 +138,9 @@ describe("ColorWheel functionality", () => {
 		fireEvent.click(colorArea);
 
 		// Assert that dispatch was called with the correct action
-		expect(dispatchMock).toHaveBeenCalledWith(
-			changeColor(mockColor.toString())
+		expect(preloadedState.changeColor).toHaveBeenCalledWith(
+			mockColor.toString()
 		);
-		expect(dispatchMock).toHaveBeenCalledOnce();
 	});
 
 	it("should render the color area with the correct channels", () => {

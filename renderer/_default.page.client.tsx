@@ -2,10 +2,9 @@ export { render };
 
 import { hydrateRoot } from "react-dom/client";
 import { PageShell } from "./PageShell";
-import { Provider } from "react-redux";
-import { createStore } from "../state/store";
+import { StoreProvider } from "../components/StoreContext/StoreContext";
 import type { PageContextClient } from "./types";
-import type { RootState } from "../state/store";
+import { initializeStore } from "../state/store";
 
 // This render() hook only supports SSR, see https://vite-plugin-ssr.com/render-modes for how to modify render() to support SPA
 async function render(pageContext: PageContextClient) {
@@ -22,7 +21,7 @@ async function render(pageContext: PageContextClient) {
 	// For more information about how window.__PRELOADED_STATE__ is set, see _default.page.server.tsx
 	// eslint-disable-next-line
 	// @ts-ignore
-	const store = createStore(window.__PRELOADED_STATE__ as Partial<RootState>);
+	const store = initializeStore(window.__PRELOADED_STATE__ as Partial<Store>);
 
 	// To be garbage collected
 	// eslint-disable-next-line
@@ -41,9 +40,9 @@ async function render(pageContext: PageContextClient) {
 	hydrateRoot(
 		root,
 		<PageShell pageContext={pageContext}>
-			<Provider store={store}>
+			<StoreProvider store={store}>
 				<Page {...pageProps} />
-			</Provider>
+			</StoreProvider>
 		</PageShell>
 	);
 }

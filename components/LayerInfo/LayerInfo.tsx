@@ -1,16 +1,8 @@
 // Lib
-import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
-import { useCallback, useEffect, useRef, useState, memo } from "react";
+import { useCallback, useState, memo } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
-// Redux Actions
-import {
-	toggleVisibility,
-	toggleLayer,
-	removeLayer,
-	moveLayerDown,
-	moveLayerUp,
-	renameLayer
-} from "../../state/slices/canvasSlice";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
+import { useShallow } from "zustand/react/shallow";
 
 // Icons
 import Eye from "../icons/Eye/Eye";
@@ -28,9 +20,11 @@ import "./LayerInfo.styles.css";
 // Components
 import { Tooltip } from "@mui/material";
 import LayerPreview from "../LayerPreview/LayerPreview";
+import useStore from "../../state/hooks/useStore";
 
 type LayerInfoProps = Layer & {
-	positionIndex: number;
+	canMoveUp: boolean;
+	canMoveDown: boolean;
 };
 
 const MemoizedLayerPreview = memo(LayerPreview);
@@ -40,14 +34,30 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	id,
 	active,
 	hidden,
-	positionIndex
+	canMoveUp,
+	canMoveDown
 }) => {
-	const layers = useAppSelector((state) => state.canvas.layers);
-	const totalLayers = layers.length;
-	const hiddenLayers = layers.filter((layer) => layer.hidden).length;
-	const dispatch = useAppDispatch();
-	const nameRef = useRef<HTMLSpanElement>(null);
+	const {
+		toggleLayer,
+		toggleVisibility,
+		moveLayerUp,
+		moveLayerDown,
+		removeLayer,
+		renameLayer,
+		changeElementProperties
+	} = useStore(
+		useShallow((state) => ({
+			toggleVisibility: state.toggleLayerVisibility,
+			toggleLayer: state.toggleLayer,
+			moveLayerDown: state.moveLayerDown,
+			moveLayerUp: state.moveLayerUp,
+			renameLayer: state.renameLayer,
+			removeLayer: state.removeLayer,
+			changeElementProperties: state.changeElementProperties
+		}))
+	);
 	const { remove } = useIndexed();
+	const { references } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =
@@ -67,23 +77,39 @@ const LayerInfo: FC<LayerInfoProps> = ({
 		cn += " editing";
 	}
 
-	const onToggle = () => dispatch(toggleLayer(id));
+	const onToggle = () => toggleLayer(id);
 
-	const onToggleVisibility = () => dispatch(toggleVisibility(id));
+	const onToggleVisibility = () => toggleVisibility(id);
 
 	const onDelete = () => {
 		if (!window.confirm("Are you sure you want to delete " + name + "?"))
 			return;
 
-		dispatch(removeLayer(id));
+		removeLayer(id);
 		remove("layers", id);
+
+		const elementsWithLayer = Array.from(
+			document.getElementsByClassName("element")
+		)
+			.filter((element) => element.id === id)
+			.map((element) => element.id);
+
+		// Change the layerId of the elements to the first layer
+		// if the deleted layer has any elements.
+		changeElementProperties(
+			(state) => ({
+				...state,
+				layerId: references.current[0].id
+			}),
+			...elementsWithLayer
+		);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {
 		if (dir === "up") {
-			dispatch(moveLayerUp(id));
+			moveLayerUp(id);
 		} else {
-			dispatch(moveLayerDown(id));
+			moveLayerDown(id);
 		}
 	};
 
@@ -91,30 +117,17 @@ const LayerInfo: FC<LayerInfoProps> = ({
 		setIsEditing((prev) => !prev);
 
 		if (isEditing) {
-			dispatch(renameLayer({ id, newName: editedName }));
+			renameLayer({ id, newName: editedName });
 			return;
 		}
-	}, [dispatch, id, isEditing, editedName]);
+	}, [id, isEditing, editedName, renameLayer]);
 
-	useEffect(() => {
-		const ref = nameRef.current;
-
-		if (!ref) return;
-
-		ref.addEventListener("dblclick", onRename);
-
-		return () => {
-			ref.removeEventListener("dblclick", onRename);
-		};
-	}, [dispatch, onRename]);
-
-	let hiddenTooltipText = "Hide";
-
-	if (hiddenLayers === totalLayers - 1 && !hidden) {
-		hiddenTooltipText = "One layer must be visible";
-	} else if (hidden) {
-		hiddenTooltipText = "Show";
-	}
+	const visibilityTooltipText =
+		!canMoveUp && !canMoveDown
+			? "Two or more layers must be present to toggle."
+			: hidden
+				? "Show"
+				: "Hide";
 
 	return (
 		<label
@@ -140,8 +153,8 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						<button
 							className="layer-up"
 							data-testid={`up-${id}`}
+							disabled={!canMoveUp}
 							onClick={() => onMoveLayer("up")}
-							disabled={positionIndex === 0}
 						>
 							<i className="fas fa-angle-up"></i>
 						</button>
@@ -155,9 +168,9 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					<span>
 						<button
 							className="layer-down"
+							disabled={!canMoveDown}
 							onClick={() => onMoveLayer("down")}
 							data-testid={`down-${id}`}
-							disabled={positionIndex === totalLayers - 1}
 						>
 							<i className="fas fa-angle-down"></i>
 						</button>
@@ -196,7 +209,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					<span
 						className="layer-info-name"
 						data-testid={`name-${id}`}
-						ref={nameRef}
+						onDoubleClick={onRename}
 					>
 						{name}
 					</span>
@@ -220,7 +233,8 @@ const LayerInfo: FC<LayerInfoProps> = ({
 					</Tooltip>
 					{!isEditing && (
 						<>
-							{totalLayers > 1 && (
+							{/* if we cannot move up or down, then there should be only one layer; we don't want to be able to delete the layer in this case. */}
+							{(canMoveUp || canMoveDown) && (
 								<Tooltip
 									title="Delete"
 									arrow
@@ -236,13 +250,13 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								</Tooltip>
 							)}
 							<Tooltip
-								title={hiddenTooltipText}
+								title={visibilityTooltipText}
 								arrow
 								placement="top"
 							>
 								<button
 									onClick={onToggleVisibility}
-									disabled={hiddenLayers === totalLayers - 1 && !hidden}
+									disabled={!canMoveUp && !canMoveDown}
 									data-testid={`toggle-${id}`}
 								>
 									<Eye lineCross={hidden} />

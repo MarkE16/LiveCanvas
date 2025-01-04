@@ -1,11 +1,8 @@
 // Lib
 import { useCallback, useEffect } from "react";
-import { useAppDispatch } from "../../state/hooks/reduxHooks";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 import * as UTILS from "../../utils";
-import useHistory from "../../state/hooks/useHistory";
-
-// Redux Actions
-import { changeMode } from "../../state/slices/canvasSlice";
 
 // Types
 import type { Mode, ToolbarMode } from "../../types";
@@ -44,8 +41,15 @@ const ICONS: Record<Mode, ReactElement> = {
 };
 
 const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
-	const dispatch = useAppDispatch();
-	const { undo, undoAction, redo, redoAction } = useHistory();
+	const { changeMode, undoStack, redoStack, undo, redo } = useStore(
+		useShallow((state) => ({
+			changeMode: state.changeMode,
+			undoStack: state.undoStack,
+			redoStack: state.redoStack,
+			undo: state.undo,
+			redo: state.redo
+		}))
+	);
 	const tooltip =
 		UTILS.capitalize(name, {
 			titleCase: true,
@@ -54,13 +58,13 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 
 	const performAction = useCallback(() => {
 		if (name === "undo") {
-			undoAction();
+			undo();
 		} else if (name === "redo") {
-			redoAction();
+			redo();
 		} else {
-			dispatch(changeMode(name));
+			changeMode(name);
 		}
-	}, [dispatch, undoAction, redoAction, name]);
+	}, [undo, redo, name, changeMode]);
 
 	useEffect(() => {
 		function handleShortcut(e: KeyboardEvent) {
@@ -87,7 +91,7 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 		return () => {
 			window.removeEventListener("keydown", handleShortcut);
 		};
-	}, [performAction, shortcut, dispatch]);
+	}, [performAction, shortcut]);
 
 	return (
 		<Tooltip
@@ -104,9 +108,9 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 					onClick={performAction}
 					disabled={
 						name === "undo"
-							? !undo.length
+							? !undoStack.length
 							: name === "redo"
-								? !redo.length
+								? !redoStack.length
 								: false
 					}
 				>

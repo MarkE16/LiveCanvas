@@ -1,16 +1,11 @@
 // Lib
-import { useAppDispatch, useAppSelector } from "../../state/hooks/reduxHooks";
 import { useRef, useEffect, useState, memo } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
+import useWindowDimensions from "../../state/hooks/useWindowDimesions";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Redux Actions
-import {
-	changeX,
-	changeY,
-	increaseScale,
-	decreaseScale
-} from "../../state/slices/canvasSlice";
 
 // Components
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
@@ -25,16 +20,37 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
-import useWindowDimensions from "../../state/hooks/useWindowDimesions";
 
 const MemoizedShapeElement = memo(ShapeElement);
+const MemoizedCanvas = memo(Canvas);
+const MemoizedDrawingToolbar = memo(DrawingToolbar);
 
 const CanvasPane: FC = () => {
-	const mode = useAppSelector(
-		(state) => state.canvas.mode,
-		(prev, next) => prev === next
+	const {
+		mode,
+		changeX,
+		changeY,
+		increaseScale,
+		decreaseScale,
+		elements,
+		changeElementProperties,
+		copyElement,
+		pasteElement,
+		createElement
+	} = useStore(
+		useShallow((state) => ({
+			mode: state.mode,
+			changeX: state.changeX,
+			changeY: state.changeY,
+			increaseScale: state.increaseScale,
+			decreaseScale: state.decreaseScale,
+			elements: state.elements,
+			changeElementProperties: state.changeElementProperties,
+			copyElement: state.copyElement,
+			pasteElement: state.pasteElement,
+			createElement: state.createElement
+		}))
 	);
-	const dispatch = useAppDispatch();
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const isSelecting = useRef<boolean>(false);
@@ -42,13 +58,7 @@ const CanvasPane: FC = () => {
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const { references } = useLayerReferences();
 	const dimensions = useWindowDimensions();
-	const {
-		elements,
-		changeElementProperties,
-		copyElement,
-		pasteElement,
-		createElement
-	} = useCanvasElements();
+
 	const canMove = mode === "move" || shiftKey;
 	const isMoving = canMove && isGrabbing;
 
@@ -66,25 +76,10 @@ const CanvasPane: FC = () => {
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 			const isOnCanvas = isClickingOnSpace(e);
-			setIsGrabbing(isOnCanvas);
 
-			if (
-				mode === "text" &&
-				canvasSpace?.contains(e.target as Node) &&
-				e.target !== canvasSpace
-			) {
-				const rect = canvasSpace.getBoundingClientRect();
-				createElement("text", {
-					x: e.clientX - rect.left,
-					y: e.clientY - rect.top,
-					width: 100,
-					height: 30,
-					focused: true,
-					fontSize: 26,
-					fontFamily: "Arial",
-					fontContent: "Text"
-				});
-			}
+			if (!isOnCanvas) return;
+
+			setIsGrabbing(isOnCanvas);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -121,8 +116,8 @@ const CanvasPane: FC = () => {
 			}
 
 			// Apply the changes.
-			dispatch(changeX(dx));
-			dispatch(changeY(dy));
+			changeX(dx);
+			changeY(dy);
 
 			// We grab the elements using the class name "element"
 			// rather than the state variable so that this effect
@@ -165,10 +160,10 @@ const CanvasPane: FC = () => {
 
 			if (e.key === "+") {
 				e.preventDefault();
-				dispatch(increaseScale());
+				increaseScale();
 			} else if (e.key === "_") {
 				e.preventDefault();
-				dispatch(decreaseScale());
+				decreaseScale();
 			}
 
 			if (e.type === "keyup") {
@@ -192,13 +187,15 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleZoom(e: Event) {
+			if (!canvasSpace) return;
+
 			if (e instanceof WheelEvent) {
 				if (!e.shiftKey) return;
 
 				if (e.deltaY > 0) {
-					dispatch(decreaseScale());
+					decreaseScale();
 				} else {
-					dispatch(increaseScale());
+					increaseScale();
 				}
 				// Handle the click event
 			} else if (e instanceof MouseEvent) {
@@ -208,9 +205,28 @@ const CanvasPane: FC = () => {
 				if (e.buttons === 0 && !e.shiftKey) {
 					// Left click
 					if (mode === "zoom_in") {
-						dispatch(increaseScale());
+						increaseScale();
 					} else if (mode === "zoom_out") {
-						dispatch(decreaseScale());
+						decreaseScale();
+					} else if (mode === "text") {
+						const activeLayer = references.current.find((ref) =>
+							ref.classList.contains("active")
+						);
+
+						if (!activeLayer) throw new Error("No active layer found");
+
+						const rect = canvasSpace.getBoundingClientRect();
+						createElement("text", {
+							x: e.clientX - rect.left,
+							y: e.clientY - rect.top,
+							width: 100,
+							height: 30,
+							focused: true,
+							fontSize: 26,
+							fontFamily: "Arial",
+							fontContent: "Text",
+							layerId: activeLayer?.id
+						});
 					} else {
 						return; // We don't want to zoom if the mode is not zoom
 					}
@@ -258,7 +274,6 @@ const CanvasPane: FC = () => {
 			window.removeEventListener("resize", onWindowResize);
 		};
 	}, [
-		dispatch,
 		mode,
 		isGrabbing,
 		canMove,
@@ -267,10 +282,12 @@ const CanvasPane: FC = () => {
 		dimensions,
 		copyElement,
 		pasteElement,
-		createElement
+		createElement,
+		increaseScale,
+		decreaseScale,
+		changeX,
+		changeY
 	]);
-
-	console.log(elements);
 
 	return (
 		<div
@@ -289,7 +306,7 @@ const CanvasPane: FC = () => {
 					isSelecting={isSelecting}
 				/>
 			)}
-			<DrawingToolbar />
+			<MemoizedDrawingToolbar />
 
 			{elements.map((element) => (
 				<MemoizedShapeElement
@@ -307,7 +324,7 @@ const CanvasPane: FC = () => {
 				data-grabbing={canMove && isGrabbing}
 				data-mode={mode}
 			>
-				<Canvas isGrabbing={isMoving} />
+				<MemoizedCanvas isGrabbing={isMoving} />
 			</div>
 		</div>
 	);

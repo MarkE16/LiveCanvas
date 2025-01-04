@@ -1,52 +1,45 @@
-import { History } from "../../types";
-import { createSlice } from "@reduxjs/toolkit";
+import type { StateCreator } from "zustand";
+import type { HistoryAction, HistoryStore } from "../../types";
 
-const initialState: History = {
-	undo: [],
-	redo: []
-};
-
-const historySlice = createSlice({
-	name: "history",
-	initialState,
-	reducers: {
-		undo: (state) => {
-			const lastAction = state.undo[state.undo.length - 1];
-
-			if (!lastAction) return state;
-
-			return {
-				undo: state.undo.slice(0, -1),
-				redo: [...state.redo, lastAction]
-			};
-		},
-		redo: (state) => {
-			const lastAction = state.redo[state.redo.length - 1];
-
-			if (!lastAction) return state;
-
-			return {
-				undo: [...state.undo, lastAction],
-				redo: state.redo.slice(0, -1)
-			};
-		},
-		saveAction: (state, action) => {
-			let prevActions = state.undo;
-
-			if (state.undo.length === 20) {
-				const [, ...rest] = state.undo;
-
-				prevActions = [...rest];
-			}
-
-			return {
-				undo: [...prevActions, action.payload],
-				redo: []
-			};
-		}
+export const createHistorySlice: StateCreator<
+	HistoryStore,
+	[],
+	[],
+	HistoryStore
+> = (set, get) => {
+	function push(action: HistoryAction) {
+		set((state) => ({
+			undoStack: [action, ...state.undoStack],
+			redoStack: []
+		}));
 	}
-});
 
-export const { undo, redo, saveAction } = historySlice.actions;
+	function undo() {
+		const { undoStack, redoStack } = get();
 
-export default historySlice.reducer;
+		if (!undoStack.length) return; // Nothing to undo
+
+		set(() => ({
+			undoStack: undoStack.slice(1),
+			redoStack: [undoStack[0], ...redoStack]
+		}));
+	}
+
+	function redo() {
+		const { redoStack, undoStack } = get();
+		if (!redoStack.length) return; // Nothing to redo
+		
+		set(() => ({
+			undoStack: [redoStack[0], ...undoStack],
+			redoStack: redoStack.slice(1)
+		}));
+	}
+
+	return {
+		undoStack: [],
+		redoStack: [],
+		push,
+		undo,
+		redo
+	};
+};

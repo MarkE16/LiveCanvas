@@ -42,7 +42,7 @@ const LayerReferencesProvider: FC<{ children: ReactNode }> = ({ children }) => {
 			throw new Error("Index out of bounds.");
 		}
 		const [removed] = references.current.splice(index, 1);
-		return removed;
+    return removed;
 	}, []);
 
 	const value = useMemo(

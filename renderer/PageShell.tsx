@@ -3,8 +3,8 @@ import { PageContextProvider } from "./usePageContext";
 import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
 import type { PageContext } from "./types";
 import "./PageShell.css";
-import { CanvasElementsProvider } from "../components/CanvasElementsProvider/CanvasElementsProvider";
 import { LayerReferencesProvider } from "../components/LayerReferencesProvider/LayerReferencesProvider";
+import { StoreProvider } from "../components/StoreContext/StoreContext";
 
 export { PageShell };
 
@@ -20,7 +20,9 @@ function PageShell({
 			<PageContextProvider pageContext={pageContext}>
 				<IndexedDBProvider>
 					<LayerReferencesProvider>
-						<CanvasElementsProvider>{children}</CanvasElementsProvider>
+						<StoreProvider>
+						{children}
+						</StoreProvider>
 					</LayerReferencesProvider>
 				</IndexedDBProvider>
 			</PageContextProvider>

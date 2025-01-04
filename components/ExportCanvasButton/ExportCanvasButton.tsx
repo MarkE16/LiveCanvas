@@ -10,7 +10,12 @@ const ExportCanvasButton: FC = () => {
 
 	const handleExport = async () => {
 		const elements = Array.from(document.getElementsByClassName("element"));
-		const blob = await UTILS.generateCanvasImage(references.current, elements);
+		const blob = await UTILS.generateCanvasImage(
+			references.current,
+			elements,
+			1,
+			true
+		);
 
 		const url = URL.createObjectURL(blob);
 

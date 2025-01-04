@@ -6,9 +6,9 @@ import ReactDOMServer from "react-dom/server";
 import { PageShell } from "./PageShell";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import logo from "../assets/icons/IdeaDrawnNewLogo.png";
-import { Provider } from "react-redux";
-import { createStore } from "../state/store";
 import type { PageContextServer } from "./types";
+import { initializeStore } from "../state/store";
+import { StoreProvider } from "../components/StoreContext/StoreContext";
 
 async function render(pageContext: PageContextServer) {
 	const { Page, pageProps } = pageContext;
@@ -16,12 +16,12 @@ async function render(pageContext: PageContextServer) {
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
-	const store = createStore();
+  const store = initializeStore();
 	const pageHtml = ReactDOMServer.renderToString(
 		<PageShell pageContext={pageContext}>
-			<Provider store={store}>
-				<Page {...pageProps} />
-			</Provider>
+			<StoreProvider store={store}>
+			 <Page {...pageProps} />
+			</StoreProvider>
 		</PageShell>
 	);
 

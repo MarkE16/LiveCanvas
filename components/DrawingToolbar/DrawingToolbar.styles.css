@@ -9,6 +9,7 @@
 	min-height: 46px;
 	border-radius: 25px;
 	background-color: #303744;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 	padding: 0.5em 1.5em;
 	overflow: auto;
 	z-index: 100;

@@ -4,7 +4,7 @@
 		"prod": "npm run lint && npm run build && npm run server:prod",
 		"build": "vite build",
 		"serve": "vite preview",
-		"test": "vitest --run --silent --reporter=verbose",
+		"test": "vitest --run --reporter=verbose",
 		"coverage": "vitest --run --silent --coverage",
 		"server": "node --loader ts-node/esm ./server/index.ts",
 		"server:dev": "npm run server",
@@ -46,13 +46,13 @@
 		"react": "^19.0.0",
 		"react-aria-components": "^1.4.0",
 		"react-dom": "^19.0.0",
-		"react-redux": "^9.1.2",
 		"sirv": "^2.0.3",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.1.6",
 		"uuid": "^10.0.0",
 		"vite": "^4.4.9",
-		"vite-plugin-ssr": "^0.4.142"
+		"vite-plugin-ssr": "^0.4.142",
+		"zustand": "^5.0.2"
 	},
 	"devDependencies": {
 		"@testing-library/jest-dom": "^6.6.1",

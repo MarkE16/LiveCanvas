@@ -1,8 +1,9 @@
 // Lib
 import { useState, useEffect, useRef } from "react";
-import { useAppSelector } from "../../state/hooks/reduxHooks";
-import * as UTILS from "../../utils";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
+import useStore from "../../state/hooks/useStore";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
+import { useShallow } from "zustand/react/shallow";
+import * as Utils from "../../utils";
 
 // Types
 import type { FC, RefObject } from "react";
@@ -17,14 +18,20 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 	canvasSpaceReference,
 	shiftKey
 }) => {
-	const { deleteElement, movingElement } = useCanvasElements();
+	const { mode, scale, drawStrength, eraserStrength, deleteElement } = useStore(
+		useShallow((state) => ({
+			mode: state.mode,
+			scale: state.scale,
+			drawStrength: state.drawStrength,
+			eraserStrength: state.eraserStrength,
+			deleteElement: state.deleteElement
+		}))
+	);
+	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const ref = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const [isVisible, setIsVisible] = useState<boolean>(false);
-	const { mode, drawStrength, eraserStrength, scale } = useAppSelector(
-		(state) => state.canvas,
-		(prev, next) => Object.is(prev, next)
-	);
+
 	const ERASER_RADIUS = 7;
 	const POINTER_SIZE =
 		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
@@ -96,11 +103,13 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 			const elements = document.getElementsByClassName("element");
 
+			console.log(isMovingElement.current);
+
 			for (let i = 0; i < elements.length; i++) {
 				const node = elements[i];
 				if (
-					UTILS.isRectIntersecting(m, node) &&
-					!movingElement.current &&
+					Utils.isRectIntersecting(m, node) &&
+					!isMovingElement.current &&
 					mode === "erase" &&
 					e.buttons === 1
 				) {
@@ -114,7 +123,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		return () => {
 			canvasSpace.removeEventListener("mousemove", isIntersecting);
 		};
-	}, [deleteElement, mode, canvasSpaceReference, movingElement]);
+	}, [deleteElement, mode, canvasSpaceReference, isMovingElement]);
 
 	return (
 		<div

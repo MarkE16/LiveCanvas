@@ -1,7 +1,6 @@
 // Lib
 import { useState } from "react";
 import { parseColor } from "react-aria-components";
-import useCanvasElements from "../../state/hooks/useCanvasElements";
 
 // Components
 import {
@@ -26,6 +25,8 @@ import "./ColorPicker.styles.css";
 import type { FC, MouseEvent, ChangeEvent } from "react";
 import type { Color } from "react-aria-components";
 import type { CanvasElement } from "../../types";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
+import useStore from "../../state/hooks/useStore";
 
 type ColorPickerProps = {
 	label: string;
@@ -35,11 +36,14 @@ type ColorPickerProps = {
 
 const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	const [hex, setHex] = useState<string>(parseColor(value).toString("hex"));
-	const { elements, changeElementProperties } = useCanvasElements();
+	const changeElementProperties = useStore(
+		(state) => state.changeElementProperties
+	);
+	const elements = useStoreSubscription((state) => state.elements);
 
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");
-		const focusedIds = elements
+		const focusedIds = elements.current
 			.filter((element) => element.focused)
 			.map((element) => element.id);
 
@@ -69,6 +73,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 
 	return (
 		<div
+			role="presentation"
 			data-testid={`${__for}-color-picker`}
 			onMouseDown={stopPropagation}
 			onMouseMove={stopPropagation}

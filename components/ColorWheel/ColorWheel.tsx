@@ -4,11 +4,9 @@ import {
 	ColorWheelTrack as AriaColorWheelTrack,
 	ColorArea as AriaColorArea
 } from "react-aria-components";
-import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
 import ColorThumb from "../ColorThumb/ColorThumb";
-
-// Redux Actions
-import { changeColor } from "../../state/slices/canvasSlice";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { FC } from "react";
@@ -26,11 +24,14 @@ type ColorWheelProps = Omit<
 >;
 
 const ColorWheel: FC<ColorWheelProps> = (props) => {
-	const currentColor = useAppSelector((state) => state.canvas.color);
-	const dispatch = useAppDispatch();
+	const { color, changeColor } = useStore(
+		useShallow((state) => ({
+			color: state.color,
+			changeColor: state.changeColor
+		})),
+	);
 
-	const onChange = (color: Color) =>
-		dispatch(changeColor(color.toString("hsla")));
+	const onChange = (color: Color) => changeColor(color.toString("hsla"));
 
 	const COLOR_WHEEL_OUTER_RADIUS = 80;
 	const COLOR_WHEEL_INNER_RADIUS = 65;
@@ -49,7 +50,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 			<AriaColorWheel
 				outerRadius={COLOR_WHEEL_OUTER_RADIUS}
 				innerRadius={COLOR_WHEEL_INNER_RADIUS}
-				value={currentColor}
+				value={color}
 				className="color-wheel"
 				data-testid="color-wheel"
 				onChange={onChange}
@@ -63,7 +64,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 			 * If the errors occur, check the format that the color is in.
 			 */}
 			<AriaColorArea
-				value={currentColor}
+				value={color}
 				onChange={onChange}
 				className="color-area"
 				data-testid="color-area"

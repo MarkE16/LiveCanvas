@@ -27,7 +27,7 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 	useEffect(() => {
 		async function updateImage(event: ImageUpdateEvent) {
 			const layer = event.detail.layer;
-			
+
 			// Layer that updated is not the one we are looking for.
 			if (layer.id !== id) return;
 

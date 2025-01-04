@@ -1,7 +1,7 @@
 // Lib
-import { useAppSelector } from "../../state/hooks/reduxHooks";
 import { MODES } from "../../state/store";
 import { memo } from "react";
+import useStore from "../../state/hooks/useStore";
 
 // Types
 import type { FC } from "react";
@@ -15,7 +15,7 @@ import ToolbarButton from "../ToolbarButton/ToolbarButton";
 const MemoizedToolbarButton = memo(ToolbarButton);
 
 const LeftToolbar: FC = () => {
-	const currentMode = useAppSelector((state) => state.canvas.mode);
+	const currentMode = useStore((state) => state.mode);
 	const renderedModes = MODES.map((mode) => (
 		<MemoizedToolbarButton
 			key={mode.name}
