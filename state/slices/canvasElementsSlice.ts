@@ -119,7 +119,7 @@ export const createCanvasElementsSlice: StateCreator<
 	}
 
 	function pasteElement() {
-    const { elements, copiedElements } = get();
+		const { elements, copiedElements } = get();
 		const newElements = copiedElements.map((element) => {
 			return {
 				...element,

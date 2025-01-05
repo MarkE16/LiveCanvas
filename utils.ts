@@ -314,8 +314,8 @@ const generateCanvasImage = async (
 				const width = endX - startX;
 				const height = endY - startY;
 
-				ctx.fillStyle = element.fill || "";
-				ctx.strokeStyle = element.stroke || "";
+				ctx.fillStyle = element.fill ?? "";
+				ctx.strokeStyle = element.stroke ?? "";
 
 				ctx.beginPath();
 				switch (element.type) {

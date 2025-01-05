@@ -5,7 +5,7 @@ import {
 	it,
 	beforeEach,
 	beforeAll,
-	afterAll,
+	afterAll
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../../components/LayerPane/LayerPane";

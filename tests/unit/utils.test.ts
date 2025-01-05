@@ -114,13 +114,7 @@ describe("getCanvasPosition functionality", () => {
 		const clientX = 600;
 		const clientY = 400;
 
-		const result = utils.getCanvasPosition(
-			clientX,
-			clientY,
-			dummyCanvas,
-			1,
-			false
-		);
+		const result = utils.getCanvasPosition(clientX, clientY, dummyCanvas);
 
 		const scaleX = dummyCanvas.width / mockBoundingRect.width;
 		const scaleY = dummyCanvas.height / mockBoundingRect.height;
@@ -158,13 +152,7 @@ describe("getCanvasPosition functionality", () => {
 		const clientX = 600;
 		const clientY = 400;
 
-		const result = utils.getCanvasPosition(
-			clientX,
-			clientY,
-			dummyCanvas,
-			1,
-			false
-		);
+		const result = utils.getCanvasPosition(clientX, clientY, dummyCanvas);
 
 		const scaleX = dummyCanvas.width / mockBoundingRect.width;
 		const scaleY = dummyCanvas.height / mockBoundingRect.height;
@@ -175,11 +163,4 @@ describe("getCanvasPosition functionality", () => {
 		});
 		expect(spy).toHaveBeenCalled();
 	});
-
-	it.todo(
-		"should calculate the x and y coordinates with dpi accounted with CSS scale 1"
-	);
-	it.todo(
-		"should calculate the x and y coordinates with dpi accounted with CSS scale 3"
-	);
 });

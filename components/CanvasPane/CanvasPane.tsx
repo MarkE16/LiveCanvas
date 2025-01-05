@@ -111,7 +111,7 @@ const CanvasPane: FC = () => {
 				dx = 0; // Set to 0 so that the layer doesn't move.
 			}
 
-			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dx >= sHeight) {
+			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight) {
 				dy = 0; // Set to 0 so that the layer doesn't move.
 			}
 
@@ -151,7 +151,7 @@ const CanvasPane: FC = () => {
 		}
 
 		function handleMouseUp() {
-			clientPosition.current = { x: 0, y: 0 };
+			// clientPosition.current = { x: 0, y: 0 };
 			setIsGrabbing(false);
 		}
 
@@ -313,6 +313,7 @@ const CanvasPane: FC = () => {
 					key={element.id}
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
+					clientPosition={clientPosition}
 					{...element}
 				/>
 			))}

@@ -29,7 +29,7 @@ describe("DrawingToolbar functionality", () => {
 
 	it("should render the component", () => {
 		renderWithProviders(<DrawingToolbar />);
-    const toolbar = screen.queryByTestId('drawing-toolbar');
+		const toolbar = screen.queryByTestId("drawing-toolbar");
 
 		expect(toolbar).toBeInTheDocument();
 	});

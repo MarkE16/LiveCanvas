@@ -26,7 +26,7 @@ export function initializeStore(preloadedState: Partial<SliceStores> = {}) {
 		},
 		{} as Partial<SliceStores>
 	);
-	
+
 	return createStore<SliceStores>()(
 		subscribeWithSelector((...a) => ({
 			...createCanvasSlice(...a),
@@ -34,6 +34,8 @@ export function initializeStore(preloadedState: Partial<SliceStores> = {}) {
 			...createCanvasElementsSlice(...a),
 			// We want to call structuredClone on the preloadedState to ensure that it is a deep clone.
 			// This ensures that the preloadedState is not mutated when the store is initialized.
+			// This is beneficial for testing purposes, but also ensures that the preloadedState is not mutated
+			// when the store is initialized.
 			...preloadedState, // spread the state to pass the functions, if any.
 			// Spread the state without functions to ensure that the functions are not serialized and
 			// the values are not mutated.

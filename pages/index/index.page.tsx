@@ -1,3 +1,5 @@
+"use client";
+
 // Lib
 import { useEffect } from "react";
 

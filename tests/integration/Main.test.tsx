@@ -8,12 +8,13 @@ import {
 	vi,
 	afterEach
 } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
 import { PropsWithChildren } from "react";
+import { CanvasStore } from "../../types";
 
 type MockProps = PropsWithChildren & {
 	onChange?: (color: Color) => void;
@@ -31,7 +32,7 @@ vi.mock("../../utils", async (importOriginal) => {
 
 	return {
 		...original,
-		generateCanvasImage: vi.fn()
+		generateCanvasImage: vi.fn().mockResolvedValue(new Blob())
 	};
 });
 
@@ -73,9 +74,20 @@ describe("Canvas Interactive Functionality", () => {
 		left: 50,
 		toJSON: vi.fn()
 	};
+	const mockLayer: Partial<CanvasStore> = {
+		layers: [
+			{
+				id: "1",
+				name: "Layer 1",
+				active: true,
+				hidden: false
+			}
+		],
+		changeColor: vi.fn()
+	};
 
 	beforeEach(() => {
-		renderWithProviders(<Main />);
+		renderWithProviders(<Main />, { preloadedState: mockLayer });
 	});
 
 	beforeAll(() => {
@@ -724,7 +736,6 @@ describe("Canvas Interactive Functionality", () => {
 			expect(canvases).toHaveLength(1);
 
 			const canvas = canvases[0];
-			expect(canvas).toBeInTheDocument();
 			expect(canvas.style.transform).toBe("translate(0px, 0px) scale(1)");
 
 			// Shift key must be held to zoom in and out with the mouse wheel.
@@ -739,7 +750,103 @@ describe("Canvas Interactive Functionality", () => {
 	});
 
 	describe("LayerPreview functionality", () => {
-		it.todo("renders the layer preview");
+		it("renders the layer preview with a div by default", () => {
+			const div = screen.getByTestId("preview-1");
+
+			expect(div).toBeInTheDocument();
+			expect(div).toBeInstanceOf(HTMLDivElement);
+		});
+
+		it("should update to an image when imageupdate is fired", async () => {
+			const createObjectSpy = vi.spyOn(URL, "createObjectURL");
+			const revokeObjectSpy = vi.spyOn(URL, "revokeObjectURL");
+			const dummyCanvas = document.createElement("canvas");
+			dummyCanvas.id = "1";
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: dummyCanvas
+				}
+			});
+
+			await act(async () => {
+				fireEvent(document, event);
+			});
+
+			const layer = screen.getByTestId("preview-1");
+
+			expect(createObjectSpy).toHaveBeenCalledWith(expect.any(Blob));
+			expect(layer).toBeInstanceOf(HTMLImageElement);
+			expect(layer).toHaveAttribute("src", "blob:http://localhost:3000/1234"); // From the mocked URL.createObjectURL
+
+			// Assume the image is loaded. In this case, we want to revoke the object URL to free memory.
+			fireEvent.load(layer);
+
+			expect(revokeObjectSpy).toHaveBeenCalledWith(
+				"blob:http://localhost:3000/1234"
+			);
+		});
+
+		it("should not update the image if not the same layer id", async () => {
+			const createObjectSpy = vi.spyOn(URL, "createObjectURL");
+			const dummyCanvas = document.createElement("canvas");
+			dummyCanvas.id = "2";
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: dummyCanvas
+				}
+			});
+
+			await act(async () => {
+				fireEvent(document, event);
+			});
+
+			const layer = screen.getByTestId("preview-1");
+			expect(layer).toBeInstanceOf(HTMLDivElement);
+			expect(createObjectSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("Canvas functionality", () => {
+		it("should render a canvas layer", () => {
+			const canvas = screen.queryByTestId("canvas-layer");
+
+			expect(canvas).toBeInTheDocument();
+			expect(canvas).toBeInstanceOf(HTMLCanvasElement);
+			expect(canvas).toHaveAttribute("width", "400");
+			expect(canvas).toHaveAttribute("height", "400");
+		});
+
+		it("should change the color based on the eye drop tool", () => {
+			const selectTool = screen.getByTestId("tool-select");
+			const eyeDropTool = screen.getByTestId("tool-eye_drop");
+			const canvas = screen.getByTestId("canvas-layer") as HTMLCanvasElement;
+
+			fireEvent.click(eyeDropTool);
+
+			expect(selectTool).not.toHaveClass("active");
+
+			const ctx = canvas.getContext("2d");
+
+			if (!ctx) throw new Error("Canvas context not found");
+
+			vi.spyOn(ctx, "getImageData").mockReturnValue({
+				data: new Uint8ClampedArray([255, 0, 0, 255]),
+				width: 1,
+				height: 1,
+				colorSpace: "srgb"
+			});
+
+			fireEvent.mouseDown(canvas, { buttons: 1 });
+
+			expect(mockLayer.changeColor).toHaveBeenCalledWith(
+				MOCK_COLOR.toString("hsla")
+			);
+			// After the color is changed, the eye drop tool should be deactivated
+			// and the select tool should be activated.
+			expect(selectTool).toHaveClass("active");
+		});
 	});
 
 	describe("Element functionality", () => {
@@ -751,6 +858,12 @@ describe("Canvas Interactive Functionality", () => {
 			fill: "#000000",
 			stroke: "#000000"
 		};
+		const { x, y, width, height, left, top } = boundingClientRect;
+		const elementCenterX =
+			x + width / 2 - exampleElementProperies.width / 2 - left;
+		const elementCenterY =
+			y + height / 2 - exampleElementProperies.height / 2 - top;
+
 		it("should create a rectangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			let elements = screen.queryAllByTestId("element");
@@ -1311,7 +1424,7 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "true"
 				)
-			).toBeTruthy();
+			).toBe(true);
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("fill-picker-button");
@@ -1343,23 +1456,22 @@ describe("Canvas Interactive Functionality", () => {
 			).toBe(true);
 		});
 
-		it.todo("should resize the element north", () => {
+		it("should resize the element north", () => {
+			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-			let resizeGrids = screen.queryAllByTestId("resize-grid");
 
-			expect(elements).toHaveLength(0);
-			expect(resizeGrids).toHaveLength(0);
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
 
 			fireEvent.click(option);
 
-			elements = screen.queryAllByTestId("element");
-			resizeGrids = screen.queryAllByTestId("resize-grid");
-			expect(elements).toHaveLength(1);
-			expect(resizeGrids).toHaveLength(1);
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
 			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
@@ -1379,11 +1491,6 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			expect(element).toHaveAttribute(
-				"data-height",
-				exampleElementProperies.height.toString()
-			);
-
 			expect(resizeGrid).toHaveAttribute("data-resizing", "n");
 
 			// Move upward.
@@ -1395,7 +1502,649 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			expect(element).toHaveAttribute("data-height", "150");
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX,
+				elementCenterY - 50,
+				exampleElementProperies.width,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element east", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-e");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 650,
+				clientY: 100,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "e");
+
+			// Move rightward.
+			// The element should increase in width.
+
+			fireEvent.mouseMove(document, {
+				clientX: 700,
+				clientY: 100,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX,
+				elementCenterY,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element south", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-s");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 100,
+				clientY: 500,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "s");
+
+			// Move downward.
+			// The element should increase in height.
+
+			fireEvent.mouseMove(document, {
+				clientX: 100,
+				clientY: 550,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX,
+				elementCenterY,
+				exampleElementProperies.width,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element west", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-w");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 100,
+				clientY: 100,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "w");
+
+			// Move leftward.
+			// The element should increase in width and decrease in x.
+
+			fireEvent.mouseMove(document, {
+				clientX: 50,
+				clientY: 100,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX - 50,
+				elementCenterY,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element north-east", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-ne");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 650,
+				clientY: 100,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "ne");
+
+			// Move rightward and upward.
+			// The element should increase in width and height and decrease in y.
+
+			fireEvent.mouseMove(document, {
+				clientX: 700,
+				clientY: 50,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX,
+				elementCenterY - 50,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element north-west", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-nw");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 100,
+				clientY: 100,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "nw");
+
+			// Move leftward and upward.
+			// The element should increase in width and height and decrease in x and y.
+
+			fireEvent.mouseMove(document, {
+				clientX: 50,
+				clientY: 50,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX - 50,
+				elementCenterY - 50,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element south-east", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-se");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 650,
+				clientY: 500,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "se");
+
+			// Move rightward and downward.
+			// The element should increase in width and height.
+
+			fireEvent.mouseMove(document, {
+				clientX: 700,
+				clientY: 550,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX,
+				elementCenterY,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should resize the element south-west", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(resizeGrid).not.toHaveAttribute("data-resizing");
+
+			// First, we need to click on the element to focus it.
+			fireEvent.mouseDown(element, {
+				buttons: 1
+			});
+
+			const resizeHandle = screen.getByTestId("handle-sw");
+
+			fireEvent.mouseDown(resizeHandle, {
+				clientX: 100,
+				clientY: 500,
+				buttons: 1
+			});
+
+			expect(resizeGrid).toHaveAttribute("data-resizing", "sw");
+
+			// Move leftward and downward.
+			// The element should increase in width and height and decrease in x.
+
+			fireEvent.mouseMove(document, {
+				clientX: 50,
+				clientY: 550,
+				buttons: 1
+			});
+			const { left, top, width, height } = resizeGrid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(stripped).toEqual([
+				elementCenterX - 50,
+				elementCenterY,
+				exampleElementProperies.width + 50,
+				exampleElementProperies.height + 50
+			]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it.todo("should move an element when moving the canvas", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+			const moveTool = screen.getByTestId("tool-move");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(element).toHaveAttribute("data-x", "NaN");
+			expect(element).toHaveAttribute("data-y", "NaN");
+
+			fireEvent.click(moveTool);
+
+			let pointerX = 100;
+			let pointerY = 100;
+
+			fireEvent.mouseDown(space, {
+				clientX: pointerX,
+				clientY: pointerY,
+				buttons: 1
+			});
+
+			fireEvent.mouseMove(document, {
+				clientX: pointerX + 50,
+				clientY: pointerY + 50,
+				buttons: 1
+			});
+
+			fireEvent.mouseUp(document);
+
+			const { left, top } = resizeGrid.style;
+			const stripped = stripUnits([left, top], "px");
+
+			// The values are NaN, so we need to calculate the center of the space and
+			// then apply the 50 offset to the x and y values.
+			expect(stripped).toEqual([elementCenterX + 50, elementCenterY + 50]);
+			expect(boundingRectMock).toHaveBeenCalled();
+		});
+
+		it("should directly move an element", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			expect(element).toHaveAttribute("data-x", "NaN");
+			expect(element).toHaveAttribute("data-y", "NaN");
+
+			fireEvent.mouseDown(element, { buttons: 1 });
+
+			expect(element).toHaveAttribute("data-focused", "true");
+
+			let pointerX = 100;
+			let pointerY = 100;
+
+			fireEvent.mouseMove(document, {
+				clientX: pointerX,
+				clientY: pointerY,
+				buttons: 1
+			});
+
+			let { left, top } = resizeGrid.style;
+			let stripped = stripUnits([left, top], "px");
+
+			// Since the values are NaN, the element should be centered at the pointer.
+			// x: pointerX - boundingClientRect.left - exampleElementProperies.width / 2
+			// y: pointerY - boundingClientRect.top - exampleElementProperies.height / 2
+			// x: 100 - 50 - 50 = 0
+			// y: 100 - 64 - 50 = -14
+			expect(stripped).toEqual([0, -14]);
+			expect(boundingRectMock).toHaveBeenCalled();
+
+			pointerX = 200;
+			pointerY = 200;
+
+			fireEvent.mouseMove(document, {
+				clientX: pointerX,
+				clientY: pointerY,
+				buttons: 1
+			});
+
+			// From now on, the x and y values should be changed based
+			// on dx and dy values.
+
+			({ left, top } = resizeGrid.style);
+			stripped = stripUnits([left, top], "px");
+
+			// dx: 100
+			// dy: 100
+			// x: 0 + 100 = 100
+			// y: -14 + 100 = 86
+			expect(stripped).toEqual([100, 86]);
+		});
+
+		it("should directly move multiple selected elements", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const shapes = ["rectangle", "circle", "triangle"];
+
+			for (let i = 0; i < shapes.length; i++) {
+				const option = screen.getByTestId(`shape-${shapes[i]}`);
+
+				fireEvent.click(option);
+
+				const elements = screen.queryAllByTestId("element");
+				expect(elements).toHaveLength(i + 1);
+
+				fireEvent.mouseDown(elements[i], { ctrlKey: true, buttons: 1 });
+			}
+
+			const [rect, circle, triangle] = screen.queryAllByTestId("element");
+
+			expect(
+				[rect, circle, triangle].every(
+					(element) => element.getAttribute("data-focused") === "true"
+				)
+			).toBeTruthy();
+
+			const pointerX = 100;
+			const pointerY = 100;
+
+			fireEvent.mouseMove(document, {
+				clientX: pointerX,
+				clientY: pointerY,
+				buttons: 1
+			});
+
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const [rectResizeGrid, circleResizeGrid, triangleResizeGrid] =
+				resizeGrids;
+
+			expect(rectResizeGrid).toHaveStyle("left: 0px; top: -14px;");
+			expect(circleResizeGrid).toHaveStyle("left: 0px; top: -14px;");
+			expect(triangleResizeGrid).toHaveStyle("left: 0px; top: -14px;");
+
+			fireEvent.mouseMove(document, {
+				clientX: 200,
+				clientY: 200,
+				buttons: 1
+			});
+
+			// expect(rectResizeGrid).toHaveStyle("left: 100px; top: 86px;");
+			// expect(circleResizeGrid).toHaveStyle("left: 100px; top: 86px;");
+			// expect(triangleResizeGrid).toHaveStyle("left: 100px; top: 86px;");
+		});
+
+		it("should move an element in the direction of the window resize", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+
+			const boundingRectMock = vi
+				.spyOn(space, "getBoundingClientRect")
+				.mockReturnValue(boundingClientRect);
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			const elements = screen.queryAllByTestId("element");
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			const element = elements[0];
+			const resizeGrid = resizeGrids[0];
+
+			fireEvent.mouseDown(element, { buttons: 1 });
+
+			fireEvent.mouseMove(document, {
+				clientX: 100,
+				clientY: 100,
+				buttons: 1
+			});
+
+			let { left, top } = resizeGrid.style;
+			let stripped = stripUnits([left, top], "px");
+
+			// Since the values are NaN, the element should be centered at the pointer.
+			// x: pointerX - boundingClientRect.left - exampleElementProperies.width / 2
+			// y: pointerY - boundingClientRect.top - exampleElementProperies.height / 2
+			// x: 100 - 50 - 50 = 0
+			// y: 100 - 64 - 50 = -14
+			expect(stripped).toEqual([0, -14]);
+			expect(boundingRectMock).toHaveBeenCalled();
+
+			// Note: Default window size is 1024 x 768.
+			fireEvent.resize(window, {
+				target: { innerWidth: 800, innerHeight: 800 }
+			});
+
+			// The element should move in the direction of the window resize.
+			// dx: -224
+			// dy: 32
+			({ left, top } = resizeGrid.style);
+			stripped = stripUnits([left, top], "px");
+
+			expect(stripped).toEqual([-224, 18]);
 		});
 	});
 });

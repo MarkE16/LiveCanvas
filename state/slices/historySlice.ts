@@ -28,7 +28,7 @@ export const createHistorySlice: StateCreator<
 	function redo() {
 		const { redoStack, undoStack } = get();
 		if (!redoStack.length) return; // Nothing to redo
-		
+
 		set(() => ({
 			undoStack: [redoStack[0], ...undoStack],
 			redoStack: redoStack.slice(1)

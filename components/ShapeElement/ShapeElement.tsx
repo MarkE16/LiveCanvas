@@ -16,6 +16,7 @@ import ElementTextField from "../ElementTextField/ElementTextField";
 type ShapeElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	isSelecting: RefObject<boolean>;
+	clientPosition: RefObject<Coordinates>;
 };
 
 const ShapeElement: FC<ShapeElementProps> = ({
@@ -33,16 +34,14 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	y,
 	id,
 	layerId,
-	isSelecting
+	isSelecting,
+	clientPosition
 }) => {
-	const layers = useStore(
-		(state) => state.layers,
-	);
+	const layers = useStore((state) => state.layers);
 	const movingElement = useStoreSubscription((state) => state.elementMoving);
 	const { references } = useLayerReferences();
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
-	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const activeLayer = layers.find((layer) => layer.active);
 	let sLeft = NaN,
 		sTop = NaN,
@@ -125,7 +124,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			}
 
 			startPos.current = { x: e.clientX, y: e.clientY };
-			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -297,6 +295,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						case "s": {
 							let newHeight = Math.max(minSize, newState.height + deltaY);
 
+							console.log(pointerY, newState.y + minSize);
+
 							if (pointerY < newState.y + minSize) {
 								newHeight = minSize;
 							}
@@ -417,7 +417,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		canvasSpaceReference,
 		updateMovingState,
 		references,
-		movingElement
+		movingElement,
+		clientPosition
 	]);
 
 	if (type === "text") {

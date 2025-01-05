@@ -28,7 +28,7 @@ const ColorWheel: FC<ColorWheelProps> = (props) => {
 		useShallow((state) => ({
 			color: state.color,
 			changeColor: state.changeColor
-		})),
+		}))
 	);
 
 	const onChange = (color: Color) => changeColor(color.toString("hsla"));
