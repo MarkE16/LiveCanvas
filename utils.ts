@@ -265,9 +265,9 @@ const generateCanvasImage = async (
 					type: element.getAttribute("data-type") as CanvasElementType,
 					fill: element.getAttribute("data-fill"),
 					stroke: element.getAttribute("data-stroke"),
-					fontSize: Number(element.getAttribute("data-fontsize")),
-					fontFamily: element.getAttribute("data-fontfamily") ?? "Arial",
-					fontContent: element.getAttribute("data-fontcontent") ?? "",
+					fontSize: Number(element.getAttribute("data-font-size")),
+					fontFamily: element.getAttribute("data-font-family") ?? "Arial",
+					fontContent: element.getAttribute("data-font-content") ?? "",
 					layerId: element.getAttribute("data-layerid"),
 					spaceLeft: Number(element.getAttribute("data-canvas-space-left")),
 					spaceTop: Number(element.getAttribute("data-canvas-space-top")),
@@ -352,10 +352,14 @@ const generateCanvasImage = async (
 								`Failed to extract text from element with id ${element.id}.`
 							);
 						}
+						
+						console.log(ctx.fillStyle, ctx.strokeStyle)
 
 						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
 						ctx.fillText(element.fontContent, startX, startY, width);
 						ctx.strokeText(element.fontContent, startX, startY, width);
+
+						console.log("streoked test");
 						break;
 					}
 					default: {

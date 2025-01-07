@@ -6,8 +6,13 @@ import useStore from "../../state/hooks/useStore";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 // Types
-import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
-import type { FC, ReactElement, RefObject } from "react";
+import type {
+	Coordinates,
+	ResizePosition,
+	CanvasElement,
+	CanvasElementType
+} from "../../types";
+import type { FC, FocusEvent, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
@@ -25,9 +30,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	width,
 	height,
 	fill,
-	fontSize,
-	fontFamily,
-	fontContent,
+	text,
 	stroke,
 	focused,
 	x,
@@ -118,11 +121,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function handleMouseDown(e: MouseEvent) {
-			if (e.buttons === 1) {
-				focusElement(id);
-				updateMovingState(true);
-			}
-
+			updateMovingState(true);
 			startPos.current = { x: e.clientX, y: e.clientY };
 		}
 
@@ -146,225 +145,247 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			) as ResizePosition | null;
 
 			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
+			const focusedIds = Array.from(document.getElementsByClassName("element"))
+				.filter((e) => e.getAttribute("data-focused") === "true")
+				.map((e) => e.id);
 
 			if (resizePos !== null) {
 				const pointerX = e.clientX - left;
 				const pointerY = e.clientY - top;
 
-				changeElementProperties((state) => {
-					let newState = { ...state };
-					const minSize = 18;
+				changeElementProperties(
+					(state) => {
+						let newState = { ...state };
+						const minSize = 18;
 
-					// Calculate new dimensions and positions
-					// Note: The `if` conditions are to prevent the element from being resized
-					// when the cursor is past resizing limits. This is to that when the cursor
-					// is back into resizing limits, the element can be resized again.
-					// This is supposed to ensure that the element resize handle "follows"
-					// the cursor even when the cursor is outside the element.
+						// Calculate new dimensions and positions
+						// Note: The `if` conditions are to prevent the element from being resized
+						// when the cursor is past resizing limits. This is to that when the cursor
+						// is back into resizing limits, the element can be resized again.
+						// This is supposed to ensure that the element resize handle "follows"
+						// the cursor even when the cursor is outside the element.
 
-					// If the x or y is NaN, we set it to the center of the space.
-					// Dev note: `left` and `top` are being subtracted to
-					// account for the canvas space's left and top properties.
-					if (isNaN(newState.x)) {
-						newState.x = left + width / 2 - newState.width / 2 - left;
-					}
-
-					if (isNaN(newState.y)) {
-						newState.y = top + height / 2 - newState.height / 2 - top;
-					}
-
-					switch (resizePos) {
-						case "nw": {
-							let newX =
-								newState.x +
-								(newState.width - Math.max(minSize, newState.width - deltaX));
-							let newY =
-								newState.y +
-								(newState.height - Math.max(minSize, newState.height - deltaY));
-							let newWidth = Math.max(minSize, newState.width - deltaX);
-							let newHeight = Math.max(minSize, newState.height - deltaY);
-
-							if (pointerX > newX + newWidth - minSize) {
-								newWidth = minSize;
-								newX = newState.x + newState.width - minSize;
-							}
-
-							if (pointerY > newY + newHeight - minSize) {
-								newHeight = minSize;
-								newY = newState.y + newState.height - minSize;
-							}
-
-							newState = {
-								...newState,
-								width: newWidth,
-								height: newHeight,
-								x: newX,
-								y: newY
-							};
-							break;
+						// If the x or y is NaN, we set it to the center of the space.
+						// Dev note: `left` and `top` are being subtracted to
+						// account for the canvas space's left and top properties.
+						if (isNaN(newState.x)) {
+							newState.x = left + width / 2 - newState.width / 2 - left;
 						}
 
-						case "ne": {
-							let newY =
-								newState.y +
-								(newState.height - Math.max(minSize, newState.height - deltaY));
-							let newHeight = Math.max(minSize, newState.height - deltaY);
-							let newWidth = Math.max(minSize, newState.width + deltaX);
-
-							if (pointerX < newState.x + minSize) {
-								newWidth = minSize;
-							}
-
-							if (pointerY > newY + newHeight - minSize) {
-								newHeight = minSize;
-								newY = newState.y + newState.height - minSize;
-							}
-
-							newState = {
-								...newState,
-								width: newWidth,
-								height: newHeight,
-								y: newY
-							};
-							break;
+						if (isNaN(newState.y)) {
+							newState.y = top + height / 2 - newState.height / 2 - top;
 						}
 
-						case "sw": {
-							let newX =
-								newState.x +
-								(newState.width - Math.max(minSize, newState.width - deltaX));
-							let newWidth = Math.max(minSize, newState.width - deltaX);
-							let newHeight = Math.max(minSize, newState.height + deltaY);
+						switch (resizePos) {
+							case "nw": {
+								let newX =
+									newState.x +
+									(newState.width - Math.max(minSize, newState.width - deltaX));
+								let newY =
+									newState.y +
+									(newState.height -
+										Math.max(minSize, newState.height - deltaY));
+								let newWidth = Math.max(minSize, newState.width - deltaX);
+								let newHeight = Math.max(minSize, newState.height - deltaY);
 
-							if (pointerX > newX + newWidth - minSize) {
-								newWidth = minSize;
-								newX = newState.x + state.width - minSize;
+								if (pointerX > newX + newWidth - minSize) {
+									newWidth = minSize;
+									newX = newState.x + newState.width - minSize;
+								}
+
+								if (pointerY > newY + newHeight - minSize) {
+									newHeight = minSize;
+									newY = newState.y + newState.height - minSize;
+								}
+
+								newState = {
+									...newState,
+									width: newWidth,
+									height: newHeight,
+									x: newX,
+									y: newY
+								};
+								break;
 							}
 
-							if (pointerY < newState.y + minSize) {
-								newHeight = minSize;
+							case "ne": {
+								let newY =
+									newState.y +
+									(newState.height -
+										Math.max(minSize, newState.height - deltaY));
+								let newHeight = Math.max(minSize, newState.height - deltaY);
+								let newWidth = Math.max(minSize, newState.width + deltaX);
+
+								if (pointerX < newState.x + minSize) {
+									newWidth = minSize;
+								}
+
+								if (pointerY > newY + newHeight - minSize) {
+									newHeight = minSize;
+									newY = newState.y + newState.height - minSize;
+								}
+
+								newState = {
+									...newState,
+									width: newWidth,
+									height: newHeight,
+									y: newY
+								};
+								break;
 							}
 
-							newState = {
-								...newState,
-								width: newWidth,
-								height: newHeight,
-								x: newX
-							};
-							break;
+							case "sw": {
+								let newX =
+									newState.x +
+									(newState.width - Math.max(minSize, newState.width - deltaX));
+								let newWidth = Math.max(minSize, newState.width - deltaX);
+								let newHeight = Math.max(minSize, newState.height + deltaY);
+
+								if (pointerX > newX + newWidth - minSize) {
+									newWidth = minSize;
+									newX = newState.x + state.width - minSize;
+								}
+
+								if (pointerY < newState.y + minSize) {
+									newHeight = minSize;
+								}
+
+								newState = {
+									...newState,
+									width: newWidth,
+									height: newHeight,
+									x: newX
+								};
+								break;
+							}
+
+							case "se": {
+								let newWidth = Math.max(minSize, newState.width + deltaX);
+								let newHeight = Math.max(minSize, newState.height + deltaY);
+
+								if (pointerX < newState.x + minSize) {
+									newWidth = minSize;
+								}
+
+								if (pointerY < newState.y + minSize) {
+									newHeight = minSize;
+								}
+
+								newState = {
+									...newState,
+									width: newWidth,
+									height: newHeight
+								};
+								break;
+							}
+
+							case "n": {
+								let newY =
+									newState.y +
+									(newState.height -
+										Math.max(minSize, newState.height - deltaY));
+								let newHeight = Math.max(minSize, newState.height - deltaY);
+
+								if (pointerY > newY + newHeight - minSize) {
+									newHeight = minSize;
+									newY = newState.y + state.height - minSize;
+								}
+								newState = {
+									...newState,
+									height: newHeight,
+									y: newY
+								};
+								break;
+							}
+
+							case "s": {
+								let newHeight = Math.max(minSize, newState.height + deltaY);
+
+								if (pointerY < newState.y + minSize) {
+									newHeight = minSize;
+								}
+								newState = {
+									...newState,
+									height: newHeight
+								};
+								break;
+							}
+
+							case "w": {
+								let newX =
+									newState.x +
+									(newState.width - Math.max(minSize, newState.width - deltaX));
+								let newWidth = Math.max(minSize, newState.width - deltaX);
+
+								if (pointerX > newState.x + newWidth - minSize) {
+									newWidth = minSize;
+									newX = newState.x + newState.width - minSize;
+								}
+								newState = {
+									...newState,
+									width: newWidth,
+									x: newX
+								};
+								break;
+							}
+
+							case "e": {
+								let newWidth = Math.max(minSize, newState.width + deltaX);
+
+								if (pointerX < newState.x + minSize) {
+									newWidth = minSize;
+								}
+								newState = {
+									...newState,
+									width: newWidth
+								};
+								break;
+							}
+
+							default:
+								throw new Error(
+									"Cannot properly resize element: Invalid resize position."
+								);
 						}
 
-						case "se": {
-							let newWidth = Math.max(minSize, newState.width + deltaX);
-							let newHeight = Math.max(minSize, newState.height + deltaY);
-
-							if (pointerX < newState.x + minSize) {
-								newWidth = minSize;
-							}
-
-							if (pointerY < newState.y + minSize) {
-								newHeight = minSize;
-							}
-
-							newState = {
-								...newState,
-								width: newWidth,
-								height: newHeight
-							};
-							break;
-						}
-
-						case "n": {
-							let newY =
-								newState.y +
-								(newState.height - Math.max(minSize, newState.height - deltaY));
-							let newHeight = Math.max(minSize, newState.height - deltaY);
-
-							if (pointerY > newY + newHeight - minSize) {
-								newHeight = minSize;
-								newY = newState.y + state.height - minSize;
-							}
-							newState = {
-								...newState,
-								height: newHeight,
-								y: newY
-							};
-							break;
-						}
-
-						case "s": {
-							let newHeight = Math.max(minSize, newState.height + deltaY);
-
-							console.log(pointerY, newState.y + minSize);
-
-							if (pointerY < newState.y + minSize) {
-								newHeight = minSize;
-							}
-							newState = {
-								...newState,
-								height: newHeight
-							};
-							break;
-						}
-
-						case "w": {
-							let newX =
-								newState.x +
-								(newState.width - Math.max(minSize, newState.width - deltaX));
-							let newWidth = Math.max(minSize, newState.width - deltaX);
-
-							if (pointerX > newState.x + newWidth - minSize) {
-								newWidth = minSize;
-								newX = newState.x + newState.width - minSize;
-							}
-							newState = {
-								...newState,
-								width: newWidth,
-								x: newX
-							};
-							break;
-						}
-
-						case "e": {
-							let newWidth = Math.max(minSize, newState.width + deltaX);
-
-							if (pointerX < newState.x + minSize) {
-								newWidth = minSize;
-							}
-							newState = {
-								...newState,
-								width: newWidth
-							};
-							break;
-						}
-
-						default:
-							throw new Error(
-								"Cannot properly resize element: Invalid resize position."
-							);
-					}
-
-					return newState;
-				}, id);
+						return newState;
+					},
+					...focusedIds
+				);
 			} else {
-				changeElementProperties((state) => {
-					let { x, y } = state;
-					// We subtract each coordinate by half of the width and height
-					// to get the cursor to appear in the middle of the element
-					if (isNaN(x)) {
-						x = clientPosition.current.x - left - state.width / 2;
-					}
+				const element = document.getElementById(id);
+				if (!element) return;
 
-					if (isNaN(y)) {
-						y = clientPosition.current.y - top - state.height / 2;
-					}
+				const type = element.getAttribute("data-type") as CanvasElementType;
+				const isEditing = element.getAttribute("data-isediting") === "true";
 
-					return {
-						...state,
-						x: x + deltaX,
-						y: y + deltaY
-					};
-				}, id);
+				if (type === "text" && isEditing) {
+					return;
+				}
+
+				changeElementProperties(
+					(state) => {
+						let { x, y } = state;
+						const { width, height } = state;
+						// We subtract each coordinate by half of the width and height
+						// to get the cursor to appear in the middle of the element
+
+						if (isNaN(x)) {
+							x = clientPosition.current.x - left - width / 2;
+						}
+
+						if (isNaN(y)) {
+							y = clientPosition.current.y - top - height / 2;
+						}
+
+						return {
+							...state,
+							x: x + deltaX,
+							y: y + deltaY
+						};
+					},
+					...focusedIds
+				);
 			}
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
@@ -391,8 +412,13 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			updateMovingState(false);
 		}
 
+		function onFocusedElement() {
+			focusElement(id);
+		}
+
 		// We add the mousedown event to the element to accurately
 		// differentiate which element is being clicked for focus.
+		element.addEventListener("focus", onFocusedElement);
 		element.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousedown", handleUnfocus);
 		document.addEventListener("mousemove", handleMouseMove);
@@ -400,6 +426,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		document.addEventListener("mouseup", onMouseUp);
 
 		return () => {
+			element.removeEventListener("focus", onFocusedElement);
 			element.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousedown", handleUnfocus);
 			document.removeEventListener("mousemove", handleMouseMove);
@@ -421,7 +448,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		clientPosition
 	]);
 
-	if (type === "text") {
+	if (type === "text" && text !== undefined) {
 		return (
 			<ResizeGrid
 				ref={ref}
@@ -430,20 +457,23 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				width={width}
 				height={height}
 				focused={focused}
+				elementId={id}
 				zIndex={activeLayer.id === layerId ? layers.length + 1 : 1}
 			>
 				<ElementTextField
 					id={id}
-					value={fontContent}
-					onChange={(e) => {
-						changeElementProperties(
-							(state) => ({ ...state, fontContent: e.target.value }),
-							id
-						);
-					}}
+					properties={text}
+					focused={focused}
+					stroke={stroke}
+					fill={fill}
+					elementId={id}
 					data-layerid={layerId}
 				/>
 			</ResizeGrid>
+		);
+	} else if (type === "text" && text === undefined) {
+		throw new Error(
+			"You tried to create a text element but didn't provide text properties."
 		);
 	}
 
@@ -472,6 +502,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			ref={ref}
 			x={x}
 			y={y}
+			elementId={id}
 			width={width}
 			height={height}
 			focused={focused}

@@ -4,7 +4,7 @@
 		"prod": "npm run lint && npm run build && npm run server:prod",
 		"build": "vite build",
 		"serve": "vite preview",
-		"test": "vitest --run --silent --reporter=verbose",
+		"test": "vitest --run --reporter=verbose",
 		"coverage": "vitest --run --silent --coverage",
 		"server": "node --loader ts-node/esm ./server/index.ts",
 		"server:dev": "npm run server",

@@ -72,12 +72,40 @@ const CanvasPane: FC = () => {
 			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
 
 		function handleMouseDown(e: MouseEvent) {
-			if (e.buttons !== 1) return;
+			if (e.buttons !== 1 || !canvasSpace) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 			const isOnCanvas = isClickingOnSpace(e);
 
 			if (!isOnCanvas) return;
+
+			if (
+				mode === "text" &&
+				!document.activeElement?.classList.contains("element") &&
+				!document.activeElement?.classList.contains("grid") &&
+				!document.activeElement?.classList.contains("handle")
+			) {
+				const activeLayer = references.current.find((ref) =>
+					ref.classList.contains("active")
+				);
+
+				if (!activeLayer) throw new Error("No active layer found");
+
+				const rect = canvasSpace.getBoundingClientRect();
+				createElement("text", {
+					x: e.clientX - rect.left,
+					y: e.clientY - rect.top,
+					width: 100,
+					height: 30,
+					focused: true,
+					text: {
+						size: 25,
+						family: "Times New Roman",
+						content: "Text"
+					},
+					layerId: activeLayer.id
+				});
+			}
 
 			setIsGrabbing(isOnCanvas);
 		}
@@ -107,11 +135,11 @@ const CanvasPane: FC = () => {
 			// Check if the layer is outside the canvas space.
 			// If it is, we don't want to move it.
 			// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
-			if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth) {
+			if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth + 20) {
 				dx = 0; // Set to 0 so that the layer doesn't move.
 			}
 
-			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight) {
+			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight + 20) {
 				dy = 0; // Set to 0 so that the layer doesn't move.
 			}
 
@@ -125,6 +153,9 @@ const CanvasPane: FC = () => {
 			const elementIds = Array.from(
 				document.getElementsByClassName("element")
 			).map((element) => element.id);
+
+			console.log("preparing to move elements...");
+			console.log(dx, dy);
 
 			changeElementProperties(
 				(state) => {
@@ -208,25 +239,6 @@ const CanvasPane: FC = () => {
 						increaseScale();
 					} else if (mode === "zoom_out") {
 						decreaseScale();
-					} else if (mode === "text") {
-						const activeLayer = references.current.find((ref) =>
-							ref.classList.contains("active")
-						);
-
-						if (!activeLayer) throw new Error("No active layer found");
-
-						const rect = canvasSpace.getBoundingClientRect();
-						createElement("text", {
-							x: e.clientX - rect.left,
-							y: e.clientY - rect.top,
-							width: 100,
-							height: 30,
-							focused: true,
-							fontSize: 26,
-							fontFamily: "Arial",
-							fontContent: "Text",
-							layerId: activeLayer?.id
-						});
 					} else {
 						return; // We don't want to zoom if the mode is not zoom
 					}

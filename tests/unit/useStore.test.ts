@@ -397,418 +397,420 @@ describe("useStore functionality", () => {
 			});
 			expect(result.result.current.dpi).toBe(2);
 		});
+	});
 
-		describe("History store functionality", () => {
-			it("should return the initial history stacks", () => {
-				expect(result.result.current.undoStack).toEqual(exampleStore.undoStack);
-				expect(result.result.current.redoStack).toEqual(exampleStore.redoStack);
-			});
-
-			it("should push to the history", () => {
-				const action: HistoryAction = {
-					mode: "draw",
-					color: "hsla(0, 0%, 0%, 1)",
-					drawStrength: 5,
-					path: [],
-					width: 400,
-					height: 400,
-					layerId: "1234-5678-9123-4567"
-				};
-				act(() => {
-					result.result.current.push(action);
-				});
-				expect(result.result.current.undoStack).toEqual([action]);
-				expect(result.result.current.redoStack).toEqual([]);
-			});
-
-			it("should undo the last action", () => {
-				const action: HistoryAction = {
-					mode: "draw",
-					color: "hsla(0, 0%, 0%, 1)",
-					drawStrength: 5,
-					path: [],
-					width: 400,
-					height: 400,
-					layerId: "1234-5678-9123-4567"
-				};
-
-				act(() => {
-					result.result.current.push(action);
-					result.result.current.undo();
-				});
-
-				expect(result.result.current.undoStack).toEqual([]);
-				expect(result.result.current.redoStack).toEqual([action]);
-			});
-
-			it("should redo the last action", () => {
-				const action: HistoryAction = {
-					mode: "draw",
-					color: "hsla(0, 0%, 0%, 1)",
-					drawStrength: 5,
-					path: [],
-					width: 400,
-					height: 400,
-					layerId: "1234-5678-9123-4567"
-				};
-
-				act(() => {
-					result.result.current.push(action);
-					result.result.current.undo();
-					result.result.current.redo();
-				});
-
-				expect(result.result.current.undoStack).toEqual([action]);
-				expect(result.result.current.redoStack).toEqual([]);
-			});
-
-			it("should not undo if there are no actions", () => {
-				act(() => {
-					result.result.current.undo();
-				});
-				expect(result.result.current.undoStack).toEqual([]);
-				expect(result.result.current.redoStack).toEqual([]);
-			});
-
-			it("should not redo if there are no actions", () => {
-				act(() => {
-					result.result.current.redo();
-				});
-				expect(result.result.current.undoStack).toEqual([]);
-				expect(result.result.current.redoStack).toEqual([]);
-			});
+	describe("History store functionality", () => {
+		it("should return the initial history stacks", () => {
+			expect(result.result.current.undoStack).toEqual(exampleStore.undoStack);
+			expect(result.result.current.redoStack).toEqual(exampleStore.redoStack);
 		});
 
-		describe("Element store functionality", () => {
-			it("should return the initial elements", () => {
-				expect(result.result.current.elements).toEqual(exampleStore.elements);
+		it("should push to the history", () => {
+			const action: HistoryAction = {
+				mode: "draw",
+				color: "hsla(0, 0%, 0%, 1)",
+				drawStrength: 5,
+				path: [],
+				width: 400,
+				height: 400,
+				layerId: "1234-5678-9123-4567"
+			};
+			act(() => {
+				result.result.current.push(action);
+			});
+			expect(result.result.current.undoStack).toEqual([action]);
+			expect(result.result.current.redoStack).toEqual([]);
+		});
+
+		it("should undo the last action", () => {
+			const action: HistoryAction = {
+				mode: "draw",
+				color: "hsla(0, 0%, 0%, 1)",
+				drawStrength: 5,
+				path: [],
+				width: 400,
+				height: 400,
+				layerId: "1234-5678-9123-4567"
+			};
+
+			act(() => {
+				result.result.current.push(action);
+				result.result.current.undo();
 			});
 
-			it("should create one shape element with default properties", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
+			expect(result.result.current.undoStack).toEqual([]);
+			expect(result.result.current.redoStack).toEqual([action]);
+		});
+
+		it("should redo the last action", () => {
+			const action: HistoryAction = {
+				mode: "draw",
+				color: "hsla(0, 0%, 0%, 1)",
+				drawStrength: 5,
+				path: [],
+				width: 400,
+				height: 400,
+				layerId: "1234-5678-9123-4567"
+			};
+
+			act(() => {
+				result.result.current.push(action);
+				result.result.current.undo();
+				result.result.current.redo();
+			});
+
+			expect(result.result.current.undoStack).toEqual([action]);
+			expect(result.result.current.redoStack).toEqual([]);
+		});
+
+		it("should not undo if there are no actions", () => {
+			act(() => {
+				result.result.current.undo();
+			});
+			expect(result.result.current.undoStack).toEqual([]);
+			expect(result.result.current.redoStack).toEqual([]);
+		});
+
+		it("should not redo if there are no actions", () => {
+			act(() => {
+				result.result.current.redo();
+			});
+			expect(result.result.current.undoStack).toEqual([]);
+			expect(result.result.current.redoStack).toEqual([]);
+		});
+	});
+
+	describe("Element store functionality", () => {
+		it("should return the initial elements", () => {
+			expect(result.result.current.elements).toEqual(exampleStore.elements);
+		});
+
+		it("should create one shape element with default properties", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
 				});
-				expect(result.result.current.elements).toEqual([
-					{
-						id: expect.any(String),
-						type: "rectangle",
-						x: NaN,
-						y: NaN,
-						width: 100,
-						height: 100,
-						fill: "#000000",
-						stroke: "#000000",
-						focused: false,
-						layerId: "1234-5678-9123-4567"
-					}
-				]);
 			});
-
-			it("should create one shape element with pre-filled properties", () => {
-				const element: CanvasElement = {
+			expect(result.result.current.elements).toEqual([
+				{
 					id: expect.any(String),
 					type: "rectangle",
-					x: 10,
-					y: 10,
+					x: NaN,
+					y: NaN,
 					width: 100,
 					height: 100,
 					fill: "#000000",
 					stroke: "#000000",
 					focused: false,
 					layerId: "1234-5678-9123-4567"
-				};
-				act(() => {
-					result.result.current.createElement("rectangle", element);
+				}
+			]);
+		});
+
+		it("should create one shape element with pre-filled properties", () => {
+			const element: CanvasElement = {
+				id: expect.any(String),
+				type: "rectangle",
+				x: 10,
+				y: 10,
+				width: 100,
+				height: 100,
+				fill: "#000000",
+				stroke: "#000000",
+				focused: false,
+				layerId: "1234-5678-9123-4567"
+			};
+			act(() => {
+				result.result.current.createElement("rectangle", element);
+			});
+			expect(result.result.current.elements).toEqual([element]);
+		});
+
+		it("should create one text element with text properties", () => {
+			const element: CanvasElement = {
+				id: expect.any(String),
+				type: "text",
+				x: 10,
+				y: 10,
+				width: 100,
+				height: 100,
+				fill: "#000000",
+				stroke: "#000000",
+				focused: false,
+				layerId: "1234-5678-9123-4567",
+				text: {
+					size: 16,
+					family: "Arial",
+					content: "Text"
+				}
+			};
+			act(() => {
+				result.result.current.createElement("text", element);
+			});
+			expect(result.result.current.elements).toEqual([element]);
+		});
+
+		it("should create elements with unique ids", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
 				});
-				expect(result.result.current.elements).toEqual([element]);
+				result.result.current.createElement("circle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+			const [one, two] = result.result.current.elements;
+
+			expect(one.id).not.toBe(two.id);
+		});
+
+		it("should delete an element", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+			expect(result.result.current.elements).toHaveLength(1);
+
+			act(() => {
+				result.result.current.deleteElement(
+					result.result.current.elements[0].id
+				);
 			});
 
-			it("should create one text element with text properties", () => {
-				const element: CanvasElement = {
-					id: expect.any(String),
-					type: "text",
-					x: 10,
-					y: 10,
-					width: 100,
-					height: 100,
-					fill: "#000000",
-					stroke: "#000000",
-					focused: false,
-					layerId: "1234-5678-9123-4567",
-					fontContent: "Hello, World!",
-					fontSize: 16,
-					fontFamily: "Arial"
-				};
-				act(() => {
-					result.result.current.createElement("text", element);
+			expect(result.result.current.elements).toHaveLength(0);
+		});
+
+		it("should not delete anything if id doesn't exist", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
 				});
-				expect(result.result.current.elements).toEqual([element]);
+			});
+			expect(result.result.current.elements).toHaveLength(1);
+
+			act(() => {
+				result.result.current.deleteElement("1");
 			});
 
-			it("should create elements with unique ids", () => {
+			expect(result.result.current.elements).toHaveLength(1);
+		});
+
+		it("should focus an element", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+			let element = result.result.current.elements[0];
+			expect(element.focused).toBe(false);
+
+			act(() => {
+				result.result.current.focusElement(element.id);
+			});
+
+			element = result.result.current.elements[0];
+
+			expect(element.focused).toBe(true);
+		});
+
+		it("should not focus an element if id doesn't exist", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+			let element = result.result.current.elements[0];
+			expect(element.focused).toBe(false);
+
+			act(() => {
+				result.result.current.focusElement("1");
+			});
+
+			element = result.result.current.elements[0];
+
+			expect(element.focused).toBe(false);
+		});
+
+		it("should unfocus an element", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+			let element = result.result.current.elements[0];
+
+			act(() => {
+				result.result.current.focusElement(element.id);
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.focused).toBe(true);
+
+			act(() => {
+				result.result.current.unfocusElement(element.id);
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.focused).toBe(false);
+		});
+
+		it("should not unfocus an element if id doesn't exist", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+
+			let element = result.result.current.elements[0];
+
+			act(() => {
+				result.result.current.focusElement(element.id);
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.focused).toBe(true);
+
+			act(() => {
+				result.result.current.unfocusElement("1");
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.focused).toBe(true);
+		});
+
+		it("should change element properties", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+
+			let element = result.result.current.elements[0];
+			expect(element.stroke).toBe("#000000");
+
+			act(() => {
+				result.result.current.changeElementProperties(
+					(state) => ({
+						...state,
+						stroke: "#ffffff"
+					}),
+					element.id
+				);
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.stroke).toBe("#ffffff");
+		});
+
+		it("should not change element properties if id doesn't exist", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+
+			let element = result.result.current.elements[0];
+			expect(element.stroke).toBe("#000000");
+
+			act(() => {
+				result.result.current.changeElementProperties(
+					(state) => ({
+						...state,
+						stroke: "#ffffff"
+					}),
+					"1"
+				);
+			});
+
+			element = result.result.current.elements[0];
+			expect(element.stroke).toBe("#000000");
+		});
+
+		it("should copy and paste an unfocused element", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+
+			const element = result.result.current.elements[0];
+			expect(result.result.current.copiedElements).toEqual([]);
+
+			act(() => {
+				result.result.current.copyElement(element.id);
+			});
+
+			expect(result.result.current.copiedElements).toEqual([element]);
+
+			act(() => {
+				result.result.current.pasteElement();
+			});
+
+			const newElement = {
+				...element,
+				x: element.x + 10,
+				y: element.y + 10,
+				id: expect.any(String)
+			};
+
+			expect(result.result.current.elements).toEqual([element, newElement]);
+			expect(result.result.current.copiedElements).toEqual([newElement]);
+		});
+
+		it("should copy and paste a focused element", () => {
+			act(() => {
+				result.result.current.createElement("rectangle", {
+					layerId: "1234-5678-9123-4567"
+				});
+			});
+
+			let element = result.result.current.elements[0];
+			expect(result.result.current.copiedElements).toEqual([]);
+
+			act(() => {
+				result.result.current.focusElement(element.id);
+				result.result.current.copyElement(element.id);
+			});
+
+			element = result.result.current.elements[0];
+
+			expect(result.result.current.copiedElements).toEqual([element]);
+
+			act(() => {
+				result.result.current.pasteElement();
+			});
+
+			const newElement = {
+				...element,
+				x: element.x + 10,
+				y: element.y + 10,
+				id: expect.any(String)
+			};
+
+			expect(result.result.current.elements).toEqual([element, newElement]);
+			expect(result.result.current.copiedElements).toEqual([newElement]);
+		});
+
+		it("should throw if a layerId is not provided when creating element", () => {
+			const error = "Cannot create element: No existing layer.";
+			expect(() => {
 				act(() => {
-					result.result.current.createElement("rectangle", {
+					result.result.current.createElement("rectangle");
+				});
+			}).toThrowError(error);
+		});
+
+		it("should throw if text properties are not provided when creating text element", () => {
+			const error =
+				"Cannot create text element without additional text properties.";
+			expect(() => {
+				act(() => {
+					result.result.current.createElement("text", {
 						layerId: "1234-5678-9123-4567"
 					});
-					result.result.current.createElement("circle", {
-						layerId: "1234-5678-9123-4567"
-					});
 				});
-				const [one, two] = result.result.current.elements;
-
-				expect(one.id).not.toBe(two.id);
-			});
-
-			it("should delete an element", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-				expect(result.result.current.elements).toHaveLength(1);
-
-				act(() => {
-					result.result.current.deleteElement(
-						result.result.current.elements[0].id
-					);
-				});
-
-				expect(result.result.current.elements).toHaveLength(0);
-			});
-
-			it("should not delete anything if id doesn't exist", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-				expect(result.result.current.elements).toHaveLength(1);
-
-				act(() => {
-					result.result.current.deleteElement("1");
-				});
-
-				expect(result.result.current.elements).toHaveLength(1);
-			});
-
-			it("should focus an element", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-				let element = result.result.current.elements[0];
-				expect(element.focused).toBe(false);
-
-				act(() => {
-					result.result.current.focusElement(element.id);
-				});
-
-				element = result.result.current.elements[0];
-
-				expect(element.focused).toBe(true);
-			});
-
-			it("should not focus an element if id doesn't exist", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-				let element = result.result.current.elements[0];
-				expect(element.focused).toBe(false);
-
-				act(() => {
-					result.result.current.focusElement("1");
-				});
-
-				element = result.result.current.elements[0];
-
-				expect(element.focused).toBe(false);
-			});
-
-			it("should unfocus an element", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-				let element = result.result.current.elements[0];
-
-				act(() => {
-					result.result.current.focusElement(element.id);
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.focused).toBe(true);
-
-				act(() => {
-					result.result.current.unfocusElement(element.id);
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.focused).toBe(false);
-			});
-
-			it("should not unfocus an element if id doesn't exist", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-
-				let element = result.result.current.elements[0];
-
-				act(() => {
-					result.result.current.focusElement(element.id);
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.focused).toBe(true);
-
-				act(() => {
-					result.result.current.unfocusElement("1");
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.focused).toBe(true);
-			});
-
-			it("should change element properties", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-
-				let element = result.result.current.elements[0];
-				expect(element.stroke).toBe("#000000");
-
-				act(() => {
-					result.result.current.changeElementProperties(
-						(state) => ({
-							...state,
-							stroke: "#ffffff"
-						}),
-						element.id
-					);
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.stroke).toBe("#ffffff");
-			});
-
-			it("should not change element properties if id doesn't exist", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-
-				let element = result.result.current.elements[0];
-				expect(element.stroke).toBe("#000000");
-
-				act(() => {
-					result.result.current.changeElementProperties(
-						(state) => ({
-							...state,
-							stroke: "#ffffff"
-						}),
-						"1"
-					);
-				});
-
-				element = result.result.current.elements[0];
-				expect(element.stroke).toBe("#000000");
-			});
-
-			it("should copy and paste an unfocused element", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-
-				const element = result.result.current.elements[0];
-				expect(result.result.current.copiedElements).toEqual([]);
-
-				act(() => {
-					result.result.current.copyElement(element.id);
-				});
-
-				expect(result.result.current.copiedElements).toEqual([element]);
-
-				act(() => {
-					result.result.current.pasteElement();
-				});
-
-				const newElement = {
-					...element,
-					x: element.x + 10,
-					y: element.y + 10,
-					id: expect.any(String)
-				};
-
-				expect(result.result.current.elements).toEqual([element, newElement]);
-				expect(result.result.current.copiedElements).toEqual([newElement]);
-			});
-
-			it("should copy and paste a focused element", () => {
-				act(() => {
-					result.result.current.createElement("rectangle", {
-						layerId: "1234-5678-9123-4567"
-					});
-				});
-
-				let element = result.result.current.elements[0];
-				expect(result.result.current.copiedElements).toEqual([]);
-
-				act(() => {
-					result.result.current.focusElement(element.id);
-					result.result.current.copyElement(element.id);
-				});
-
-				element = result.result.current.elements[0];
-
-				expect(result.result.current.copiedElements).toEqual([element]);
-
-				act(() => {
-					result.result.current.pasteElement();
-				});
-
-				const newElement = {
-					...element,
-					x: element.x + 10,
-					y: element.y + 10,
-					id: expect.any(String)
-				};
-
-				expect(result.result.current.elements).toEqual([element, newElement]);
-				expect(result.result.current.copiedElements).toEqual([newElement]);
-			});
-
-			it("should throw if a layerId is not provided when creating element", () => {
-				const error = "Cannot create element: No existing layer.";
-				expect(() => {
-					act(() => {
-						result.result.current.createElement("rectangle");
-					});
-				}).toThrowError(error);
-			});
-
-			it("should throw if text properties are not provided when creating text element", () => {
-				const error =
-					"Cannot create text element without additional text properties.";
-				expect(() => {
-					act(() => {
-						result.result.current.createElement("text", {
-							layerId: "1234-5678-9123-4567"
-						});
-					});
-				}).toThrowError(error);
-			});
+			}).toThrowError(error);
 		});
 	});
 });

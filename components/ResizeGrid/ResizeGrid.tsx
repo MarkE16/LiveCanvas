@@ -19,10 +19,14 @@ type ResizeGridProps = {
 	height: number;
 	focused: boolean;
 	zIndex?: number;
+	elementId: string;
 };
 
 const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
-	function ResizeGrid({ x, y, width, height, focused, zIndex, children }, ref) {
+	function ResizeGrid(
+		{ x, y, width, height, focused, zIndex, elementId, children },
+		ref
+	) {
 		const [resizing, setResizing] = useState<ResizePosition | null>(null);
 		const OFFSET = 6;
 		const resizeHandles = [];
@@ -107,6 +111,7 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 						onResizeStart={() => {
 							onResizeStart(placement);
 						}}
+						elementId={elementId}
 						onResizeEnd={onResizeEnd}
 					/>
 				);
@@ -116,6 +121,7 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 		return (
 			<div
 				ref={ref}
+				tabIndex={0}
 				className={`grid${focused ? " focused" : ""}`}
 				data-testid="resize-grid"
 				data-resizing={resizing}

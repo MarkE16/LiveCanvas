@@ -1,5 +1,6 @@
 // Lib
 import { useEffect } from "react";
+import useStore from "../../state/hooks/useStore";
 
 // Types
 import type { FC, CSSProperties, MouseEvent } from "react";
@@ -13,14 +14,19 @@ type ResizeHandleProps = {
 	resizeOffset: number;
 	onResizeStart?: () => void;
 	onResizeEnd?: () => void;
+	elementId: string;
 };
 
 const ResizeHandle: FC<ResizeHandleProps> = ({
 	placement,
 	resizeOffset,
 	onResizeStart,
-	onResizeEnd
+	onResizeEnd,
+	elementId
 }) => {
+	const changeElementProperties = useStore(
+		(state) => state.changeElementProperties
+	);
 	const WIDTH = 10;
 	const HEIGHT = 10;
 
@@ -94,6 +100,16 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 		onResizeStart && onResizeStart();
 	};
 
+	const onBlur = () => {
+		changeElementProperties(
+			(state) => ({
+				...state,
+				focused: false
+			}),
+			elementId
+		);
+	};
+
 	// We add this event listener to the document to ensure that the resize ends even if the user releases the mouse outside the resize handle.
 	useEffect(() => {
 		const onMouseUp = () => {
@@ -110,9 +126,11 @@ const ResizeHandle: FC<ResizeHandleProps> = ({
 	return (
 		<svg
 			className="handle"
+			tabIndex={0}
 			data-testid={`handle-${placement}`}
 			style={styles}
 			onMouseDown={onMouseDown}
+			onBlur={placement === "se" ? onBlur : undefined}
 		>
 			<rect
 				x={0}

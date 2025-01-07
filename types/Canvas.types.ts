@@ -51,6 +51,12 @@ export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 
 export type CanvasElementType = Shape | "text";
 
+export type FontProperties = {
+  size: number;
+  family: string;
+  content: string;
+}
+
 export type CanvasElement = {
 	x: number;
 	y: number;
@@ -60,9 +66,7 @@ export type CanvasElement = {
 	fill: string;
 	stroke: string;
 	id: string;
-	fontSize?: number;
-	fontFamily?: string;
-	fontContent?: string;
+  text?: FontProperties;
 	layerId: string;
 	focused: boolean;
 	// More properties later...

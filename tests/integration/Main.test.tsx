@@ -809,6 +809,18 @@ describe("Canvas Interactive Functionality", () => {
 	});
 
 	describe("Canvas functionality", () => {
+		const canvasBoundingClientRect: DOMRect = {
+			x: 149.5,
+			y: 334,
+			width: 400,
+			height: 400,
+			top: 334,
+			right: 549.5,
+			bottom: 734,
+			left: 149.5,
+			toJSON: vi.fn()
+		};
+
 		it("should render a canvas layer", () => {
 			const canvas = screen.queryByTestId("canvas-layer");
 
@@ -816,6 +828,120 @@ describe("Canvas Interactive Functionality", () => {
 			expect(canvas).toBeInstanceOf(HTMLCanvasElement);
 			expect(canvas).toHaveAttribute("width", "400");
 			expect(canvas).toHaveAttribute("height", "400");
+			expect(canvas).toHaveClass("active");
+			expect(canvas).not.toHaveClass("hidden");
+		});
+
+		it("should draw a line", () => {
+			const drawTool = screen.getByTestId("tool-draw");
+			let pointerMarker = screen.queryByTestId("canvas-pointer-marker");
+			const canvas = screen.getByTestId("canvas-layer") as HTMLCanvasElement;
+			const ctx = canvas.getContext("2d");
+
+			expect(pointerMarker).not.toBeInTheDocument();
+
+			fireEvent.click(drawTool);
+
+			pointerMarker = screen.getByTestId("canvas-pointer-marker");
+
+			expect(pointerMarker).not.toBeVisible();
+
+			if (!ctx) throw new Error("Canvas context not found");
+
+			const mockMoveTo = vi.fn();
+			const mockLineTo = vi.fn();
+
+			const mockPath2D = {
+				moveTo: mockMoveTo,
+				lineTo: mockLineTo
+			};
+
+			vi.spyOn(global, "Path2D").mockImplementation(
+				() => mockPath2D as unknown as Path2D
+			);
+			vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue(
+				canvasBoundingClientRect
+			);
+			const dispatchEventMock = vi.spyOn(document, "dispatchEvent");
+			// We need to mock the stroke method to avoid errors where the original
+			// stroke method will throw if the passed argument is not a Path2D object.
+			const mockStroke = vi.spyOn(ctx, "stroke").mockImplementation(vi.fn());
+
+			const beforeX = 100;
+			const beforeY = 100;
+			const afterX = 200;
+			const afterY = 200;
+
+			fireEvent.mouseDown(canvas, {
+				clientX: beforeX,
+				clientY: beforeY,
+				buttons: 1
+			});
+
+			fireEvent.mouseMove(canvas, {
+				clientX: afterX,
+				clientY: afterY,
+				buttons: 1
+			});
+
+			expect(mockStroke).toHaveBeenCalledWith(mockPath2D);
+			expect(mockMoveTo).toHaveBeenCalledWith(beforeX - 149.5, beforeY - 334);
+			expect(mockLineTo).toHaveBeenCalledWith(afterX - 149.5, afterY - 334);
+			fireEvent.mouseUp(canvas);
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: canvas
+				}
+			});
+
+			expect(dispatchEventMock).toHaveBeenLastCalledWith(event);
+		});
+
+		it("should erase a section of the canvas", () => {
+			const eraseTool = screen.getByTestId("tool-erase");
+			const canvas = screen.getByTestId("canvas-layer") as HTMLCanvasElement;
+			const ctx = canvas.getContext("2d");
+
+			vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue(
+				canvasBoundingClientRect
+			);
+
+			fireEvent.click(eraseTool);
+
+			if (!ctx) throw new Error("Canvas context not found");
+
+			const mockClearRect = vi
+				.spyOn(ctx, "clearRect")
+				.mockImplementation(vi.fn());
+
+			const afterX = 200;
+			const afterY = 200;
+
+			fireEvent.mouseDown(canvas, { buttons: 1 });
+			fireEvent.mouseMove(canvas, {
+				clientX: afterX,
+				clientY: afterY,
+				buttons: 1
+			});
+
+			// width and height = eraser_radius * eraser_strength
+			// width and height = 7 * 3 = 21
+			expect(mockClearRect).toHaveBeenCalledWith(
+				afterX - 149.5 - 21 / 2,
+				afterX - 334 - 21 / 2,
+				21,
+				21
+			);
+			fireEvent.mouseUp(canvas);
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: canvas
+				}
+			});
+
+			expect(document.dispatchEvent).toHaveBeenLastCalledWith(event);
 		});
 
 		it("should change the color based on the eye drop tool", () => {
@@ -955,17 +1081,14 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
 			expect(element).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid);
 
-			expect(element).toHaveAttribute("data-focused", "true");
-
-			fireEvent.mouseUp(document);
-
-			// The element should still be focused.
 			expect(element).toHaveAttribute("data-focused", "true");
 		});
 
@@ -982,10 +1105,12 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 			expect(element).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid);
 			expect(element).toHaveAttribute("data-focused", "true");
 
 			fireEvent.mouseDown(document);
@@ -1008,29 +1133,28 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
-			const rect = elements[0];
-
 			fireEvent.click(circleOption);
 
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(2);
 
-			const circle = elements[1];
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+			const [rectResizeGrid, circleResizeGrid] = resizeGrids;
+			const [rect, circle] = elements;
 
 			expect(rect).toHaveAttribute("data-focused", "false");
 			expect(circle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(rect, { buttons: 1 });
+			fireEvent.focus(rectResizeGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(circle, { buttons: 1 });
+			fireEvent.mouseDown(document);
+			fireEvent.focus(circleResizeGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "false");
 			expect(circle).toHaveAttribute("data-focused", "true");
-
-			fireEvent.mouseUp(circle);
 		});
 
 		it("should select multiple elements with ctrl key", () => {
@@ -1051,36 +1175,31 @@ describe("Canvas Interactive Functionality", () => {
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
 			}
-
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+			const [rectGrid, circleGrid, triangleGrid] = resizeGrids;
 			const [rect, circle, triangle] = elements;
 
-			fireEvent.mouseDown(rect, { ctrlKey: true, buttons: 1 });
+			fireEvent.focus(rectGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "false");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseUp(rect);
-			fireEvent.mouseDown(circle, {
-				ctrlKey: true,
-				buttons: 1
-			});
+			fireEvent.mouseDown(document, { ctrlKey: true });
+			fireEvent.focus(circleGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "true");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseUp(circle);
-			fireEvent.mouseDown(triangle, {
-				ctrlKey: true,
-				buttons: 1
-			});
+			fireEvent.mouseDown(document, { ctrlKey: true });
+			fireEvent.focus(triangleGrid);
 
 			expect(
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "true"
 				)
-			).toBeTruthy();
+			).toBe(true);
 
 			fireEvent.mouseDown(document);
 
@@ -1088,7 +1207,7 @@ describe("Canvas Interactive Functionality", () => {
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "false"
 				)
-			).toBeTruthy();
+			).toBe(true);
 		});
 
 		it("should delete an element with the delete key", () => {
@@ -1106,9 +1225,11 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid);
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -1134,9 +1255,11 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid);
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -1188,18 +1311,17 @@ describe("Canvas Interactive Functionality", () => {
 				expect(elements).toHaveLength(i + 1);
 			}
 
-			for (const element of elements) {
-				fireEvent.mouseDown(element, {
-					ctrlKey: true,
-					buttons: 1
-				});
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+
+			for (let i = 0; i < elements.length; i++) {
+				fireEvent.focus(resizeGrids[i]);
 			}
 
 			expect(
 				elements.every(
 					(element) => element.getAttribute("data-focused") === "true"
 				)
-			).toBeTruthy();
+			).toBe(true);
 
 			fireEvent.keyDown(document, { key: "Delete" });
 
@@ -1223,9 +1345,11 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -1265,10 +1389,12 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("fill-picker-button");
@@ -1313,10 +1439,12 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("stroke-picker-button");
@@ -1365,10 +1493,12 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
 			// The color picker should be visible only when an element is focused.
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			const color = "#ff0000";
 			pickerButton = screen.getByTestId("fill-picker-button");
@@ -1413,9 +1543,10 @@ describe("Canvas Interactive Functionality", () => {
 				expect(elements).toHaveLength(i + 1);
 			}
 
-			for (const element of elements) {
-				fireEvent.mouseDown(element, {
-					ctrlKey: true,
+			const resizeGrids = screen.queryAllByTestId("resize-grid");
+
+			for (const resizeGrid of resizeGrids) {
+				fireEvent.focus(resizeGrid, {
 					buttons: 1
 				});
 			}
@@ -1467,19 +1598,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1525,19 +1652,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1582,19 +1705,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1639,19 +1758,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1696,19 +1811,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1753,19 +1864,15 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.click(shapeTool);
 
 			const option = screen.getByTestId("shape-rectangle");
-
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1813,16 +1920,14 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1870,16 +1975,14 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
 			expect(resizeGrid).not.toHaveAttribute("data-resizing");
 
 			// First, we need to click on the element to focus it.
-			fireEvent.mouseDown(element, {
+			fireEvent.focus(resizeGrid, {
 				buttons: 1
 			});
 
@@ -1913,7 +2016,7 @@ describe("Canvas Interactive Functionality", () => {
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
-		it.todo("should move an element when moving the canvas", () => {
+		it("should move an element when moving the canvas", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
 			const moveTool = screen.getByTestId("tool-move");
@@ -1949,8 +2052,8 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			fireEvent.mouseMove(document, {
-				clientX: pointerX + 50,
-				clientY: pointerY + 50,
+				clientX: pointerX + 100,
+				clientY: pointerY + 100,
 				buttons: 1
 			});
 
@@ -1961,7 +2064,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			// The values are NaN, so we need to calculate the center of the space and
 			// then apply the 50 offset to the x and y values.
-			expect(stripped).toEqual([elementCenterX + 50, elementCenterY + 50]);
+			expect(stripped).toEqual([elementCenterX + 100, elementCenterY + 100]);
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -1988,7 +2091,7 @@ describe("Canvas Interactive Functionality", () => {
 			expect(element).toHaveAttribute("data-x", "NaN");
 			expect(element).toHaveAttribute("data-y", "NaN");
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			expect(element).toHaveAttribute("data-focused", "true");
 
@@ -2037,10 +2140,13 @@ describe("Canvas Interactive Functionality", () => {
 		it("should directly move multiple selected elements", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
+			let grids = screen.queryAllByTestId("resize-grid");
 
-			const boundingRectMock = vi
-				.spyOn(space, "getBoundingClientRect")
-				.mockReturnValue(boundingClientRect);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			expect(grids).toHaveLength(0);
 
 			fireEvent.click(shapeTool);
 
@@ -2051,19 +2157,11 @@ describe("Canvas Interactive Functionality", () => {
 
 				fireEvent.click(option);
 
-				const elements = screen.queryAllByTestId("element");
-				expect(elements).toHaveLength(i + 1);
+				grids = screen.queryAllByTestId("resize-grid");
+				expect(grids).toHaveLength(i + 1);
 
-				fireEvent.mouseDown(elements[i], { ctrlKey: true, buttons: 1 });
+				fireEvent.focus(grids[i], { ctrlKey: true, buttons: 1 });
 			}
-
-			const [rect, circle, triangle] = screen.queryAllByTestId("element");
-
-			expect(
-				[rect, circle, triangle].every(
-					(element) => element.getAttribute("data-focused") === "true"
-				)
-			).toBeTruthy();
 
 			const pointerX = 100;
 			const pointerY = 100;
@@ -2074,14 +2172,9 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const [rectResizeGrid, circleResizeGrid, triangleResizeGrid] =
-				resizeGrids;
-
-			expect(rectResizeGrid).toHaveStyle("left: 0px; top: -14px;");
-			expect(circleResizeGrid).toHaveStyle("left: 0px; top: -14px;");
-			expect(triangleResizeGrid).toHaveStyle("left: 0px; top: -14px;");
+			for (const grid of grids) {
+				expect(grid).toHaveStyle("left: 0px; top: -14px");
+			}
 
 			fireEvent.mouseMove(document, {
 				clientX: 200,
@@ -2089,9 +2182,9 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			// expect(rectResizeGrid).toHaveStyle("left: 100px; top: 86px;");
-			// expect(circleResizeGrid).toHaveStyle("left: 100px; top: 86px;");
-			// expect(triangleResizeGrid).toHaveStyle("left: 100px; top: 86px;");
+			for (const grid of grids) {
+				expect(grid).toHaveStyle("left: 100px; top: 86px");
+			}
 		});
 
 		it("should move an element in the direction of the window resize", () => {
@@ -2108,13 +2201,11 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(option);
 
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
 
-			fireEvent.mouseDown(element, { buttons: 1 });
+			fireEvent.focus(resizeGrid, { buttons: 1 });
 
 			fireEvent.mouseMove(document, {
 				clientX: 100,

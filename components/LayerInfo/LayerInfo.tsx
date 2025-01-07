@@ -249,19 +249,21 @@ const LayerInfo: FC<LayerInfoProps> = ({
 									</button>
 								</Tooltip>
 							)}
-							<Tooltip
-								title={visibilityTooltipText}
-								arrow
-								placement="top"
-							>
-								<button
-									onClick={onToggleVisibility}
-									disabled={!canMoveUp && !canMoveDown}
-									data-testid={`toggle-${id}`}
-								>
-									<Eye lineCross={hidden} />
-								</button>
-							</Tooltip>
+							{canMoveUp ||
+								(canMoveDown && (
+									<Tooltip
+										title={visibilityTooltipText}
+										arrow
+										placement="top"
+									>
+										<button
+											onClick={onToggleVisibility}
+											data-testid={`toggle-${id}`}
+										>
+											<Eye lineCross={hidden} />
+										</button>
+									</Tooltip>
+								))}
 						</>
 					)}
 				</div>

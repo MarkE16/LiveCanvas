@@ -61,7 +61,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 			if (computedX - POINTER_SIZE < 0) {
 				// If the pointer is too far to the left, set the x to the left edge of the canvas.
-				newX = x - left + POINTER_SIZE;
+				newX = POINTER_SIZE;
 			} else if (computedX > width) {
 				// If the pointer is too far to the right, set the x to the right edge of the canvas.
 				newX = width;
@@ -72,7 +72,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 			if (computedY - POINTER_SIZE < 0) {
 				// If the pointer is too far to the top, set the y to the top edge of the canvas.
-				newY = y - top + POINTER_SIZE;
+				newY = POINTER_SIZE;
 			} else if (computedY > height) {
 				// If the pointer is too far to the bottom, set the y to the bottom edge of the canvas.
 				newY = height;
@@ -103,8 +103,6 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 
 			const elements = document.getElementsByClassName("element");
 
-			console.log(isMovingElement.current);
-
 			for (let i = 0; i < elements.length; i++) {
 				const node = elements[i];
 				if (
@@ -129,6 +127,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 		<div
 			ref={ref}
 			id="canvas-pointer-marker"
+			data-testid="canvas-pointer-marker"
 			style={{
 				// Remove pointer events so the pointer doesn't interfere with the canvas.
 				borderRadius: mode === "draw" ? "50%" : "0%",

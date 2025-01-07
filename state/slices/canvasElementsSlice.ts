@@ -34,14 +34,7 @@ export const createCanvasElementsSlice: StateCreator<
 		type: Shape | "text",
 		properties?: Omit<Partial<CanvasElement>, "id">
 	) {
-		if (
-			type === "text" &&
-			!(
-				properties?.fontContent &&
-				properties?.fontSize &&
-				properties?.fontFamily
-			)
-		) {
+		if (type === "text" && !properties?.text) {
 			throw new Error(
 				"Cannot create text element without additional text properties."
 			);

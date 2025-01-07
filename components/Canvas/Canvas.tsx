@@ -71,8 +71,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	// Handler for when the mouse is pressed down on the canvas.
 	// This should initiate the drawing process.
 	const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-		e.preventDefault();
-		isDrawing.current = mode !== "select" && !isMovingElement.current;
+		// e.preventDefault();
+		isDrawing.current =
+			(mode === "draw" || mode === "erase") && !isMovingElement.current;
 
 		const activeLayer = references.current.find((ref) =>
 			ref.classList.contains("active")
@@ -88,6 +89,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
 		if (mode === "draw") {
+			ctx?.beginPath();
 			currentPath2D.current = new Path2D();
 			currentPath2D.current.moveTo(x, y);
 		} else if (mode === "eye_drop" && !isGrabbing) {

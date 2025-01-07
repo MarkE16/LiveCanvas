@@ -9,6 +9,13 @@ span.element {
 	resize: none;
 	background: transparent;
 	overflow: hidden;
+	caret-color: black;
+	/* pointer-events: none; */
+}
+
+textarea.element:hover,
+span.element:hover {
+	/* pointer-events: auto; */
 }
 
 textarea.element {

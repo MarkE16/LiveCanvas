@@ -6,3 +6,7 @@
 .grid.focused {
 	outline: 1px solid #d1836a;
 }
+
+.grid:hover {
+	cursor: move;
+}

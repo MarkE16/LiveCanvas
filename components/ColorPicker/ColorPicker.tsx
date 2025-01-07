@@ -1,5 +1,8 @@
 // Lib
 import { useState } from "react";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
+import useStore from "../../state/hooks/useStore";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
 import { parseColor } from "react-aria-components";
 
 // Components
@@ -25,8 +28,6 @@ import "./ColorPicker.styles.css";
 import type { FC, MouseEvent, ChangeEvent } from "react";
 import type { Color } from "react-aria-components";
 import type { CanvasElement } from "../../types";
-import useStoreSubscription from "../../state/hooks/useStoreSubscription";
-import useStore from "../../state/hooks/useStore";
 
 type ColorPickerProps = {
 	label: string;
@@ -40,6 +41,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 		(state) => state.changeElementProperties
 	);
 	const elements = useStoreSubscription((state) => state.elements);
+	const { references } = useLayerReferences();
 
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");
@@ -58,7 +60,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 		setHex(hex);
 	};
 
-	const onHexChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const onHexChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		try {
 			const color = parseColor(e.target.value);
 			handleColorChange(color);
@@ -67,6 +69,31 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 		}
 
 		setHex(e.target.value);
+	};
+
+	const updatePreview = () => {
+		const activeLayer = references.current.find((layer) =>
+			layer.classList.contains("active")
+		);
+
+		if (!activeLayer)
+			throw new Error("No active layer found. Cannot update layer preview.");
+
+		const ev = new CustomEvent("imageupdate", {
+			detail: {
+				layer: activeLayer
+			}
+		});
+
+		document.dispatchEvent(ev);
+	};
+
+	const onOpenChange = (isOpen: boolean) => {
+		if (!isOpen) {
+			setHex(parseColor(value).toString("hex"));
+
+			updatePreview();
+		}
 	};
 
 	const stopPropagation = (e: MouseEvent) => e.stopPropagation();
@@ -79,7 +106,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 			onMouseMove={stopPropagation}
 		>
 			<AriaColorPicker>
-				<DialogTrigger>
+				<DialogTrigger onOpenChange={onOpenChange}>
 					<Button
 						className="color-picker"
 						data-testid={`${__for}-picker-button`}
