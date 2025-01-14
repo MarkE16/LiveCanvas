@@ -19,7 +19,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ghcr.io/marke16/livecanvas:prod .
+          docker build -f Dockerfile.prod -t ghcr.io/marke16/livecanvas:prod .
           docker push ghcr.io/marke16/livecanvas:prod
 
       - name: Deploy to Render
