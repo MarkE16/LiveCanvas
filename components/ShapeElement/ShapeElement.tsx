@@ -12,7 +12,7 @@ import type {
 	CanvasElement,
 	CanvasElementType
 } from "../../types";
-import type { FC, FocusEvent, ReactElement, RefObject } from "react";
+import type { FC, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
@@ -145,9 +145,11 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			) as ResizePosition | null;
 
 			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
-			const focusedIds = Array.from(document.getElementsByClassName("element"))
-				.filter((e) => e.getAttribute("data-focused") === "true")
-				.map((e) => e.id);
+			
+      const focusedIds = Array.prototype.filter.call(
+        document.getElementsByClassName('element'),
+        (el: Element) => el.getAttribute('data-focused') === 'true'
+      ).map((element: Element) => element.id);
 
 			if (resizePos !== null) {
 				const pointerX = e.clientX - left;

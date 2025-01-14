@@ -14,7 +14,7 @@ type IndexedUtils = {
 	 * @param key An optional key to get the data under.
 	 * @returns A promise that resolves with the data.
 	 */
-	get: <T>(store: string, key?: string) => Promise<T>;
+	get: <T>(store: string, key?: string) => Promise<T | undefined>;
 
 	/**
 	 * Set data in the database.
@@ -75,7 +75,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	}, []);
 
 	const get = useCallback(
-		async <T,>(store: string, key?: string): Promise<T> => {
+		async <T,>(store: string, key?: string): Promise<T | undefined> => {
 			const db = database.current ?? (await openDatabase());
 
 			return new Promise((resolve, reject) => {

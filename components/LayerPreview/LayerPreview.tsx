@@ -33,8 +33,6 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 
 			const elements = Array.from(document.getElementsByClassName("element"));
 
-			console.log("fired");
-
 			// Use 0.2 quality for the preview to save space and make it faster on performance.
 			const blob = await Utils.generateCanvasImage(layer, elements, 0.2);
 

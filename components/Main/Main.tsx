@@ -23,8 +23,8 @@ const Main: FC = () => {
 
 	useEffect(() => {
 		async function getElements() {
-			const elements = (await get("elements", "items")) as CanvasElement[];
-			setElements(elements);
+			const elements = await get<CanvasElement[]>("elements", "items");
+			setElements(elements ?? []);
 		}
 
 		getElements();

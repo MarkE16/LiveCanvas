@@ -1,5 +1,5 @@
 // Lib
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import useStore from "../../state/hooks/useStore";
 
 // Styles
@@ -56,16 +56,20 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 		}
 
 		setIsEditing(false);
-		changeElementProperties(
-			(state) => ({
-				...state,
-				text: {
-					...state.text!,
-					content: text
-				}
-			}),
-			elementId
-		);
+		if (!!text !== false) {
+			changeElementProperties(
+				(state) => ({
+					...state,
+					text: {
+						...state.text!,
+						content: text
+					}
+				}),
+				elementId
+			);
+		} else {
+			setText(content);
+		}
 	};
 
 	const onFocus = () => {

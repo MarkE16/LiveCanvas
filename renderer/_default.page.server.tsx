@@ -2,11 +2,11 @@ export { render };
 // See https://vite-plugin-ssr.com/data-fetching
 export const passToClient = ["pageProps", "urlPathname"];
 
-import ReactDOMServer from "react-dom/server";
 import { PageShell } from "./PageShell";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import logo from "../assets/icons/IdeaDrawnNewLogo.png";
 import type { PageContextServer } from "./types";
+import { renderToStream } from "react-streaming/server";
 import { initializeStore } from "../state/store";
 import { StoreProvider } from "../components/StoreContext/StoreContext";
 
@@ -17,7 +17,7 @@ async function render(pageContext: PageContextServer) {
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
   const store = initializeStore();
-	const pageHtml = ReactDOMServer.renderToString(
+	const stream = await renderToStream(
 		<PageShell pageContext={pageContext}>
 			<StoreProvider store={store}>
 			 <Page {...pageProps} />
@@ -51,7 +51,7 @@ async function render(pageContext: PageContextServer) {
         <title>${title}</title>
       </head>
       <body>
-        <div id="entry">${dangerouslySkipEscape(pageHtml)}</div>
+        <div id="entry">${stream}</div>
         <script id="__preloaded_state__">
           window.__PRELOADED_STATE__ = ${dangerouslySkipEscape(jsonState)}
         </script>

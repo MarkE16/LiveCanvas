@@ -10,8 +10,9 @@ export const createCanvasElementsSlice: StateCreator<
 > = (set, get) => {
 	function focusElement(...ids: string[]) {
 		const elements = get().elements;
+		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (ids.includes(element.id)) {
+			if (idsSet.has(element.id)) {
 				return { ...element, focused: true };
 			}
 			return element;
@@ -21,8 +22,9 @@ export const createCanvasElementsSlice: StateCreator<
 
 	function unfocusElement(...ids: string[]) {
 		const elements = get().elements;
+		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (ids.includes(element.id)) {
+			if (idsSet.has(element.id)) {
 				return { ...element, focused: false };
 			}
 			return element;
@@ -68,8 +70,9 @@ export const createCanvasElementsSlice: StateCreator<
 		...ids: string[]
 	) {
 		const elements = get().elements;
+		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (ids.includes(element.id)) {
+			if (idsSet.has(element.id)) {
 				const { width, height, ...rest } = callback(element);
 
 				if (width < 1 || height < 1) {
@@ -105,8 +108,9 @@ export const createCanvasElementsSlice: StateCreator<
 
 	function copyElement(...ids: string[]) {
 		const elements = get().elements;
+		const idsSet = new Set(ids);
 		const copiedElements = elements.filter((element) =>
-			ids.includes(element.id)
+			idsSet.has(element.id)
 		);
 		set({ copiedElements });
 	}

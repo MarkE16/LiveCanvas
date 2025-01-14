@@ -150,12 +150,10 @@ const CanvasPane: FC = () => {
 			// We grab the elements using the class name "element"
 			// rather than the state variable so that this effect
 			// doesn't depend on the state variable.
-			const elementIds = Array.from(
-				document.getElementsByClassName("element")
-			).map((element) => element.id);
-
-			console.log("preparing to move elements...");
-			console.log(dx, dy);
+			const elementIds = Array.prototype.map.call(
+				document.getElementsByClassName("element"),
+				(element: Element) => element.id
+			) as string[];
 
 			changeElementProperties(
 				(state) => {
@@ -204,11 +202,13 @@ const CanvasPane: FC = () => {
 			if (e.key === "c" && e.ctrlKey && !e.repeat) {
 				// We're copying elements here
 
-				const focusedIds = Array.from(
-					document.getElementsByClassName("element")
-				)
-					.filter((element) => element.getAttribute("data-focused") === "true")
-					.map((element) => element.id);
+				const focusedElements = Array.prototype.filter.call(
+					document.getElementsByClassName("element"),
+					(element: HTMLElement) =>
+						element.getAttribute("data-focused") === "true"
+				) as Element[];
+
+				const focusedIds = focusedElements.map((element) => element.id);
 
 				copyElement(...focusedIds);
 			} else if (e.key === "v" && e.ctrlKey && !e.repeat) {
@@ -249,9 +249,10 @@ const CanvasPane: FC = () => {
 		function onWindowResize() {
 			const { changeInWidth, changeInHeight } = dimensions.current;
 
-			const elementIds = Array.from(
-				document.getElementsByClassName("element")
-			).map((element) => element.id);
+			const elementIds = Array.prototype.map.call(
+				document.getElementsByClassName("element"),
+				(element: Element) => element.id
+			) as string[];
 
 			changeElementProperties(
 				(state) => ({
