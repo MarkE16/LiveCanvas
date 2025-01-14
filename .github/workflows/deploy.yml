@@ -1,4 +1,4 @@
-name: Build and Deploy to Vercel
+name: Build and Deploy to Render
 
 on:
   push:
@@ -11,21 +11,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Login to Container Registry
+        run: |
+          echo ${{ secrets.GH_TOKEN }} | docker login ghcr.io -u marke16 --password-stdin
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Build and push Docker image
+        run: |
+          docker build -t ghcr.io/marke16/livecanvas:prod .
+          docker push ghcr.io/marke16/livecanvas:prod
 
-      - name: Build
-        run: pnpm run build
-
-      - name: Deploy to Vercel
-        uses: BetaHuhn/deploy-to-vercel-action@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Deploy to Render
+      - run: |
+          curl -X POST \
+          --url https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys \
+          --header 'accept: application/json' \
+          --header 'content-type: application/json' \
+          --header 'authorization: Bearer ${{ secrets.RENDER_KEY }}' \
+          --data '{
+          "commitId": "${{ github.sha }}",
+          "imageUrl": "ghcr.io/marke16/livecanvas:prod"
+          }'
