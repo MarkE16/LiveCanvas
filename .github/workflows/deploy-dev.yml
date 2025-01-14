@@ -23,7 +23,7 @@ jobs:
           docker push ghcr.io/marke16/livecanvas:dev
 
       - name: Deploy to Render
-      - run: |
+        run: |
           curl -X POST \
           --url https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys \
           --header 'accept: application/json' \
