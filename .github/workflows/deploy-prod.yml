@@ -30,6 +30,6 @@ jobs:
           --header 'content-type: application/json' \
           --header 'authorization: Bearer ${{ secrets.RENDER_KEY }}' \
           --data '{
-          "commitId": "${{ github.sha }}",
           "imageUrl": "ghcr.io/marke16/livecanvas:prod"
           }'
+        
