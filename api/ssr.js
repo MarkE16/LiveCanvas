@@ -15,9 +15,11 @@ export default async function handler(req, res) {
 		return;
 	}
 
-	const { body, statusCode, headers } = httpResponse;
+	const { statusCode, headers } = httpResponse;
 	console.log("Status code: ", statusCode);
 	res.statusCode = statusCode;
 	headers.forEach(([name, value]) => res.setHeader(name, value));
-	res.end(body);
+	// res.end(body);
+	// We're streaming the HTML response from the server to the client.
+	httpResponse.pipe(res);
 }
