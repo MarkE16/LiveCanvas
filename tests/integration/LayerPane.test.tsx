@@ -11,6 +11,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../../components/LayerPane/LayerPane";
 import { CanvasState } from "../../types";
 import { renderWithProviders } from "../test-utils";
+import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
 // Essential so that when the component is rendered,
 // the usePageContext hook doesn't throw an error (since it's not in the browser)
@@ -36,6 +37,16 @@ const preloadedState: CanvasState = {
 
 describe("LayerPane functionality", () => {
 	let originalConfirm: (message?: string) => boolean;
+	vi.spyOn(useLayerReferences, "default").mockReturnValue({
+		references: { current: [] },
+		add: vi.fn(),
+		remove: vi.fn(),
+		// Mocked so that it doesn't throw an error. We don't have access to the
+		// references since they're not rendered in the test.
+		setActiveIndex: vi.fn(),
+		getActiveLayer: vi.fn()
+	});
+
 	beforeAll(() => {
 		originalConfirm = window.confirm;
 
@@ -51,6 +62,8 @@ describe("LayerPane functionality", () => {
 	afterAll(() => {
 		// Restore the original window.confirm function
 		window.confirm = originalConfirm;
+
+		vi.restoreAllMocks();
 	});
 
 	it("should render the LayerPane component", () => {

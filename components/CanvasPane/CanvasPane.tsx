@@ -56,7 +56,7 @@ const CanvasPane: FC = () => {
 	const isSelecting = useRef<boolean>(false);
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
-	const { references } = useLayerReferences();
+	const { getActiveLayer } = useLayerReferences();
 	const dimensions = useWindowDimensions();
 
 	const canMove = mode === "move" || shiftKey;
@@ -85,9 +85,7 @@ const CanvasPane: FC = () => {
 				!document.activeElement?.classList.contains("grid") &&
 				!document.activeElement?.classList.contains("handle")
 			) {
-				const activeLayer = references.current.find((ref) =>
-					ref.classList.contains("active")
-				);
+				const activeLayer = getActiveLayer();
 
 				if (!activeLayer) throw new Error("No active layer found");
 
@@ -113,7 +111,7 @@ const CanvasPane: FC = () => {
 		function handleMouseMove(e: MouseEvent) {
 			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
 
-			const layer = references.current[0];
+      const layer = getActiveLayer();
 
 			const {
 				left: lLeft,
@@ -290,7 +288,6 @@ const CanvasPane: FC = () => {
 		mode,
 		isGrabbing,
 		canMove,
-		references,
 		changeElementProperties,
 		dimensions,
 		copyElement,
@@ -299,7 +296,8 @@ const CanvasPane: FC = () => {
 		increaseScale,
 		decreaseScale,
 		changeX,
-		changeY
+		changeY,
+		getActiveLayer
 	]);
 
 	return (

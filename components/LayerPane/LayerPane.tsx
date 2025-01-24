@@ -50,6 +50,7 @@ const LayerPane: FC = () => {
 						key={layer.id}
 						canMoveUp={i > 0}
 						canMoveDown={i < totalLayers - 1}
+						idx={i}
 					/>
 				))}
 			</div>

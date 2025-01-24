@@ -42,7 +42,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 }) => {
 	const layers = useStore((state) => state.layers);
 	const movingElement = useStoreSubscription((state) => state.elementMoving);
-	const { references } = useLayerReferences();
+	const { getActiveLayer } = useLayerReferences();
 	const ref = useRef<HTMLDivElement>(null);
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const activeLayer = layers.find((layer) => layer.active);
@@ -145,11 +145,13 @@ const ShapeElement: FC<ShapeElementProps> = ({
 			) as ResizePosition | null;
 
 			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
-			
-      const focusedIds = Array.prototype.filter.call(
-        document.getElementsByClassName('element'),
-        (el: Element) => el.getAttribute('data-focused') === 'true'
-      ).map((element: Element) => element.id);
+
+			const focusedIds = Array.prototype.filter
+				.call(
+					document.getElementsByClassName("element"),
+					(el: Element) => el.getAttribute("data-focused") === "true"
+				)
+				.map((element: Element) => element.id);
 
 			if (resizePos !== null) {
 				const pointerX = e.clientX - left;
@@ -394,9 +396,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		}
 
 		function onMouseUp() {
-			const activeLayer = references.current.find((ref) =>
-				ref.classList.contains("active")
-			);
+			const activeLayer = getActiveLayer();
 
 			if (!activeLayer) {
 				throw new Error("No active layer found. This is a bug.");
@@ -445,10 +445,12 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		isSelecting,
 		canvasSpaceReference,
 		updateMovingState,
-		references,
 		movingElement,
-		clientPosition
+		clientPosition,
+		getActiveLayer
 	]);
+
+	console.log(width, height, x, y, type);
 
 	if (type === "text" && text !== undefined) {
 		return (
@@ -469,6 +471,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 					stroke={stroke}
 					fill={fill}
 					elementId={id}
+					data-x={x}
+					data-y={y}
 					data-layerid={layerId}
 				/>
 			</ResizeGrid>

@@ -1,12 +1,13 @@
 // Lib
 import { useEffect, useRef } from "react";
+import { parseColor } from "react-aria-components";
+import { useShallow } from "zustand/react/shallow";
 import useIndexed from "../../state/hooks/useIndexed";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStore from "../../state/hooks/useStore";
-import useStoreSubscription from "../../state/hooks/useStoreSubscription";
-import { parseColor } from "react-aria-components";
 import * as Utils from "../../utils";
-import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
 
 // Types
 import type { FC, MouseEvent } from "react";
@@ -58,7 +59,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}))
 	);
 
-	const { references, add } = useLayerReferences();
+	const { references, add, remove } = useLayerReferences();
 	const { get } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
@@ -71,13 +72,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	// Handler for when the mouse is pressed down on the canvas.
 	// This should initiate the drawing process.
 	const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-		// e.preventDefault();
 		isDrawing.current =
 			(mode === "draw" || mode === "erase") && !isMovingElement.current;
 
-		const activeLayer = references.current.find((ref) =>
-			ref.classList.contains("active")
-		);
+		const activeLayer = e.currentTarget;
 
 		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
 
@@ -139,9 +137,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
 			return;
 		}
-		const activeLayer = references.current.find((ref) =>
-			ref.classList.contains("active")
-		);
+		const activeLayer = e.currentTarget;
 		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
 
 		const ctx = activeLayer.getContext("2d");
@@ -186,7 +182,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}
 	};
 
-	const onMouseUp = () => {
+	const onMouseUp = (e: MouseEvent) => {
 		if (isGrabbing) return;
 		isDrawing.current = false;
 
@@ -200,9 +196,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		// Only fire the imageupdate event if the
 		// user actually drew/erased something.
 		if (currentPath.current.length > 0) {
-			const activeLayer = references.current.find((ref) =>
-				ref.classList.contains("active")
-			);
+			const activeLayer = e.currentTarget;
 
 			if (!activeLayer)
 				throw new Error("No active layer found. This is a bug.");
@@ -245,6 +239,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	useEffect(() => {
 		async function updateLayers() {
 			const entries = await get<[string, DBLayer][]>("layers");
+
+			if (!entries) {
+				return;
+			}
 
 			const newEntries = await updateLayerState(entries);
 			updateLayerContents(newEntries);
@@ -310,20 +308,21 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	}, [setLayers, get, references]);
 
 	useEffect(() => {
-		const canvas = references.current.find((ref) =>
-			ref.classList.contains("active")
-		);
+		const refs = references.current;
+		for (const canvas of refs) {
+			const ctx = canvas.getContext("2d");
 
-		if (!canvas) return;
+			if (!ctx) return;
 
-		const ctx = canvas.getContext("2d");
-
-		if (!ctx) return;
-
-		ctx.scale(dpi, dpi);
+			ctx.scale(dpi, dpi);
+		}
 
 		return () => {
-			if (ctx) {
+			for (const canvas of refs) {
+				const ctx = canvas.getContext("2d");
+
+				if (!ctx) return;
+
 				ctx.scale(1 / dpi, 1 / dpi);
 			}
 		};
@@ -334,23 +333,28 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	return (
 		<>
 			{/* The main canvas. */}
-			{layers
-				.slice()
-				.reverse()
-				.map((layer, i) => (
+			{layers.map((layer, i) => {
+				const cn = clsx("canvas", {
+					active: layer.active,
+					hidden: layer.hidden && layers.length > 1
+				});
+
+				return (
 					<canvas
 						key={layer.id}
 						data-testid="canvas-layer"
-						className={`canvas${layer.active ? " active" : ""}${
-							layer.hidden && layers.length > 1 ? " hidden" : ""
-						}`}
+						className={cn}
 						style={{
 							width: `${width}px`,
 							height: `${height}px`,
 							transform
 						}}
 						ref={(element: HTMLCanvasElement) => {
-							add(element, i);
+							add(element);
+
+							return () => {
+								remove(i);
+							};
 						}}
 						id={layer.id}
 						width={width * dpi}
@@ -361,11 +365,11 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 						onMouseEnter={onMouseEnter}
 						onMouseLeave={onMouseLeave}
 						data-name={layer.name}
-						data-layer-index={layer.active ? layers.length : layers.length - i}
 						data-scale={scale}
 						data-dpi={dpi}
 					/>
-				))}
+				);
+			})}
 		</>
 	);
 };

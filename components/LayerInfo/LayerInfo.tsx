@@ -21,10 +21,12 @@ import "./LayerInfo.styles.css";
 import { Tooltip } from "@mui/material";
 import LayerPreview from "../LayerPreview/LayerPreview";
 import useStore from "../../state/hooks/useStore";
+import clsx from "clsx";
 
 type LayerInfoProps = Layer & {
 	canMoveUp: boolean;
 	canMoveDown: boolean;
+	idx: number;
 };
 
 const MemoizedLayerPreview = memo(LayerPreview);
@@ -35,7 +37,8 @@ const LayerInfo: FC<LayerInfoProps> = ({
 	active,
 	hidden,
 	canMoveUp,
-	canMoveDown
+	canMoveDown,
+	idx
 }) => {
 	const {
 		toggleLayer,
@@ -44,7 +47,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 		moveLayerDown,
 		removeLayer,
 		renameLayer,
-		changeElementProperties
+		deleteElement
 	} = useStore(
 		useShallow((state) => ({
 			toggleVisibility: state.toggleLayerVisibility,
@@ -53,11 +56,11 @@ const LayerInfo: FC<LayerInfoProps> = ({
 			moveLayerUp: state.moveLayerUp,
 			renameLayer: state.renameLayer,
 			removeLayer: state.removeLayer,
-			changeElementProperties: state.changeElementProperties
+			deleteElement: state.deleteElement
 		}))
 	);
 	const { remove } = useIndexed();
-	const { references } = useLayerReferences();
+	const { setActiveIndex } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =
@@ -67,17 +70,15 @@ const LayerInfo: FC<LayerInfoProps> = ({
 				? "Done"
 				: "Rename";
 
-	let cn = "layer-info-container";
+	const cn = clsx("layer-info-container", {
+		active,
+		hidden
+	});
 
-	if (active) {
-		cn += " active";
-	}
-
-	if (isEditing) {
-		cn += " editing";
-	}
-
-	const onToggle = () => toggleLayer(id);
+	const onToggle = () => {
+		toggleLayer(id);
+		setActiveIndex(idx);
+	};
 
 	const onToggleVisibility = () => toggleVisibility(id);
 
@@ -94,15 +95,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 			.filter((element) => element.id === id)
 			.map((element) => element.id);
 
-		// Change the layerId of the elements to the first layer
-		// if the deleted layer has any elements.
-		changeElementProperties(
-			(state) => ({
-				...state,
-				layerId: references.current[0].id
-			}),
-			...elementsWithLayer
-		);
+		deleteElement(...elementsWithLayer);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {

@@ -9,6 +9,7 @@ import "./ElementTextField.styles.css";
 import type {
 	FC,
 	TextareaHTMLAttributes,
+	FocusEvent,
 	ChangeEvent,
 	KeyboardEvent,
 	MouseEvent
@@ -50,13 +51,13 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 	const handleBlur = (e: FocusEvent) => {
 		if (firstRender.current) {
 			firstRender.current = false;
-
 			(e.target as HTMLTextAreaElement).focus();
 			return;
 		}
 
 		setIsEditing(false);
-		if (!!text !== false) {
+
+		if (text.trim().length !== 0 && text !== content) {
 			changeElementProperties(
 				(state) => ({
 					...state,
@@ -80,7 +81,7 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 		if (e.key !== "Escape") {
 			e.stopPropagation();
 		} else {
-			setText(content);
+			(e.currentTarget as HTMLCanvasElement).blur();
 		}
 	};
 
@@ -103,7 +104,7 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 				onFocus={onFocus}
 				onMouseUp={stopPropagation}
 				onDoubleClick={handleClick}
-				data-testid="element"
+				data-testid="element-textpreview"
 				data-focused={focused}
 				data-type="text"
 				data-font-family={family}
@@ -130,7 +131,7 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 			onChange={handleChange}
 			value={text}
 			data-isediting={isEditing}
-			data-testid="element"
+			data-testid="element-textfield"
 			data-focused={focused}
 			data-type="text"
 			data-font-family={family}

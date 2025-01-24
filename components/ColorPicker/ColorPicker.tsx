@@ -41,7 +41,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 		(state) => state.changeElementProperties
 	);
 	const elements = useStoreSubscription((state) => state.elements);
-	const { references } = useLayerReferences();
+	const { getActiveLayer } = useLayerReferences();
 
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");
@@ -72,9 +72,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	};
 
 	const updatePreview = () => {
-		const activeLayer = references.current.find((layer) =>
-			layer.classList.contains("active")
-		);
+    const activeLayer = getActiveLayer();
 
 		if (!activeLayer)
 			throw new Error("No active layer found. Cannot update layer preview.");

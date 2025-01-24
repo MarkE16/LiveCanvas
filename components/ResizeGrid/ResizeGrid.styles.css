@@ -4,7 +4,7 @@
 }
 
 .grid.focused {
-	outline: 1px solid #d1836a;
+	outline: 1px dashed #d1836a;
 }
 
 .grid:hover {

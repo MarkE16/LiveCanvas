@@ -918,6 +918,7 @@ describe("Canvas Interactive Functionality", () => {
 			const afterX = 200;
 			const afterY = 200;
 
+			const dispatchEventMock = vi.spyOn(document, "dispatchEvent");
 			fireEvent.mouseDown(canvas, { buttons: 1 });
 			fireEvent.mouseMove(canvas, {
 				clientX: afterX,
@@ -941,7 +942,7 @@ describe("Canvas Interactive Functionality", () => {
 				}
 			});
 
-			expect(document.dispatchEvent).toHaveBeenLastCalledWith(event);
+			expect(dispatchEventMock).toHaveBeenLastCalledWith(event);
 		});
 
 		it("should change the color based on the eye drop tool", () => {
@@ -1063,6 +1064,107 @@ describe("Canvas Interactive Functionality", () => {
 					`${exampleElementProperies[key as keyof typeof exampleElementProperies]}`
 				);
 			}
+		});
+
+		it("should create a text element", () => {
+			const textTool = screen.getByTestId("tool-text");
+			const space = screen.getByTestId("canvas-container");
+			let grids = screen.queryAllByTestId("resize-grid");
+
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			fireEvent.click(textTool);
+
+			grids = screen.queryAllByTestId("resize-grid");
+
+			expect(grids).toHaveLength(0);
+
+			// We need to click in the space to create the text element.
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+
+			grids = screen.queryAllByTestId("resize-grid");
+			const [element] = screen.queryAllByTestId("element-textfield");
+			expect(grids).toHaveLength(1);
+
+			const [grid] = grids;
+			const { left, top, width, height } = grid.style;
+			const stripped = stripUnits([left, top, width, height], "px");
+
+			expect(grid).toBeInTheDocument();
+			expect(stripped).toEqual([
+				300 - boundingClientRect.left,
+				300 - boundingClientRect.top,
+				100,
+				30
+			]);
+			fireEvent.mouseUp(space);
+
+			expect(grid).toHaveClass("focused");
+			expect(document.activeElement).toBe(element);
+			expect(element).toBeInstanceOf(HTMLTextAreaElement);
+			expect(element).toHaveTextContent("Text");
+		});
+
+		it("should type into the text element and save the new text", () => {
+			const textTool = screen.getByTestId("tool-text");
+			const space = screen.getByTestId("canvas-container");
+
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			fireEvent.click(textTool);
+
+			// We need to click in the space to create the text element.
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			const [field] = screen.queryAllByTestId("element-textfield");
+
+			fireEvent.mouseUp(space);
+
+			expect(field).toBeInTheDocument();
+
+			fireEvent.change(field, { target: { value: "Hello, World!" } });
+			fireEvent.blur(field); // To bypass the firstRender check.
+			fireEvent.keyDown(field, {
+				key: "Escape"
+			});
+
+			const [preview] = screen.queryAllByTestId("element-textpreview");
+
+			expect(field).not.toBeInTheDocument();
+			expect(preview).toHaveTextContent("Hello, World!");
+		});
+
+		it("should revert to original text if saving empty text", () => {
+			const textTool = screen.getByTestId("tool-text");
+			const space = screen.getByTestId("canvas-container");
+
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			fireEvent.click(textTool);
+
+			// We need to click in the space to create the text element.
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			const [field] = screen.queryAllByTestId("element-textfield");
+
+			fireEvent.mouseUp(space);
+
+			expect(field).toHaveTextContent("Text");
+
+			fireEvent.change(field, { target: { value: "" } });
+			fireEvent.blur(field); // To bypass the firstRender check.
+			fireEvent.keyDown(field, {
+				key: "Escape"
+			});
+
+			const [preview] = screen.queryAllByTestId("element-textpreview");
+
+			expect(field).not.toBeInTheDocument();
+			expect(preview).toHaveTextContent("Text");
 		});
 
 		it("should focus an element on mouse down", () => {

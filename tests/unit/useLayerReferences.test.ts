@@ -19,7 +19,9 @@ describe("useLayerReferences functionality", () => {
 		expect(result.result.current).toEqual({
 			references: { current: [] },
 			add: expect.any(Function),
-			remove: expect.any(Function)
+			remove: expect.any(Function),
+			setActiveIndex: expect.any(Function),
+			getActiveLayer: expect.any(Function)
 		});
 	});
 
@@ -33,7 +35,7 @@ describe("useLayerReferences functionality", () => {
 
 		expect(result.result.current.references.current).toHaveLength(1);
 
-		result.result.current.add(dummyCanvas2, 1);
+		result.result.current.add(dummyCanvas2);
 
 		expect(result.result.current.references.current).toHaveLength(2);
 	});
@@ -58,6 +60,20 @@ describe("useLayerReferences functionality", () => {
 		expect(removed2).toEqual(dummyCanvas2);
 	});
 
+	it("should properly set the active layer index", () => {
+		const dummyCanvas1 = document.createElement("canvas");
+		const dummyCanvas2 = document.createElement("canvas");
+
+		result.result.current.add(dummyCanvas1);
+		result.result.current.add(dummyCanvas2);
+
+		expect(result.result.current.getActiveLayer()).toEqual(dummyCanvas1);
+
+		result.result.current.setActiveIndex(1);
+
+		expect(result.result.current.getActiveLayer()).toEqual(dummyCanvas2);
+	});
+
 	describe("useLayerReferences error cases", () => {
 		it("should throw if removing an out of bounce index", () => {
 			const dummyCanvas = document.createElement("canvas");
@@ -66,7 +82,19 @@ describe("useLayerReferences functionality", () => {
 			expect(() => result.result.current.remove(1)).toThrow(
 				"Index out of bounds."
 			);
-			expect(() => result.result.current.remove(-1)).toThrow(
+			expect(() => result.result.current.remove(5)).toThrow(
+				"Index out of bounds."
+			);
+		});
+
+		it("should throw if trying to set the active layer index to an invalid index", () => {
+			const dummyCanvas = document.createElement("canvas");
+			result.result.current.add(dummyCanvas);
+
+			expect(() => result.result.current.setActiveIndex(1)).toThrow(
+				"Index out of bounds."
+			);
+			expect(() => result.result.current.setActiveIndex(-1)).toThrow(
 				"Index out of bounds."
 			);
 		});

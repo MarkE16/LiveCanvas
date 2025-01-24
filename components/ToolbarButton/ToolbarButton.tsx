@@ -21,6 +21,7 @@ import Move from "../icons/Move/Move";
 import Undo from "../icons/Undo/Undo";
 import Redo from "../icons/Redo/Redo";
 import Text from "../icons/Text/Text";
+import clsx from "clsx";
 
 type ToolbarButtonProps = ToolbarMode & {
 	active: boolean;
@@ -55,6 +56,7 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 			titleCase: true,
 			delimiter: "_"
 		}).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
+	const cn = clsx("toolbar-option", { active });
 
 	const performAction = useCallback(() => {
 		if (name === "undo") {
@@ -101,7 +103,7 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 		>
 			<span>
 				<button
-					className={`toolbar-option ${active ? "active" : ""}`}
+					className={cn}
 					data-modename={name}
 					data-shortcut={shortcut}
 					data-testid={`tool-${name}`}

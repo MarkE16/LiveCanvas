@@ -12,12 +12,10 @@ import useStore from "../../state/hooks/useStore";
 
 const ShapeOption: FC<{ icon: string; name: Shape }> = ({ icon, name }) => {
 	const createElement = useStore((state) => state.createElement);
-	const { references } = useLayerReferences();
+	const { getActiveLayer } = useLayerReferences();
 
 	const handleShapeChange = () => {
-		const activeLayer = references.current.find((ref) =>
-			ref.classList.contains("active")
-		);
+    const activeLayer = getActiveLayer();
 
 		if (!activeLayer) {
 			throw new Error("No active layer found. Cannot create element.");
