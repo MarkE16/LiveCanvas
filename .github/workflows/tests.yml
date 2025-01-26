@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 
 # Run tests on every commit on any branch
 on:
@@ -8,8 +8,9 @@ on:
       - main
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
+    name: Execute Vite tests
 
     steps:
       - name: Checkout repository

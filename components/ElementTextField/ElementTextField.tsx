@@ -1,5 +1,5 @@
 // Lib
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useStore from "../../state/hooks/useStore";
 
 // Styles
@@ -10,12 +10,12 @@ import type {
 	FC,
 	TextareaHTMLAttributes,
 	FocusEvent,
+	CSSProperties,
 	ChangeEvent,
 	KeyboardEvent,
 	MouseEvent
 } from "react";
 import type { FontProperties } from "../../types";
-import { CSSProperties } from "@mui/material/styles/createTypography";
 
 type ElementTextFieldProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
 	properties: FontProperties;
@@ -34,7 +34,7 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 	...props
 }) => {
 	const [text, setText] = useState<string>(content);
-	const [isEditing, setIsEditing] = useState<boolean>(() => focused);
+	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const firstRender = useRef<boolean>(true);
 	const changeElementProperties = useStore(
 		(state) => state.changeElementProperties
@@ -45,16 +45,11 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 		fontFamily: `${family}, sans-serif`,
 		fontSize: size,
 		color: fill ?? "white",
-		WebkitTextStroke: `1px ${stroke ?? "black"}`
+		WebkitTextStroke: `1px ${stroke ?? "black"}`,
+		lineHeight: 1.5
 	};
 
-	const handleBlur = (e: FocusEvent) => {
-		if (firstRender.current) {
-			firstRender.current = false;
-			(e.target as HTMLTextAreaElement).focus();
-			return;
-		}
-
+	const handleBlur = () => {
 		setIsEditing(false);
 
 		if (text.trim().length !== 0 && text !== content) {
@@ -93,7 +88,21 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 		setIsEditing(true);
 	};
 
+	const handleFieldFocus = (e: FocusEvent) => {
+		(e.currentTarget as HTMLTextAreaElement).select();
+	};
+
 	const stopPropagation = (e: MouseEvent) => e.stopPropagation();
+
+	useEffect(() => {
+		if (firstRender.current) {
+			firstRender.current = false;
+
+			if (focused) {
+				setIsEditing(true);
+			}
+		}
+	}, [focused]);
 
 	if (!isEditing) {
 		return (
@@ -128,6 +137,7 @@ const ElementTextField: FC<ElementTextFieldProps> = ({
 			onBlur={handleBlur}
 			onKeyDown={onKeyDown}
 			onMouseUp={stopPropagation}
+			onFocus={handleFieldFocus}
 			onChange={handleChange}
 			value={text}
 			data-isediting={isEditing}

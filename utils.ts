@@ -17,7 +17,7 @@ type CapitalizeOptions = {
  *
  * capitalize("hello, world!", { titleCase: true }); // => "Hello, World!"
  */
-const capitalize = (str: string, options?: CapitalizeOptions): string => {
+function capitalize(str: string, options?: CapitalizeOptions): string {
 	if (!options) {
 		return str.charAt(0).toUpperCase() + str.slice(1);
 	}
@@ -30,7 +30,7 @@ const capitalize = (str: string, options?: CapitalizeOptions): string => {
 	}
 
 	return str.charAt(0).toUpperCase() + str.slice(1);
-};
+}
 
 /**
  * Create a new Layer object.
@@ -45,16 +45,14 @@ const capitalize = (str: string, options?: CapitalizeOptions): string => {
  *
  * createLayer("Foreground", "9876-5432-1098-7654"); // => { name: "Foreground", id: "9876-5432-1098-7654", active: false, hidden: false }
  */
-const createLayer = (
-	name: string = "New Layer",
-	id: string = uuidv4()
-): Layer => ({
-	name,
-	id,
-	active: false,
-	hidden: false
-});
-
+function createLayer(name: string = "New Layer", id: string = uuidv4()): Layer {
+	return {
+		name,
+		id,
+		active: false,
+		hidden: false
+	};
+}
 /**
  * Swaps the position of two elements in an array. This is done by
  * selecting an element at the `from` index and moving it to the `to` index.
@@ -66,7 +64,7 @@ const createLayer = (
  * @param to The new index of the moving element.
  * @returns The modified array, if indices are valid.
  */
-const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
+function swapElements<T>(arr: T[], from: number, to: number): T[] {
 	if (from < 0 || from >= arr.length) {
 		return arr;
 	}
@@ -83,7 +81,15 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
 		if (i === to) return elementAtFrom;
 		return element;
 	});
-};
+}
+
+function getCanvasScale(canvas: HTMLCanvasElement) {
+	const rect = canvas.getBoundingClientRect();
+	const scaleX = canvas.width / rect.width;
+	const scaleY = canvas.height / rect.height;
+
+	return { scaleX, scaleY };
+}
 
 /**
  * Get the position of the given X and Y coordinate relative to the given HTMLCanvasElement.
@@ -92,20 +98,19 @@ const swapElements = <T>(arr: T[], from: number, to: number): T[] => {
  * @param canvas The canvas element.
  * @returns The an X and Y coordinate relative to the canvas.
  */
-const getCanvasPosition = (
+function getCanvasPosition(
 	x: number,
 	y: number,
 	canvas: HTMLCanvasElement
-): Coordinates => {
+): Coordinates {
 	const rect = canvas.getBoundingClientRect();
-	const scaleX = canvas.width / rect.width;
-	const scaleY = canvas.height / rect.height;
+	const { scaleX, scaleY } = getCanvasScale(canvas);
 
 	const computedX = (x - rect.left) * scaleX;
 	const computedY = (y - rect.top) * scaleY;
 
 	return { x: computedX, y: computedY };
-};
+}
 
 /**
  * Navigate to a new route. This function is merely a wrapper around `window.location.href`, mainly
@@ -143,7 +148,7 @@ const navigateTo = (href: string): void => {
  * @param rect2 An HTML element.
  * @returns whether the two rectangles are intersecting.
  */
-const isRectIntersecting = (rect1: Element, rect2: Element): boolean => {
+function isRectIntersecting(rect1: Element, rect2: Element): boolean {
 	const {
 		left: r1Left,
 		top: r1Top,
@@ -160,7 +165,7 @@ const isRectIntersecting = (rect1: Element, rect2: Element): boolean => {
 	return (
 		r1Left < r2Right && r1Right > r2Left && r1Top < r2Bottom && r1Bottom > r2Top
 	);
-};
+}
 
 /**
  * Debounce a function by delaying its invocation by a specified number of milliseconds. If the debounced function is invoked again before the delay has elapsed, the timer is reset.
@@ -168,10 +173,10 @@ const isRectIntersecting = (rect1: Element, rect2: Element): boolean => {
  * @param ms The number of milliseconds to wait before invoking the function.
  * @returns The debounced function.
  */
-const debounce = <T, A extends unknown[]>(
+function debounce<T, A extends unknown[]>(
 	fn: (this: T, ...args: A) => T,
 	ms: number
-) => {
+) {
 	let id: ReturnType<typeof setTimeout> | null = null;
 
 	return function (this: T, ...args: A) {
@@ -185,7 +190,7 @@ const debounce = <T, A extends unknown[]>(
 			}, ms);
 		}
 	};
-};
+}
 
 type ExportedElement = {
 	x: number;
@@ -227,6 +232,7 @@ const generateCanvasImage = async (
 	const referenceLayer = isArray ? layers[0] : layers;
 	const { width, height } = referenceLayer;
 	const dpi = Number(referenceLayer.getAttribute("data-dpi"));
+	const scale = Number(referenceLayer.getAttribute("data-scale"));
 
 	if (!dpi) {
 		throw new Error("Failed to get DPI from canvas when attempting to export.");
@@ -254,6 +260,77 @@ const generateCanvasImage = async (
 
 	const layersArray = isArray ? layers : [layers];
 
+	/**
+	 * A helper function that returns an array of lines of the given text that fit within the given width.
+	 * @param text The text to split into lines.
+	 * @param width The width of the text container.
+	 * @param ctx The 2D context of the canvas.
+	 */
+	function generateTextLines(
+		text: string,
+		width: number,
+		ctx: CanvasRenderingContext2D
+	): string[] {
+		const words = text.split(" ");
+
+		console.log(words);
+
+		const lines: string[] = [];
+		let currentLine = "";
+
+		for (let i = 0; i < words.length; i++) {
+			const word = words[i];
+
+			if (word.match(/\n/)) {
+				lines.push(currentLine.trim());
+				currentLine = "";
+				continue;
+			}
+
+			// If the word is too long to fit in the width, split it into multiple lines.
+			if (ctx.measureText(word).width > width) {
+				let charsLeft = word;
+
+				while (charsLeft.length > 0) {
+					let splitIndex = charsLeft.length;
+
+					// Find the index to split the word at.
+					while (
+						ctx.measureText(charsLeft.slice(0, splitIndex)).width > width
+					) {
+						splitIndex--;
+					}
+
+					// Require one character.
+					if (splitIndex === 0) {
+						splitIndex = 1;
+					}
+
+					const splitWord = charsLeft.slice(0, splitIndex);
+					lines.push(splitWord);
+					charsLeft = charsLeft.slice(splitIndex);
+				}
+				continue;
+			}
+
+			const testLine = currentLine === "" ? word : currentLine + " " + word;
+			// Normal word wrapping logic.
+			const metrics = ctx.measureText(testLine);
+			const currentWidth = metrics.width;
+			if (currentWidth < width) {
+				currentLine += " " + word;
+			} else {
+				lines.push(currentLine.trimStart());
+				currentLine = word;
+			}
+		}
+
+		if (currentLine !== "") {
+			lines.push(currentLine.trim());
+		}
+		return lines;
+	}
+
 	const promises = layersArray.map((layer) => {
 		return new Promise<void>((resolve) => {
 			const asObjects = elements
@@ -280,6 +357,7 @@ const generateCanvasImage = async (
 			ctx.drawImage(layer, 0, 0);
 
 			// Draw the elements
+			console.log(asObjects);
 			asObjects.forEach((element) => {
 				let { x: eX, y: eY } = element;
 				const { width: eWidth, height: eHeight } = element;
@@ -347,19 +425,33 @@ const generateCanvasImage = async (
 						break;
 					}
 					case "text": {
-						if (!element?.fontContent) {
+						if (!element?.fontContent || !element?.fontSize) {
 							throw new Error(
 								`Failed to extract text from element with id ${element.id}.`
 							);
 						}
-						
-						console.log(ctx.fillStyle, ctx.strokeStyle)
 
 						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
-						ctx.fillText(element.fontContent, startX, startY, width);
-						ctx.strokeText(element.fontContent, startX, startY, width);
+						ctx.textBaseline = "top";
 
-						console.log("streoked test");
+						const lines = generateTextLines(element.fontContent, width, ctx);
+						console.log(lines);
+						const lineHeight = 1.5;
+						for (let i = 0; i < lines.length; i++) {
+							const line = lines[i];
+							ctx.fillText(
+								line,
+								startX,
+								startY + i * element.fontSize * lineHeight * scale,
+								width
+							);
+							ctx.strokeText(
+								line,
+								startX,
+								startY + i * element.fontSize * lineHeight * scale,
+								width
+							);
+						}
 						break;
 					}
 					default: {

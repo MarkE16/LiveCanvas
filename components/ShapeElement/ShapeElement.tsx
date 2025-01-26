@@ -450,8 +450,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		getActiveLayer
 	]);
 
-	console.log(width, height, x, y, type);
-
 	if (type === "text" && text !== undefined) {
 		return (
 			<ResizeGrid
@@ -473,6 +471,16 @@ const ShapeElement: FC<ShapeElementProps> = ({
 					elementId={id}
 					data-x={x}
 					data-y={y}
+					data-width={width}
+					data-height={height}
+					data-fill={fill}
+					data-stroke={stroke}
+					data-focused={focused}
+					data-type={type}
+					data-canvas-space-left={sLeft}
+					data-canvas-space-top={sTop}
+					data-canvas-space-width={sWidth}
+					data-canvas-space-height={sHeight}
 					data-layerid={layerId}
 				/>
 			</ResizeGrid>
