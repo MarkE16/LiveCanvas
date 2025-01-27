@@ -1,4 +1,5 @@
 // Lib
+import { useRef } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import * as UTILS from "../../utils";
 
@@ -7,11 +8,14 @@ import type { FC } from "react";
 
 const ExportCanvasButton: FC = () => {
 	const { references } = useLayerReferences();
+	const downloadRef = useRef<HTMLAnchorElement | null>(null);
 
 	const handleExport = async () => {
-		const elements = Array.from(document.getElementsByClassName("element"));
+		if (!downloadRef.current) throw new Error("Download ref not found");
+
+		const elements = document.getElementsByClassName("element");
 		const blob = await UTILS.generateCanvasImage(
-			references.current,
+			references.current, 
 			elements,
 			1,
 			true
@@ -19,7 +23,7 @@ const ExportCanvasButton: FC = () => {
 
 		const url = URL.createObjectURL(blob);
 
-		const a = document.createElement("a");
+		const a = downloadRef.current;
 		a.href = url;
 		a.download = "canvas.png";
 		a.click();
@@ -27,7 +31,25 @@ const ExportCanvasButton: FC = () => {
 		URL.revokeObjectURL(url);
 	};
 
-	return <button onClick={handleExport}>Export Canvas</button>;
+	return (
+		<>
+			<button
+				onClick={handleExport}
+				data-testid="export-button"
+			>
+				Export Canvas
+			</button>
+			<a
+				ref={downloadRef}
+				href="#"
+				download="canvas.png"
+				data-testid="export-link"
+				style={{ display: "none" }}
+			>
+				Export Link
+			</a>
+		</>
+	);
 };
 
 export default ExportCanvasButton;

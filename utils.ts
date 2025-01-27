@@ -211,25 +211,24 @@ type ExportedElement = {
 	id: string;
 };
 
-const generateCanvasImage = async (
-	layers: HTMLCanvasElement | HTMLCanvasElement[],
-	elements: Element[],
+async function generateCanvasImage(
+	layers: ArrayLike<HTMLCanvasElement>,
+	elements: ArrayLike<Element>,
 	quality: number = 1,
 	accountForDPI: boolean = false
-): Promise<Blob> => {
+): Promise<Blob> {
 	if (quality > 1 || quality < 0) {
 		throw new Error(
 			"Quality must be in the range 0-1 in order to properly export."
 		);
 	}
 
-	const isArray = Array.isArray(layers);
-	if (isArray && layers.length === 0) {
+	if (layers.length === 0) {
 		throw new Error("No layers provided when attempting to export.");
 	}
 
 	const substituteCanvas = document.createElement("canvas");
-	const referenceLayer = isArray ? layers[0] : layers;
+	const referenceLayer = layers[0];
 	const { width, height } = referenceLayer;
 	const dpi = Number(referenceLayer.getAttribute("data-dpi"));
 	const scale = Number(referenceLayer.getAttribute("data-scale"));
@@ -257,8 +256,6 @@ const generateCanvasImage = async (
 	// Set white background
 	ctx.fillStyle = "white";
 	ctx.fillRect(0, 0, width, height);
-
-	const layersArray = isArray ? layers : [layers];
 
 	/**
 	 * A helper function that returns an array of lines of the given text that fit within the given width.
@@ -331,10 +328,10 @@ const generateCanvasImage = async (
 		return lines;
 	}
 
-	const promises = layersArray.map((layer) => {
+	const promises = Array.prototype.map.call(layers, (layer) => {
 		return new Promise<void>((resolve) => {
-			const asObjects = elements
-				.map<ExportedElement>((element) => ({
+			const asObjects = (Array.prototype.map
+				.call(elements, (element) => ({
 					x: Number(element.getAttribute("data-x")),
 					y: Number(element.getAttribute("data-y")),
 					width: Number(element.getAttribute("data-width")),
@@ -351,7 +348,7 @@ const generateCanvasImage = async (
 					spaceWidth: Number(element.getAttribute("data-canvas-space-width")),
 					spaceHeight: Number(element.getAttribute("data-canvas-space-height")),
 					id: element.id
-				}))
+				})) as ExportedElement[])
 				.filter((element) => element.layerId === layer.id);
 
 			ctx.drawImage(layer, 0, 0);
@@ -432,7 +429,7 @@ const generateCanvasImage = async (
 						}
 
 						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
-						ctx.textBaseline = "top";
+						// ctx.textBaseline = "top";
 
 						const lines = generateTextLines(element.fontContent, width, ctx);
 						console.log(lines);
@@ -463,7 +460,7 @@ const generateCanvasImage = async (
 			ctx.closePath();
 			resolve();
 		});
-	});
+	}) as Promise<void>[];
 
 	await Promise.all(promises);
 
@@ -477,7 +474,7 @@ const generateCanvasImage = async (
 			quality
 		);
 	});
-};
+}
 
 export {
 	capitalize,

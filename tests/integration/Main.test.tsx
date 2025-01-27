@@ -10,6 +10,7 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
+import * as Utils from "../../utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
@@ -24,17 +25,6 @@ const MOCK_COLOR = parseColor("#ff0000");
 
 const stripUnits = (values: string[], unit: string) =>
 	values.map((value) => Number(value.replace(unit, "")));
-
-vi.mock("../../utils", async (importOriginal) => {
-	const original = (await importOriginal()) as NonNullable<
-		typeof importOriginal
-	>;
-
-	return {
-		...original,
-		generateCanvasImage: vi.fn().mockResolvedValue(new Blob())
-	};
-});
 
 vi.mock("react-aria-components", async (importOriginal) => {
 	const original = (await importOriginal()) as NonNullable<
@@ -85,6 +75,8 @@ describe("Canvas Interactive Functionality", () => {
 		],
 		changeColor: vi.fn()
 	};
+
+	vi.spyOn(Utils, "generateCanvasImage").mockResolvedValue(new Blob());
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, { preloadedState: mockLayer });
@@ -2144,8 +2136,8 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(moveTool);
 
-			let pointerX = 100;
-			let pointerY = 100;
+			const pointerX = 100;
+			const pointerY = 100;
 
 			fireEvent.mouseDown(space, {
 				clientX: pointerX,

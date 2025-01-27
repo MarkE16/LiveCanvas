@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 // Types
 import type { FC } from "react";
@@ -16,6 +17,7 @@ import { Tooltip } from "@mui/material";
 const SaveCanvasButton: FC = () => {
 	const [saved, setSaved] = useState<boolean>(false);
 	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	const elements = useStoreSubscription((state) => state.elements);
 	const { references, remove } = useLayerReferences();
 	const { set } = useIndexed();
 
@@ -24,7 +26,7 @@ const SaveCanvasButton: FC = () => {
 			throw new Error(
 				"Cannot export canvas: no references found. This is a bug."
 			);
-		const elements = Array.from(document.getElementsByClassName("element"));
+		// const elements = Array.from(document.getElementsByClassName("element"));
 		references.current.forEach((canvas, index) => {
 			if (canvas === null) {
 				remove(index);
@@ -45,43 +47,12 @@ const SaveCanvasButton: FC = () => {
 			});
 		});
 
-		const allUnfocused = elements.map<Omit<CanvasElement, "focused">>(
+		const allUnfocused = elements.current.map<Omit<CanvasElement, "focused">>(
 			(element) => {
-				const x = Number(element.getAttribute("data-x"));
-				const y = Number(element.getAttribute("data-y"));
-				const width = Number(element.getAttribute("data-width"));
-				const height = Number(element.getAttribute("data-height"));
-				const type = element.getAttribute("data-type");
-				const fill = element.getAttribute("data-fill") ?? "#000000";
-				const stroke = element.getAttribute("data-stroke") ?? "#000000";
-				const layerId = element.getAttribute("data-layerid");
-				const fontSize = element.getAttribute("data-fontsize") ?? undefined;
-				const fontFamily = element.getAttribute("data-fontfamily") ?? undefined;
-				const fontContent =
-					element.getAttribute("data-fontcontent") ?? undefined;
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { focused, ...rest } = element;
 
-				const id = element.id;
-
-				if (!layerId) {
-					throw new Error(
-						`No layerId found for element with id: ${id}. This is a bug.`
-					);
-				}
-
-				return {
-					type: type as CanvasElement["type"],
-					fontSize: Number(fontSize),
-					fontFamily,
-					fontContent,
-					x,
-					y,
-					width,
-					height,
-					fill,
-					stroke,
-					layerId,
-					id
-				};
+				return rest;
 			}
 		);
 
@@ -93,7 +64,7 @@ const SaveCanvasButton: FC = () => {
 		timeout.current = setTimeout(() => {
 			setSaved(false);
 		}, 1000);
-	}, [references, set, remove]);
+	}, [references, set, remove, elements]);
 
 	useEffect(() => {
 		function handleKeyboardSave(e: KeyboardEvent) {

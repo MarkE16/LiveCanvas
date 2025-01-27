@@ -81,6 +81,7 @@ const CanvasPane: FC = () => {
 
 			if (
 				mode === "text" &&
+				!shiftKey &&
 				!document.activeElement?.classList.contains("element") &&
 				!document.activeElement?.classList.contains("grid") &&
 				!document.activeElement?.classList.contains("handle")
@@ -111,7 +112,7 @@ const CanvasPane: FC = () => {
 		function handleMouseMove(e: MouseEvent) {
 			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
 
-      const layer = getActiveLayer();
+			const layer = getActiveLayer();
 
 			const {
 				left: lLeft,

@@ -14,7 +14,7 @@ span.element {
 	caret-color: black;
 	margin: -1px 0 0 0;
 	padding: 0;
-	vertical-align: top;
+	vertical-align: text-top;
 	line-height: 1.5;
 	/* pointer-events: none; */
 }

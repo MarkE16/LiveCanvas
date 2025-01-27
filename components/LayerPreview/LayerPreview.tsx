@@ -31,10 +31,10 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 			// Layer that updated is not the one we are looking for.
 			if (layer.id !== id) return;
 
-			const elements = Array.from(document.getElementsByClassName("element"));
+			const elements = document.getElementsByClassName("element");
 
 			// Use 0.2 quality for the preview to save space and make it faster on performance.
-			const blob = await Utils.generateCanvasImage(layer, elements, 0.2);
+			const blob = await Utils.generateCanvasImage([layer], elements, 0.2);
 
 			setUrl(URL.createObjectURL(blob));
 		}

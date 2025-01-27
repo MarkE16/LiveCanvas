@@ -11,6 +11,7 @@ import {
 } from "vitest";
 import SaveCanvasButton from "../../components/SaveCanvasButton/SaveCanvasButton";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
+import { SliceStores } from "../../types";
 
 describe("SaveCanvasButton functionality", () => {
 	let toBlobSpies: ReturnType<typeof vi.spyOn>[];
@@ -29,22 +30,39 @@ describe("SaveCanvasButton functionality", () => {
 		const array = [mockCanvas1, mockCanvas2, mockCanvas3];
 
 		toBlobSpies = array.map((canvas) => {
-			const toBlobSpy = vi
-				.spyOn(canvas, "toBlob")
-				.mockImplementation(async (cb) => {
-					cb(new Blob());
-				});
+			const toBlobSpy = vi.spyOn(canvas, "toBlob").mockImplementation((cb) => {
+				cb(new Blob());
+			});
 
 			return toBlobSpy;
 		});
 
+		const mockState: Partial<SliceStores> = {
+			elements: [
+				{
+					id: "123",
+					x: 0,
+					y: 0,
+					width: 100,
+					height: 100,
+					layerId: "456",
+					focused: false,
+					type: "rectangle",
+					fill: "#ff0000",
+					stroke: "#000000"
+				}
+			]
+		};
+
 		vi.spyOn(useLayerReferences, "default").mockReturnValue({
 			references: { current: array },
 			add: vi.fn(),
-			remove: vi.fn()
+			remove: vi.fn(),
+			setActiveIndex: vi.fn(),
+			getActiveLayer: vi.fn()
 		});
-
-		renderWithProviders(<SaveCanvasButton />);
+		
+		renderWithProviders(<SaveCanvasButton />, { preloadedState: mockState });
 	});
 
 	afterEach(() => {
