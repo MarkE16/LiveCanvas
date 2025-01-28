@@ -14,12 +14,15 @@ describe("Navbar functionality", () => {
 
 	it("should render the Navbar component", () => {
 		const TABS = ["File", "Edit", "View", "Filter", "Admin"];
+		const exportLink = screen.getByTestId("export-link");
 
 		for (const tab of TABS) {
 			expect(screen.getByText(tab)).not.toBeNull();
 		}
 
-		expect(screen.getByText("Export Canvas")).not.toBeNull();
+		expect(screen.getByText("Export Canvas")).toBeInTheDocument();
+		expect(exportLink).toBeInTheDocument();
+		expect(exportLink).not.toBeVisible();
 	});
 
 	it("clicking on any tab should open MUI 'not implemented' snackbar", async () => {

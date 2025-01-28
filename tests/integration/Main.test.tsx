@@ -1566,10 +1566,6 @@ describe("Canvas Interactive Functionality", () => {
 			expect(element).toHaveAttribute("data-stroke", color.toUpperCase());
 		});
 
-		// Note: Since the color picker is a third-party component, we will
-		// not test test whether the value of the color field is updated when
-		// the color picker is used. So, we'll need to listen for whether
-		// `changeElementProperties` is called with the correct parameters.
 		it("should change fill color through color area", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			let elements = screen.queryAllByTestId("element");
@@ -1679,6 +1675,61 @@ describe("Canvas Interactive Functionality", () => {
 					(element) => element.getAttribute("data-fill") === color.toUpperCase()
 				)
 			).toBe(true);
+		});
+
+		it("should update a layer preview after closing the popover", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let elements = screen.queryAllByTestId("element");
+			let pickerButton = screen.queryByTestId("fill-picker-button");
+			const dispatchEventSpy = vi.spyOn(document, "dispatchEvent");
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			elements = screen.queryAllByTestId("element");
+
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
+			const element = elements[0];
+
+			// The color picker should be visible only when an element is focused.
+			fireEvent.focus(resizeGrid, { buttons: 1 });
+
+			const color = "#ff0000";
+			pickerButton = screen.getByTestId("fill-picker-button");
+			let popover = screen.queryByTestId("fill-picker-popover");
+
+			expect(pickerButton).toBeInTheDocument();
+			expect(popover).not.toBeInTheDocument();
+
+			fireEvent.click(pickerButton);
+
+			popover = screen.getByTestId("fill-picker-popover");
+			expect(popover).toBeInTheDocument();
+
+			const colorArea = screen.getByTestId("picker-area");
+
+			// Default color is black.
+			expect(element).toHaveAttribute("data-fill", "#000000");
+
+			// The color area should change the fill color of the element.
+			fireEvent.click(colorArea);
+
+			expect(element).toHaveAttribute("data-fill", color.toUpperCase());
+
+			// Click outside the popover to close it.
+			fireEvent.click(pickerButton);
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: expect.any(HTMLCanvasElement)
+				}
+			});
+
+			expect(dispatchEventSpy).toHaveBeenLastCalledWith(event);
 		});
 
 		it("should resize the element north", () => {

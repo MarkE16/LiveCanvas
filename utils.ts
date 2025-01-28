@@ -278,12 +278,6 @@ async function generateCanvasImage(
 		for (let i = 0; i < words.length; i++) {
 			const word = words[i];
 
-			if (word.match(/\n/)) {
-				lines.push(currentLine.trim());
-				currentLine = "";
-				continue;
-			}
-
 			// If the word is too long to fit in the width, split it into multiple lines.
 			if (ctx.measureText(word).width > width) {
 				let charsLeft = word;
@@ -293,7 +287,8 @@ async function generateCanvasImage(
 
 					// Find the index to split the word at.
 					while (
-						ctx.measureText(charsLeft.slice(0, splitIndex)).width > width
+						ctx.measureText(charsLeft.slice(0, splitIndex)).width > width &&
+						splitIndex > 0
 					) {
 						splitIndex--;
 					}
@@ -304,8 +299,19 @@ async function generateCanvasImage(
 					}
 
 					const splitWord = charsLeft.slice(0, splitIndex);
-					lines.push(splitWord);
-					charsLeft = charsLeft.slice(splitIndex);
+
+					// "Super long words" can contain new lines,
+					// which can disrupt the word wrapping logic.
+					// Therefore, we need to account for new lines.
+					const hasNewLine = splitWord.indexOf("\n");
+
+					if (hasNewLine !== -1) {
+						lines.push(splitWord.slice(0, hasNewLine));
+						charsLeft = charsLeft.slice(hasNewLine + 1);
+					} else {
+						lines.push(splitWord);
+						charsLeft = charsLeft.slice(splitIndex);
+					}
 				}
 				continue;
 			}
@@ -330,8 +336,8 @@ async function generateCanvasImage(
 
 	const promises = Array.prototype.map.call(layers, (layer) => {
 		return new Promise<void>((resolve) => {
-			const asObjects = (Array.prototype.map
-				.call(elements, (element) => ({
+			const asObjects = (
+				Array.prototype.map.call(elements, (element) => ({
 					x: Number(element.getAttribute("data-x")),
 					y: Number(element.getAttribute("data-y")),
 					width: Number(element.getAttribute("data-width")),
@@ -348,8 +354,8 @@ async function generateCanvasImage(
 					spaceWidth: Number(element.getAttribute("data-canvas-space-width")),
 					spaceHeight: Number(element.getAttribute("data-canvas-space-height")),
 					id: element.id
-				})) as ExportedElement[])
-				.filter((element) => element.layerId === layer.id);
+				})) as ExportedElement[]
+			).filter((element) => element.layerId === layer.id);
 
 			ctx.drawImage(layer, 0, 0);
 
@@ -429,7 +435,7 @@ async function generateCanvasImage(
 						}
 
 						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
-						// ctx.textBaseline = "top";
+						ctx.textBaseline = "top";
 
 						const lines = generateTextLines(element.fontContent, width, ctx);
 						console.log(lines);

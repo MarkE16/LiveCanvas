@@ -156,6 +156,7 @@ describe("Page", () => {
 			expect(generateImageSpy).toHaveBeenCalledWith(
 				canvases,
 				expect.objectContaining({
+					0: expect.any(SVGElement),
 					length: 1
 				}),
 				1,
