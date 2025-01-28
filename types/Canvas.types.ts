@@ -7,10 +7,9 @@ export type CanvasState = {
 	color: string;
 	drawStrength: number;
 	eraserStrength: number;
-	shape: Shape;
 	layers: Layer[];
 	scale: number;
-	show_all: boolean;
+	dpi: number;
 	position: Coordinates;
 };
 
@@ -19,6 +18,8 @@ export type Mode =
 	| "draw"
 	| "erase"
 	| "shapes"
+	| "text"
+	| "eye_drop"
 	| "zoom_in"
 	| "zoom_out"
 	| "move"
@@ -40,8 +41,38 @@ export type ShapeMode = {
 	icon: string;
 };
 export type Shapes = ShapeMode[];
-export type Modes = {
+export type ToolbarMode = {
 	name: Mode;
-	icon: string;
 	shortcut: string;
-}[];
+};
+export type Modes = ToolbarMode[];
+
+export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
+
+export type CanvasElementType = Shape | "text";
+
+export type FontProperties = {
+  size: number;
+  family: string;
+  content: string;
+}
+
+export type CanvasElement = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	type: CanvasElementType;
+	fill: string;
+	stroke: string;
+	id: string;
+  text?: FontProperties;
+	layerId: string;
+	focused: boolean;
+	// More properties later...
+};
+
+export type Dimensions = {
+	width: number;
+	height: number;
+};

@@ -1,0 +1,12 @@
+.grid {
+	position: absolute;
+	outline: none;
+}
+
+.grid.focused {
+	outline: 1px dashed #d1836a;
+}
+
+.grid:hover {
+	cursor: move;
+}

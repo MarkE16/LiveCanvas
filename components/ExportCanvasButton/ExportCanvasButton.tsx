@@ -1,63 +1,54 @@
 // Lib
-import { useAppSelector } from "../../state/hooks/reduxHooks";
-import useIndexed from "../../state/hooks/useIndexed";
+import { useRef } from "react";
+import useLayerReferences from "../../state/hooks/useLayerReferences";
+import * as UTILS from "../../utils";
 
 // Types
 import type { FC } from "react";
 
 const ExportCanvasButton: FC = () => {
-	const { width, height } = useAppSelector(
-		(state) => state.canvas,
-		(prev, next) => prev.width === next.width && prev.height === next.height
-	);
-	const { get } = useIndexed();
+	const { references } = useLayerReferences();
+	const downloadRef = useRef<HTMLAnchorElement | null>(null);
 
 	const handleExport = async () => {
-		const substituteCanvas = document.createElement("canvas");
+		if (!downloadRef.current) throw new Error("Download ref not found");
 
-		// Set the canvas size (assuming all layers have the same dimensions)
-		substituteCanvas.width = width; // Set to your canvas width
-		substituteCanvas.height = height; // Set to your canvas height
+		const elements = document.getElementsByClassName("element");
+		const blob = await UTILS.generateCanvasImage(
+			references.current, 
+			elements,
+			1,
+			true
+		);
 
-		const ctx = substituteCanvas.getContext("2d");
+		const url = URL.createObjectURL(blob);
 
-		// Before drawing the images,
-		// let's give the canvas a white background, as by default it's transparent.
-		ctx!.fillStyle = "white";
-		ctx!.fillRect(0, 0, width, height);
+		const a = downloadRef.current;
+		a.href = url;
+		a.download = "canvas.png";
+		a.click();
 
-		const layers = await get<[string, Blob][]>("layers", { asEntries: true });
-
-		const promises = layers.reverse().map((layer) => {
-			return new Promise<void>((resolve) => {
-				const [, blob] = layer;
-
-				const img = new Image();
-				img.src = URL.createObjectURL(blob);
-
-				img.onload = () => {
-					ctx!.drawImage(img, 0, 0, width, height);
-
-					URL.revokeObjectURL(img.src);
-					resolve();
-				};
-			});
-		});
-
-		Promise.all(promises).then(() => {
-			const image = substituteCanvas.toDataURL("image/jpeg", 1.0);
-			const a = document.createElement("a");
-
-			a.href = image;
-			a.download = "canvas.jpg";
-			a.click();
-		});
+		URL.revokeObjectURL(url);
 	};
 
 	return (
-		<button onClick={handleExport}>
-			<span>Export Canvas</span>
-		</button>
+		<>
+			<button
+				onClick={handleExport}
+				data-testid="export-button"
+			>
+				Export Canvas
+			</button>
+			<a
+				ref={downloadRef}
+				href="#"
+				download="canvas.png"
+				data-testid="export-link"
+				style={{ display: "none" }}
+			>
+				Export Link
+			</a>
+		</>
 	);
 };
 
