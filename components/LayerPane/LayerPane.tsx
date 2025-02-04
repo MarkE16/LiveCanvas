@@ -1,8 +1,7 @@
 // Lib
-import { useAppSelector, useAppDispatch } from "../../state/hooks/reduxHooks";
-
-// Redux Actions
-import { createLayer } from "../../state/slices/canvasSlice";
+import { memo } from "react";
+import useStore from "../../state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { FC } from "react";
@@ -15,31 +14,47 @@ import LayerInfo from "../LayerInfo/LayerInfo";
 import ColorWheel from "../ColorWheel/ColorWheel";
 import Footer from "../Footer/Footer";
 
+const MemoizedLayerInfo = memo(LayerInfo);
+const MemoizedColorWheel = memo(ColorWheel);
+const MemoizedFooter = memo(Footer);
+
 const LayerPane: FC = () => {
-	const layers = useAppSelector((state) => state.canvas.layers);
-	const dispatch = useAppDispatch();
+	const { layers, createLayer } = useStore(
+		useShallow((state) => ({
+			layers: state.layers,
+			createLayer: state.createLayer
+		}))
+	);
+	const totalLayers = layers.length;
 
-	const onNewLayer = () => dispatch(createLayer());
-
+	const onNewLayer = () => createLayer();
+	
 	return (
 		<aside id="layer-manager-container">
-			<ColorWheel />
+			<MemoizedColorWheel />
+
 			<button
+				data-testid="new-layer-button"
 				id="new-layer-button"
 				onClick={onNewLayer}
 			>
 				<i className="fa fa-plus"></i>
 			</button>
-			<div id="layer-list">
+			<div
+				id="layer-list"
+				data-testid="layer-list"
+			>
 				{layers.map((layer, i) => (
-					<LayerInfo
+					<MemoizedLayerInfo
 						{...layer}
 						key={layer.id}
-						positionIndex={i}
+						canMoveUp={i > 0}
+						canMoveDown={i < totalLayers - 1}
+						idx={i}
 					/>
 				))}
 			</div>
-			<Footer />
+			<MemoizedFooter />
 		</aside>
 	);
 };

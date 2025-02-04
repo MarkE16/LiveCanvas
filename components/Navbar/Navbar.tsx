@@ -1,5 +1,5 @@
 // Lib
-import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
+import logo from "../../assets/icons/IdeaDrawnNewLogo_invert.png";
 import { Snackbar } from "@mui/material";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ const Navbar: FC = () => {
 	};
 
 	return (
-		<header>
+		<header data-testid="nav-bar">
 			<nav id="navbar-container">
 				<section id="navbar-links-section">
 					<div id="navbar-logo-container">

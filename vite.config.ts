@@ -6,6 +6,9 @@ const config: UserConfig = {
 	plugins: [react(), ssr()],
 	build: {
 		outDir: "dist"
+	},
+	server: {
+	  cors: true,
 	}
 };
 

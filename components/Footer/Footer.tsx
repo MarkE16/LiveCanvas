@@ -1,5 +1,4 @@
 // Lib
-import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
 import { useState } from "react";
 
 // Types
@@ -13,9 +12,8 @@ const Footer: FC = () => {
 
 	const MAINTAINER_URL = "https://github.com/MarkE16";
 	const REPO_URL = MAINTAINER_URL + "/LiveCanvas";
-	const CONTRIBUTORS_URL = REPO_URL + "/graphs/contributors";
-	const MAINTAINER_NAME =
-		MAINTAINER_URL.split("/").pop() ?? "Unknown Maintainer";
+	// const CONTRIBUTORS_URL = REPO_URL + "/graphs/contributors";
+	// const MAINTAINER_NAME = MAINTAINER_URL.split("/").pop() ?? "Unknown Maintainer";
 
 	// Basic implementation of fetching the version.
 	// In the future, this will be fetched from GitHub or some other service.
@@ -31,32 +29,7 @@ const Footer: FC = () => {
 
 	return (
 		<footer id="footer-container">
-			<hr />
-			<img
-				id="footer-logo"
-				src={logo}
-				alt="logo"
-			/>
-			<span id="site-name">IdeaDrawn | Live Canvas</span>
-			<span id="version">{VERSION}</span>
-			<span id="footer-text">
-				Made with ❤️ by{" "}
-				<a
-					href={MAINTAINER_URL}
-					className="footer-link"
-				>
-					{MAINTAINER_NAME}
-				</a>{" "}
-				and{" "}
-				<a
-					href={CONTRIBUTORS_URL}
-					className="footer-link"
-				>
-					more
-				</a>
-				.
-			</span>
-
+			<em id="version">{VERSION}</em>
 			<div id="footer-links">
 				<a
 					href=""

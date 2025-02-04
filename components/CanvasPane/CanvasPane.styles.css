@@ -5,14 +5,22 @@
 	align-items: center;
 	flex: 3;
 	width: 100%;
+	overflow: hidden;
 }
 
-#canvas-container[data-moving="true"] {
-	cursor: grab;
+/* #canvas-pointer-marker is from the component CanvasPointerMarker */
+
+#canvas-pane:not(:hover) > #canvas-pointer-marker {
+	opacity: 0;
+	transition: opacity 200ms;
 }
 
-#canvas-container[data-grabbing="true"] {
-	cursor: grabbing;
+#canvas-pane:hover > #canvas-pointer-marker {
+	position: absolute;
+	border: 3px solid black;
+	outline: 1px solid white;
+	outline-offset: -3px;
+	pointer-events: none;
 }
 
 #canvas-container {
@@ -24,4 +32,37 @@
 	width: 100%;
 	overflow: hidden;
 	/* border: 1px solid #000000; */
+}
+#canvas-container[data-moving="true"] {
+	cursor: grab !important;
+}
+
+#canvas-container[data-grabbing="true"] {
+	cursor: grabbing !important;
+}
+
+#canvas-container[data-mode="selection"] {
+	cursor: default;
+}
+
+#canvas-container[data-mode="draw"],
+#canvas-container[data-mode="erase"] {
+	cursor: none;
+}
+
+#canvas-container[data-mode="zoom_in"] {
+	cursor: zoom-in;
+}
+
+#canvas-container[data-mode="zoom_out"] {
+	cursor: zoom-out;
+}
+
+#canvas-container[data-mode="text"] {
+	cursor: text;
+}
+
+#canvas-container[data-mode="eye_drop"] {
+	/* cursor: url(eye_drop_cursor.png), auto; */
+	cursor: crosshair;
 }

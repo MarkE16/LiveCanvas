@@ -4,7 +4,7 @@ import { useEffect, createContext, useRef, useCallback, useMemo } from "react";
 // Types
 import type { FC, PropsWithChildren } from "react";
 
-const STORES = ["layers"];
+const STORES = ["layers", "elements"];
 const VERSION = 1; // Bump this up when the schema changes.
 
 type IndexedUtils = {
@@ -14,7 +14,7 @@ type IndexedUtils = {
 	 * @param key An optional key to get the data under.
 	 * @returns A promise that resolves with the data.
 	 */
-	get: <T>(store: string, key?: string) => Promise<T>;
+	get: <T>(store: string, key?: string) => Promise<T | undefined>;
 
 	/**
 	 * Set data in the database.
@@ -75,7 +75,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	}, []);
 
 	const get = useCallback(
-		async <T,>(store: string, key?: string): Promise<T> => {
+		async <T,>(store: string, key?: string): Promise<T | undefined> => {
 			const db = database.current ?? (await openDatabase());
 
 			return new Promise((resolve, reject) => {
@@ -102,7 +102,6 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 							entries.push([cursor.key, cursor.value] as [string, unknown]);
 							cursor.continue();
 						} else {
-							console.log(entries);
 							resolve(entries as T);
 						}
 					};

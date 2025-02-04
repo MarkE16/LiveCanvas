@@ -4,8 +4,8 @@
 	align-items: center;
 	width: 100%;
 	max-width: 100%;
-	/* height: 0vh; */
-	padding: 0 0.5rem;
+	height: 2.6rem;
+	padding: 0.2rem 0.5rem;
 	background-color: rgb(36, 36, 36);
 	white-space: nowrap;
 	border: 1px solid rgb(56, 55, 55);
@@ -54,45 +54,53 @@
 	display: none;
 }
 
-.layer-info-container > .layer-info-mover > input[type="text"] {
+.layer-info-container > .layer-info-actions > input[type="text"] {
 	margin: 0 5px;
 	outline: none;
 	width: 100%;
 	border: none;
-	border-bottom: 1px solid white;
+	border-bottom: 1px solid #c1c1c1;
 	background-color: transparent;
 }
 
-.layer-info-container > .layer-info-mover > input[type="text"]:focus {
-	border-bottom: 1px solid #007bff;
+.layer-info-container > .layer-info-actions > input[type="text"]:focus {
+	border-bottom: 1px solid white;
 }
 
-.layer-info-container > .layer-info-mover > input[type="text"]::placeholder {
+.layer-info-container > .layer-info-actions > input[type="text"]::placeholder {
 	color: rgb(218, 218, 218);
 }
 
 .layer-info-container > .layer-info-actions > div > button,
+/* below is to account for the tooltip ones */
+.layer-info-container > .layer-info-actions > div > span > button,
 .layer-down,
 .layer-up {
 	opacity: 0;
 	background-color: transparent;
-	margin: 0 1px;
-	padding: 0.4em;
-	font-size: small;
+	font-size: large;
+	padding: 0.2em;
 	border: none;
 	border-radius: 50%;
 	transition: opacity 100ms;
 }
 
-.layer-info-container > .layer-info-actions > div > button:last-child {
+.layer-info-container > .layer-info-actions > div > button:last-child,
+.layer-info-container > .layer-info-actions > div > span > button:last-child {
 	margin-right: 0;
 }
 
 .layer-info-container:hover > .layer-info-actions > div > button,
 .layer-info-container.active > .layer-info-actions > div > button,
-.layer-info-container.editing > .layer-info-actions > div > button {
+.layer-info-container.editing > .layer-info-actions > div > button,
+.layer-info-container:hover > .layer-info-actions > div > span > button,
+.layer-info-container.active > .layer-info-actions > div > span > button,
+.layer-info-container.editing > .layer-info-actions > div > span > button,
+.layer-info-container > .layer-info-actions > div > button:focus,
+.layer-info-container > .layer-info-actions > div > span > button:focus {
 	opacity: 1;
 }
-.layer-info-container > .layer-info-actions > div > button:hover {
+.layer-info-container > .layer-info-actions > div > button:hover,
+.layer-info-container > .layer-info-actions > div > span > button:hover {
 	background-color: rgba(255, 255, 255, 0.1);
 }

@@ -1,8 +1,11 @@
 // Lib
-import { useState } from "react";
+import { useEffect } from "react";
+import useIndexed from "../../state/hooks/useIndexed";
+import useStore from "../../state/hooks/useStore";
 
 // Types
 import type { FC } from "react";
+import type { CanvasElement } from "../../types";
 
 // Styles
 import "./Main.styles.css";
@@ -11,41 +14,25 @@ import "./Main.styles.css";
 import CanvasPane from "../CanvasPane/CanvasPane";
 import LeftToolbar from "../LeftToolbar/LeftToolbar";
 import LayerPane from "../LayerPane/LayerPane";
-import AlphaSoftwareAgreementModal from "../AlphaSoftwareAgreementModal/AlphaSoftwareAgreementModal";
-import MobileNotSupportedModal from "../MobileNotSupportedModal/MobileNotSupportedModal";
 
 const Main: FC = () => {
-	const [showAlphaModal, setShowAlphaModal] = useState<boolean>(false);
-	// const [showMobileModal, setShowMobileModal] = useState<boolean>(false);
+	const { get } = useIndexed();
+	const setElements = useStore((store) => store.setElements);
 
-	// useEffect(() => {
-	//   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+	useEffect(() => {
+		async function getElements() {
+			const elements = await get<CanvasElement[]>("elements", "items");
+			setElements(elements ?? []);
+		}
 
-	//   if (isMobile) {
-	//     setShowMobileModal(true);
-	//     return;
-	//   }
-
-	//   const localStorage = window.localStorage;
-	//   const agreed = localStorage.getItem("agreed") === "true";
-
-	//   if (!agreed) {
-	//     setShowAlphaModal(true);
-	//   }
-
-	// }, []);
+		getElements();
+	}, [get, setElements]);
 
 	return (
-		<main id="main-content">
-			<AlphaSoftwareAgreementModal
-				open={showAlphaModal}
-				onClose={() => {
-					setShowAlphaModal(false);
-					window.localStorage.setItem("agreed", "true");
-				}}
-			/>
-			<MobileNotSupportedModal open={false} />
-
+		<main
+			id="main-content"
+			data-testid="main-content"
+		>
 			<LeftToolbar />
 
 			<CanvasPane />
