@@ -12,6 +12,7 @@ import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
 import * as Utils from "../../utils";
 import type { Color } from "react-aria-components";
+import type { FeatureDefinitions } from "@growthbook/growthbook-react";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
 import { PropsWithChildren } from "react";
@@ -79,7 +80,9 @@ describe("Canvas Interactive Functionality", () => {
 	vi.spyOn(Utils, "generateCanvasImage").mockResolvedValue(new Blob());
 
 	beforeEach(() => {
-		renderWithProviders(<Main />, { preloadedState: mockLayer });
+		renderWithProviders(<Main />, {
+			preloadedState: mockLayer,
+		});
 	});
 
 	beforeAll(() => {
@@ -1730,6 +1733,53 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(dispatchEventSpy).toHaveBeenLastCalledWith(event);
+		});
+
+		it("should not update the preview if the color hasn't changed", () => {
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let elements = screen.queryAllByTestId("element");
+			let pickerButton = screen.queryByTestId("fill-picker-button");
+			const dispatchEventSpy = vi.spyOn(document, "dispatchEvent");
+
+			fireEvent.click(shapeTool);
+
+			const option = screen.getByTestId("shape-rectangle");
+
+			fireEvent.click(option);
+
+			elements = screen.queryAllByTestId("element");
+
+			const resizeGrids = screen.getAllByTestId("resize-grid");
+			const resizeGrid = resizeGrids[0];
+			const element = elements[0];
+
+			// The color picker should be visible only when an element is focused.
+			fireEvent.focus(resizeGrid, { buttons: 1 });
+
+			pickerButton = screen.getByTestId("fill-picker-button");
+			let popover = screen.queryByTestId("fill-picker-popover");
+
+			expect(pickerButton).toBeInTheDocument();
+			expect(popover).not.toBeInTheDocument();
+
+			fireEvent.click(pickerButton);
+
+			popover = screen.getByTestId("fill-picker-popover");
+			expect(popover).toBeInTheDocument();
+
+			// Default color is black.
+			expect(element).toHaveAttribute("data-fill", "#000000");
+
+			// Click outside the popover to close it.
+			fireEvent.click(pickerButton);
+
+			const event = new CustomEvent("imageupdate", {
+				detail: {
+					layer: expect.any(HTMLCanvasElement)
+				}
+			});
+
+			expect(dispatchEventSpy).not.toHaveBeenLastCalledWith(event);
 		});
 
 		it("should resize the element north", () => {

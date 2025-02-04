@@ -1,5 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import {
+	describe,
+	it,
+	expect,
+	vi,
+	beforeAll,
+	afterAll,
+	afterEach
+} from "vitest";
 import * as utils from "../../utils";
+import { CanvasElement } from "../../types";
 
 describe("capitalize functionality", () => {
 	it("should capitalize the first occurring character", () => {
@@ -162,5 +171,194 @@ describe("getCanvasPosition functionality", () => {
 			y: (clientY - mockBoundingRect.top) * scaleY
 		});
 		expect(spy).toHaveBeenCalled();
+	});
+});
+
+describe("debounce functionality", () => {
+	beforeAll(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.clearAllTimers();
+	});
+
+	afterAll(() => {
+		vi.useRealTimers();
+	});
+
+	it("should debounce properly with the provided interval", () => {
+		const mockFn = vi.fn();
+		const debouncedFn = utils.debounce(mockFn, 100);
+
+		debouncedFn();
+
+		vi.advanceTimersByTime(50);
+
+		expect(mockFn).not.toHaveBeenCalled();
+
+		vi.advanceTimersByTime(50); // It should be 100ms now.
+
+		expect(mockFn).toHaveBeenCalled();
+	});
+
+	it("should debounce multiple calls to a function", () => {
+		const mockFn = vi.fn();
+
+		const debouncedFn = utils.debounce(mockFn, 100);
+
+		debouncedFn();
+		vi.advanceTimersByTime(50);
+		debouncedFn();
+
+		// It should be 100ms now. However, the function should not have been called
+		// because the second call should have reset the timer.
+		vi.advanceTimersByTime(50);
+
+		expect(mockFn).not.toHaveBeenCalled();
+
+		// It should be 150ms now. At this point, the function should have been called.
+		vi.advanceTimersByTime(50);
+
+		expect(mockFn).toHaveBeenCalled();
+	});
+});
+
+describe("generateCanvasImage functionality", () => {
+	let dummyCanvases: HTMLCanvasElement[];
+	let dummyElements: SVGGElement[];
+
+	beforeAll(() => {
+		dummyCanvases = [
+			document.createElement("canvas"),
+			document.createElement("canvas"),
+			document.createElement("canvas")
+		];
+		dummyElements = [
+			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+			document.createElementNS("http://www.w3.org/2000/svg", "svg")
+		];
+
+		dummyCanvases.forEach((canvas, i) => {
+			canvas.width = 400;
+			canvas.height = 400;
+			canvas.id = `${i}`;
+
+			canvas.setAttribute("data-dpi", "1");
+		});
+
+		dummyElements.forEach((element, i) => {
+			element.setAttribute("width", "400");
+			element.setAttribute("height", "400");
+			element.setAttribute("data-layerid", "1");
+
+			const idxType = i % 3;
+			let type = "";
+			switch (idxType) {
+				case 0: {
+					type = "circle";
+					break;
+				}
+				case 1: {
+					type = "rectangle";
+					break;
+				}
+				case 2: {
+					type = "triangle";
+					break;
+				}
+				default:
+					type = "circle";
+			}
+
+			element.setAttribute("data-type", type);
+		});
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	afterAll(() => {
+		vi.restoreAllMocks();
+	});
+
+	it("should properly draw the layers in order", () => {
+		const dummySubCanvas = document.createElement("canvas");
+
+		dummySubCanvas.width = 400;
+		dummySubCanvas.height = 400;
+
+		const createMock = vi
+			.spyOn(document, "createElement")
+			.mockReturnValue(dummySubCanvas);
+
+		const ctx = dummySubCanvas.getContext("2d");
+
+		if (!ctx) {
+			throw new Error("Canvas context not found");
+		}
+
+		const drawImageSpy = vi.spyOn(ctx, "drawImage");
+
+		utils.generateCanvasImage(dummyCanvases);
+
+		expect(createMock).toHaveBeenCalledOnce();
+
+		expect(drawImageSpy.mock.calls).toEqual([
+			[dummyCanvases[0], 0, 0],
+			[dummyCanvases[1], 0, 0],
+			[dummyCanvases[2], 0, 0]
+		]);
+	});
+
+	it("should throw if no layers are provided", () => {
+		expect(() => utils.generateCanvasImage([])).rejects.toThrow();
+	});
+
+	it("should properly draw shape elements", () => {
+		const dummySubCanvas = document.createElement("canvas");
+
+		dummySubCanvas.width = 400;
+		dummySubCanvas.height = 400;
+
+		const createMock = vi
+			.spyOn(document, "createElement")
+			.mockReturnValue(dummySubCanvas);
+
+		const ctx = dummySubCanvas.getContext("2d");
+
+		if (!ctx) {
+			throw new Error("Canvas context not found");
+		}
+
+		const strokeSpy = vi.spyOn(ctx, "stroke");
+		const fillSpy = vi.spyOn(ctx, "fill");
+		const fillRectSpy = vi.spyOn(ctx, "fillRect");
+		const strokeRectSpy = vi.spyOn(ctx, "strokeRect");
+		const ellipseSpy = vi.spyOn(ctx, "ellipse");
+		const moveToSpy = vi.spyOn(ctx, "moveTo");
+		const lineToSpy = vi.spyOn(ctx, "lineTo");
+		const fillTextSpy = vi.spyOn(ctx, "fillText");
+		const strokeTextSpy = vi.spyOn(ctx, "strokeText");
+
+		utils.generateCanvasImage(dummyCanvases, dummyElements);
+
+		expect(createMock).toHaveBeenCalledOnce();
+
+		expect(strokeSpy).toHaveBeenCalledTimes(2);
+		expect(fillSpy).toHaveBeenCalledTimes(2);
+		// Note: In reality, fillRect is called once since there is only one rectangle.
+		// However, fillRect is called before drawing anything to set
+		// the background color of the canvas. So, it is called twice.
+		expect(fillRectSpy).toHaveBeenCalledTimes(2);
+		expect(strokeRectSpy).toHaveBeenCalledOnce();
+		expect(ellipseSpy).toHaveBeenCalledOnce();
+		expect(moveToSpy).toHaveBeenCalledOnce();
+		expect(lineToSpy).toHaveBeenCalledTimes(2);
+		
+		expect(fillTextSpy).not.toHaveBeenCalled();
+		expect(strokeTextSpy).not.toHaveBeenCalled();
 	});
 });

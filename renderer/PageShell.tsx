@@ -4,7 +4,6 @@ import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProv
 import type { PageContext } from "./types";
 import "./PageShell.css";
 import { LayerReferencesProvider } from "../components/LayerReferencesProvider/LayerReferencesProvider";
-import { StoreProvider } from "../components/StoreContext/StoreContext";
 
 export { PageShell };
 
@@ -20,9 +19,7 @@ function PageShell({
 			<PageContextProvider pageContext={pageContext}>
 				<IndexedDBProvider>
 					<LayerReferencesProvider>
-						<StoreProvider>
-						{children}
-						</StoreProvider>
+				    {children}
 					</LayerReferencesProvider>
 				</IndexedDBProvider>
 			</PageContextProvider>

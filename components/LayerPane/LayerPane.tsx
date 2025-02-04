@@ -28,7 +28,7 @@ const LayerPane: FC = () => {
 	const totalLayers = layers.length;
 
 	const onNewLayer = () => createLayer();
-
+	
 	return (
 		<aside id="layer-manager-container">
 			<MemoizedColorWheel />

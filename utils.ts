@@ -128,7 +128,7 @@ function getCanvasPosition(
  *
  * navigateTo("another/nested/route"); // => https://example.com/another/nested/route
  */
-const navigateTo = (href: string): void => {
+function navigateTo(href: string): void {
 	if (typeof window === "undefined") {
 		throw new Error(`\`navigateTo\` can only be invoked in the browser.`);
 	}
@@ -140,7 +140,7 @@ const navigateTo = (href: string): void => {
 	}
 
 	window.location.href = url;
-};
+}
 
 /**
  * Determines whether two HTML elements are intersecting by comparing their bounding rectangles.
@@ -183,12 +183,11 @@ function debounce<T, A extends unknown[]>(
 		if (id !== null) {
 			clearTimeout(id);
 			id = null;
-		} else {
-			id = setTimeout(() => {
-				fn.apply(this, args);
-				id = null;
-			}, ms);
 		}
+		id = setTimeout(() => {
+			fn.apply(this, args);
+			id = null;
+		}, ms);
 	};
 }
 
@@ -213,7 +212,7 @@ type ExportedElement = {
 
 async function generateCanvasImage(
 	layers: ArrayLike<HTMLCanvasElement>,
-	elements: ArrayLike<Element>,
+	elements: ArrayLike<Element> = [],
 	quality: number = 1,
 	accountForDPI: boolean = false
 ): Promise<Blob> {
@@ -270,8 +269,6 @@ async function generateCanvasImage(
 	): string[] {
 		const words = text.split(" ");
 
-		console.log(words);
-
 		const lines: string[] = [];
 		let currentLine = "";
 
@@ -304,6 +301,11 @@ async function generateCanvasImage(
 					// which can disrupt the word wrapping logic.
 					// Therefore, we need to account for new lines.
 					const hasNewLine = splitWord.indexOf("\n");
+
+					if (currentLine.length > 0) {
+						lines.push(currentLine.trimStart());
+						currentLine = "";
+					}
 
 					if (hasNewLine !== -1) {
 						lines.push(splitWord.slice(0, hasNewLine));
@@ -398,6 +400,8 @@ async function generateCanvasImage(
 				ctx.fillStyle = element.fill ?? "";
 				ctx.strokeStyle = element.stroke ?? "";
 
+				console.log("Current element type:" + element.type);
+
 				ctx.beginPath();
 				switch (element.type) {
 					case "circle": {
@@ -436,7 +440,6 @@ async function generateCanvasImage(
 
 						ctx.font = `${element.fontSize}px ${element.fontFamily}`;
 						ctx.textBaseline = "top";
-
 						const lines = generateTextLines(element.fontContent, width, ctx);
 						console.log(lines);
 						const lineHeight = 1.5;

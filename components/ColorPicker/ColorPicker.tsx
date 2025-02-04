@@ -1,5 +1,5 @@
 // Lib
-import { useState } from "react";
+import { useState, useRef } from "react";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import useStore from "../../state/hooks/useStore";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
@@ -40,6 +40,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	const changeElementProperties = useStore(
 		(state) => state.changeElementProperties
 	);
+	const startColor = useRef<string>(value);
 	const elements = useStoreSubscription((state) => state.elements);
 	const { getActiveLayer } = useLayerReferences();
 
@@ -72,7 +73,7 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	};
 
 	const updatePreview = () => {
-    const activeLayer = getActiveLayer();
+		const activeLayer = getActiveLayer();
 
 		if (!activeLayer)
 			throw new Error("No active layer found. Cannot update layer preview.");
@@ -87,10 +88,17 @@ const ColorPicker: FC<ColorPickerProps> = ({ label, __for, value }) => {
 	};
 
 	const onOpenChange = (isOpen: boolean) => {
+		// Closing, prepare to update the preview.
 		if (!isOpen) {
 			setHex(parseColor(value).toString("hex"));
 
-			updatePreview();
+			// Only update the preview if the color has changed.
+			if (startColor.current !== value) {
+				updatePreview();
+			}
+		} else {
+			// Opening, save the current color.
+			startColor.current = value;
 		}
 	};
 
