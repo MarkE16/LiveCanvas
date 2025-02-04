@@ -298,7 +298,8 @@ const CanvasPane: FC = () => {
 		decreaseScale,
 		changeX,
 		changeY,
-		getActiveLayer
+		getActiveLayer,
+		shiftKey
 	]);
 
 	return (
