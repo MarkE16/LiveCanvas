@@ -6,7 +6,7 @@ import { FC, ReactNode, RefObject } from "react";
 
 type LayerReferencesUtils = {
 	references: RefObject<HTMLCanvasElement[]>;
-	add: (layer: HTMLCanvasElement) => void;
+	add: (layer: HTMLCanvasElement, i?: number) => void;
 	remove: (index: number) => HTMLCanvasElement;
 	setActiveIndex: (index: number) => void;
 	getActiveLayer: () => HTMLCanvasElement;
@@ -45,10 +45,15 @@ const LayerReferencesProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	/**
 	 * Add a layer reference.
 	 * @param layer An HTMLCanvasElement.
+	 * @param i The index to add the layer reference at.
 	 * @returns void
 	 */
-	const add = useCallback((layer: HTMLCanvasElement) => {
-		references.current.push(layer);
+	const add = useCallback((layer: HTMLCanvasElement, i?: number) => {
+		if (i !== undefined) {
+			references.current[i] = layer;
+		} else {
+			references.current.push(layer);
+		}
 	}, []);
 
 	/**
@@ -58,6 +63,10 @@ const LayerReferencesProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	 */
 	const remove = useCallback((index: number) => {
 		const [removed] = references.current.splice(index, 1);
+
+		if (!removed) {
+			throw new Error("Index out of bounds.");
+		}
 
 		return removed;
 	}, []);

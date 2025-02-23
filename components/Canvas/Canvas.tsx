@@ -349,12 +349,12 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 							height: `${height}px`,
 							transform
 						}}
-						ref={(element: HTMLCanvasElement) => {
-							add(element);
-
-							return () => {
+						ref={(element) => {
+							if (element !== null) {
+								add(element, i);
+							} else {
 								remove(i);
-							};
+							}
 						}}
 						id={layer.id}
 						width={width * dpi}
