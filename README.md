@@ -1,6 +1,8 @@
 # IdeaDrawn | LiveCanvas
 
-An open-source web based canvas editor.
+Welcome to IdeaDrawn, an open source project designed to bring real time collaboration and creativity to the web! Whether you're an artist, developer, or tech enthusiast, IdeaDrawn offers a dynamic platform where users can draw, share, and collaborate on a digital canvas all in real time.
+
+We're building an interactive space that blends creativity with code, and we’d love your help! Whether it’s contributing to the codebase, sharing design ideas, or testing new features, your input can make a real impact. You can also support by clicking on star button!
 
 > Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
 
