@@ -81,7 +81,7 @@ describe("Canvas Interactive Functionality", () => {
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, {
-			preloadedState: mockLayer,
+			preloadedState: mockLayer
 		});
 	});
 
@@ -149,9 +149,6 @@ describe("Canvas Interactive Functionality", () => {
 			expect(boundingRectMock).toHaveBeenCalled();
 
 			// Now, let's move the mouse to create the selection rect.
-			// Dev note: Do not forget to pass the buttons property to simulate a mouse click.
-			// Most components implemented check this property to determine if the left
-			// mouse button is pressed.
 			fireEvent.mouseMove(document, {
 				clientX: afterX,
 				clientY: afterY,
@@ -1121,7 +1118,6 @@ describe("Canvas Interactive Functionality", () => {
 			expect(field).toBeInTheDocument();
 
 			fireEvent.change(field, { target: { value: "Hello, World!" } });
-			fireEvent.blur(field); // To bypass the firstRender check.
 			fireEvent.keyDown(field, {
 				key: "Escape"
 			});
@@ -1151,7 +1147,6 @@ describe("Canvas Interactive Functionality", () => {
 			expect(field).toHaveTextContent("Text");
 
 			fireEvent.change(field, { target: { value: "" } });
-			fireEvent.blur(field); // To bypass the firstRender check.
 			fireEvent.keyDown(field, {
 				key: "Escape"
 			});
@@ -2258,7 +2253,7 @@ describe("Canvas Interactive Functionality", () => {
 			const stripped = stripUnits([left, top], "px");
 
 			// The values are NaN, so we need to calculate the center of the space and
-			// then apply the 50 offset to the x and y values.
+			// then apply the 100 offset to the x and y values.
 			expect(stripped).toEqual([elementCenterX + 100, elementCenterY + 100]);
 			expect(boundingRectMock).toHaveBeenCalled();
 		});

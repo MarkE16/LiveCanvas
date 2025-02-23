@@ -32,7 +32,7 @@ type ExtendedRenderHookOptions<P> = Omit<RenderHookOptions<P>, "wrapper"> & {
  * Renders a React component with a Zustand store and other providers. This function
  * should only be used for testing purposes.
  * @param ui A React component to render.
- * @param obj An object container optional preloadedState, store, featureFlags, and other render options.
+ * @param obj An object containing optional preloadedState, store, and other render options.
  * @returns Render options returned by React Testing Library.
  */
 export function renderWithProviders(

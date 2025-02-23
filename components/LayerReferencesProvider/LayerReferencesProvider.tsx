@@ -59,10 +59,6 @@ const LayerReferencesProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	const remove = useCallback((index: number) => {
 		const [removed] = references.current.splice(index, 1);
 
-		if (!removed) {
-			throw new Error("Index out of bounds.");
-		}
-
 		return removed;
 	}, []);
 

@@ -9,7 +9,7 @@ type DimensionProperties = Dimensions & {
 	changeInHeight: number;
 };
 
-const useWindowDimensions = () => {
+function useWindowDimensions() {
 	const dimensions = useRef<DimensionProperties>({
 		width: 0,
 		height: 0,

@@ -9,7 +9,7 @@ import { IndexedDBContext } from "../../components/IndexedDBProvider/IndexedDBPr
  * @returns An object containing functions to perform
  * get and set operations on the database.
  */
-const useIndexed = () => {
+function useIndexed() {
 	const context = useContext(IndexedDBContext);
 
 	if (!context) {

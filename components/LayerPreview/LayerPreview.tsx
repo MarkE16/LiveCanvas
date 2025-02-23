@@ -7,19 +7,11 @@ import "./LayerPreview.styles.css";
 
 // Types
 import type { FC } from "react";
+import type { ImageUpdateEvent } from "../../types";
 
 type LayerPreviewProps = {
 	id: string;
 };
-
-type ImageUpdateEvent = CustomEvent<{ layer: HTMLCanvasElement }>;
-
-// This is so that TypeScript knows that this custom event exists globally.
-declare global {
-	interface DocumentEventMap {
-		imageupdate: ImageUpdateEvent;
-	}
-}
 
 const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 	const [url, setUrl] = useState<string | null>(null);
