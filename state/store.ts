@@ -49,7 +49,7 @@ export const MODES: Modes = [
 	{ name: "draw", shortcut: "d" },
 	{ name: "erase", shortcut: "e" },
 	{ name: "shapes", shortcut: "a" },
-	{ name: "text", shortcut: "t" },
+	// { name: "text", shortcut: "t" },
 	{ name: "eye_drop", shortcut: "i" },
 	{ name: "zoom_in", shortcut: "+" },
 	{ name: "zoom_out", shortcut: "_" },

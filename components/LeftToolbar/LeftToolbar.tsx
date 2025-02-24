@@ -15,21 +15,15 @@ import ToolbarButton from "../ToolbarButton/ToolbarButton";
 const MemoizedToolbarButton = memo(ToolbarButton);
 
 const LeftToolbar: FC = () => {
-  const textModeEnabled = false;
-
 	const currentMode = useStore((state) => state.mode);
 	const renderedModes = MODES.map((mode) => {
-		if (mode.name === "text" && !textModeEnabled) {
-			return null;
-		}
-
 		return (
 			<MemoizedToolbarButton
 				key={mode.name}
 				active={currentMode === mode.name}
 				{...mode}
 			/>
-		);  
+		);
 	});
 
 	return (
