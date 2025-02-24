@@ -2,13 +2,13 @@ export { render };
 // See https://vite-plugin-ssr.com/data-fetching
 export const passToClient = ["pageProps", "urlPathname"];
 
-import ReactDOMServer from "react-dom/server";
 import { PageShell } from "./PageShell";
 import { escapeInject, dangerouslySkipEscape } from "vite-plugin-ssr/server";
 import logo from "../assets/icons/IdeaDrawnNewLogo.png";
-import { Provider } from "react-redux";
-import { createStore } from "../state/store";
 import type { PageContextServer } from "./types";
+import { renderToStream } from "react-streaming/server";
+import { initializeStore } from "../state/store";
+import { StoreProvider } from "../components/StoreContext/StoreContext";
 
 async function render(pageContext: PageContextServer) {
 	const { Page, pageProps } = pageContext;
@@ -16,12 +16,12 @@ async function render(pageContext: PageContextServer) {
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
-	const store = createStore();
-	const pageHtml = ReactDOMServer.renderToString(
+  const store = initializeStore();
+	const html = await renderToStream(
 		<PageShell pageContext={pageContext}>
-			<Provider store={store}>
-				<Page {...pageProps} />
-			</Provider>
+			<StoreProvider store={store}>
+        <Page {...pageProps} />
+			</StoreProvider>
 		</PageShell>
 	);
 
@@ -51,8 +51,8 @@ async function render(pageContext: PageContextServer) {
         <title>${title}</title>
       </head>
       <body>
-        <div id="entry">${dangerouslySkipEscape(pageHtml)}</div>
-        <script>
+        <div id="entry">${html}</div>
+        <script id="__preloaded_state__">
           window.__PRELOADED_STATE__ = ${dangerouslySkipEscape(jsonState)}
         </script>
       </body>
@@ -62,6 +62,6 @@ async function render(pageContext: PageContextServer) {
 		documentHtml,
 		pageContext: {
 			// We can add some `pageContext` here, which is useful if we want to do page redirection https://vite-plugin-ssr.com/page-redirection
-		}
+		},
 	};
 }

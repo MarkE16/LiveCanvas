@@ -11,13 +11,18 @@ node_modules
 coverage
 .zed
 dist
+coverage
 dist-ssr
 *.local
+
+.dockerignore
+Dockerfile
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
+.zed
 .DS_Store
 *.suo
 *.ntvs*

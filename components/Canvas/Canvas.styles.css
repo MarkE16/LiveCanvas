@@ -1,42 +1,18 @@
-.canvas,
-#background-canvas {
+.canvas {
 	position: absolute;
-	/* top: 0;
-  left: 0; */
-	background-color: transparent;
-	opacity: 0.1;
-	cursor: crosshair;
-	border: 1px solid gray;
+	background-color: white;
+	cursor: inherit;
+	z-index: 0;
 }
 
-#background-canvas {
-	background-color: white;
-	opacity: 1;
+.canvas.active {
+	z-index: 1;
 }
 
 .canvas.hidden {
 	opacity: 0 !important;
 }
 
-.canvas.active {
-	background-color: rgba(255, 255, 255, 0.1);
-	opacity: 1;
-}
-
-.canvas.move {
-	cursor: inherit;
-}
-
 .canvas.selection {
-	opacity: 1;
-	cursor: default;
 	z-index: 99;
-}
-
-.canvas.zoom_in {
-	cursor: zoom-in;
-}
-
-.canvas.zoom_out {
-	cursor: zoom-out;
 }

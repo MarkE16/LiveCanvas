@@ -3,6 +3,7 @@ node_modules
 .gitignore
 .husky
 .github
+.zed
 api
 tests
 *.md

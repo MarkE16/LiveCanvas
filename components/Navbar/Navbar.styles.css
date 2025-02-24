@@ -5,12 +5,14 @@
 	padding: 0.5rem;
 	height: 4rem;
 	border-bottom: 1px solid #d1836a;
+	width: 100%;
 }
 
 #navbar-links-section {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	width: fit-content;
 }
 
 #navbar-logo-container {
@@ -31,6 +33,11 @@
 
 	/* Add a light shadow to the logo */
 	box-shadow: 0 0 5px rgba(226, 226, 226, 0.1);
+}
+
+#navbar-links {
+	overflow: auto;
+	white-space: nowrap;
 }
 
 #navbar-links > button {
@@ -79,7 +86,8 @@
 #navbar-buttons-section > button:hover,
 #navbar-buttons-section > button:focus,
 #navbar-buttons-section > a:hover,
-#navbar-buttons-section > a:focus {
+#navbar-buttons-section > a:focus,
+#navbar-buttons-section > #save-btn:hover {
 	background-color: #2c2c2c;
 }
 
@@ -88,7 +96,9 @@
 }
 
 #navbar-buttons-section > #save-btn {
+	background-color: transparent;
 	border: none;
 	border-radius: 50%;
-	padding: 0.6em 0.9em;
+	font-size: 1.3em;
+	padding: 0.4em 0.6em;
 }
