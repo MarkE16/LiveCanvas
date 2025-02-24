@@ -267,71 +267,39 @@ async function generateCanvasImage(
 		width: number,
 		ctx: CanvasRenderingContext2D
 	): string[] {
-		const words = text.split(" ");
-
 		const lines: string[] = [];
-		let currentLine = "";
+		let charsLeft = text;
 
-		for (let i = 0; i < words.length; i++) {
-			const word = words[i];
+		while (charsLeft.length > 0) {
+			let splitIndex = charsLeft.length;
 
-			// If the word is too long to fit in the width, split it into multiple lines.
-			if (ctx.measureText(word).width > width) {
-				let charsLeft = word;
-
-				while (charsLeft.length > 0) {
-					let splitIndex = charsLeft.length;
-
-					// Find the index to split the word at.
-					while (
-						ctx.measureText(charsLeft.slice(0, splitIndex)).width > width &&
-						splitIndex > 0
-					) {
-						splitIndex--;
-					}
-
-					// Require one character.
-					if (splitIndex === 0) {
-						splitIndex = 1;
-					}
-
-					const splitWord = charsLeft.slice(0, splitIndex);
-
-					// "Super long words" can contain new lines,
-					// which can disrupt the word wrapping logic.
-					// Therefore, we need to account for new lines.
-					const hasNewLine = splitWord.indexOf("\n");
-
-					if (currentLine.length > 0) {
-						lines.push(currentLine.trimStart());
-						currentLine = "";
-					}
-
-					if (hasNewLine !== -1) {
-						lines.push(splitWord.slice(0, hasNewLine));
-						charsLeft = charsLeft.slice(hasNewLine + 1);
-					} else {
-						lines.push(splitWord);
-						charsLeft = charsLeft.slice(splitIndex);
-					}
-				}
-				continue;
+			// Find the index to split the word at.
+			while (
+				ctx.measureText(charsLeft.slice(0, splitIndex)).width > width &&
+				splitIndex > 0
+			) {
+				splitIndex--;
 			}
 
-			const testLine = currentLine === "" ? word : currentLine + " " + word;
-			// Normal word wrapping logic.
-			const metrics = ctx.measureText(testLine);
-			const currentWidth = metrics.width;
-			if (currentWidth < width) {
-				currentLine += " " + word;
+			// Require one character.
+			if (splitIndex === 0) {
+				splitIndex = 1;
+			}
+
+			const splitWord = charsLeft.slice(0, splitIndex);
+
+			// "Super long words" can contain new lines,
+			// which can disrupt the word wrapping logic.
+			// Therefore, we need to account for new lines.
+			const hasNewLine = splitWord.indexOf("\n");
+
+			if (hasNewLine !== -1) {
+				lines.push(splitWord.slice(0, hasNewLine));
+				charsLeft = charsLeft.slice(hasNewLine + 1);
 			} else {
-				lines.push(currentLine.trimStart());
-				currentLine = word;
+				lines.push(splitWord);
+				charsLeft = charsLeft.slice(splitIndex);
 			}
-		}
-
-		if (currentLine !== "") {
-			lines.push(currentLine.trim());
 		}
 		return lines;
 	}
@@ -448,13 +416,13 @@ async function generateCanvasImage(
 							ctx.fillText(
 								line,
 								startX,
-								startY + i * element.fontSize * lineHeight * scale,
+								startY + i * element.fontSize * lineHeight,
 								width
 							);
 							ctx.strokeText(
 								line,
 								startX,
-								startY + i * element.fontSize * lineHeight * scale,
+								startY + i * element.fontSize * lineHeight,
 								width
 							);
 						}

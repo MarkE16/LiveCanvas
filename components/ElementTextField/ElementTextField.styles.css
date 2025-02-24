@@ -5,7 +5,7 @@ span.element {
 	height: 100%;
 	min-width: 20px;
 	border: none;
-	word-break: break-word;
+	word-break: break-all;
 	white-space: pre-wrap;
 	outline: none;
 	resize: none;
