@@ -9,9 +9,6 @@ import type { PageContextServer } from "./types";
 import { renderToStream } from "react-streaming/server";
 import { initializeStore } from "../state/store";
 import { StoreProvider } from "../components/StoreContext/StoreContext";
-import GrowthBookProvider from "../components/GrowthBookProvider/GrowthBookProvider";
-import { GrowthBook } from "@growthbook/growthbook-react";
-// import { renderToString } from "react-dom/server";
 
 async function render(pageContext: PageContextServer) {
 	const { Page, pageProps } = pageContext;
@@ -19,37 +16,14 @@ async function render(pageContext: PageContextServer) {
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
-  const instance = new GrowthBook({
-    apiHost: import.meta.env.VITE_GROWTHBOOK_API_HOST,
-    clientKey: import.meta.env.VITE_GROWTHBOOK_CLIENT_KEY,
-    enableDevMode: true
-  });
-
-  await instance.init({ streaming: false, timeout: 1000 });
-
-  const payload = instance.getPayload();
-
-  instance.destroy();
-
   const store = initializeStore();
 	const html = await renderToStream(
 		<PageShell pageContext={pageContext}>
 			<StoreProvider store={store}>
-        <GrowthBookProvider instance={instance}>
-          <Page {...pageProps} />
-        </GrowthBookProvider>
+        <Page {...pageProps} />
 			</StoreProvider>
 		</PageShell>
 	);
-	// const html = renderToString(
-	// 	<PageShell pageContext={pageContext}>
-	// 		<StoreProvider store={store}>
- //        <GrowthBookProvider instance={instance}>
- //          <Page {...pageProps} />
- //        </GrowthBookProvider>
-	// 		</StoreProvider>
-	// 	</PageShell>
-	// )
 
 	const preloadedState = store.getState();
 
@@ -61,7 +35,6 @@ async function render(pageContext: PageContextServer) {
 		"App using Vite + vite-plugin-ssr";
 
 	const jsonState = JSON.stringify(preloadedState).replace(/</g, "\\u003c");
-	const jsonPayload = JSON.stringify(payload).replace(/</g, "\\u003c");
 
 	// we use the dangerouslySkipEscape() so that the JSON is not escaped
 	// due to escapeInject, which is supposed to help prevent XSS attacks
@@ -81,7 +54,6 @@ async function render(pageContext: PageContextServer) {
         <div id="entry">${html}</div>
         <script id="__preloaded_state__">
           window.__PRELOADED_STATE__ = ${dangerouslySkipEscape(jsonState)}
-          window.__GROWTHBOOK_PAYLOAD__ = ${dangerouslySkipEscape(jsonPayload)}
         </script>
       </body>
     </html>`;

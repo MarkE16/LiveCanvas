@@ -1,5 +1,4 @@
 // Lib
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { MODES } from "../../state/store";
 import { memo } from "react";
 import useStore from "../../state/hooks/useStore";
@@ -16,7 +15,7 @@ import ToolbarButton from "../ToolbarButton/ToolbarButton";
 const MemoizedToolbarButton = memo(ToolbarButton);
 
 const LeftToolbar: FC = () => {
-	const textModeEnabled = useFeatureIsOn("text_tool");
+  const textModeEnabled = false;
 
 	const currentMode = useStore((state) => state.mode);
 	const renderedModes = MODES.map((mode) => {
