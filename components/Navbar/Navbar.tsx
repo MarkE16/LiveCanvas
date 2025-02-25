@@ -28,13 +28,13 @@ const Navbar: FC = () => {
 		<header data-testid="nav-bar">
 			<nav id="navbar-container">
 				<section id="navbar-links-section">
-					<div id="navbar-logo-container">
+					<a href="/home">
 						<img
 							id="navbar-logo"
 							src={logo}
 							alt="logo"
 						/>
-					</div>
+					</a>
 					<div id="navbar-links">
 						<button onClick={openSnackbar}>File</button>
 						<button onClick={openSnackbar}>Edit</button>
