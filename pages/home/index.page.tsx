@@ -1,16 +1,12 @@
 // Lib
 import search_logo from "../../assets/icons/search_35dp_E8EAED_FILL0_wght700_GRAD200_opsz40.svg";
 import logo from "../../assets/icons/IdeaDrawnNewLogo.png";
-import user_logo from "../../assets/icons/acc.png";
-import notications_logo from "../../assets/icons/notification.png";
 import new_file_logo from "../../assets/icons/icons_19028.png";
 import open_file_logo from "../../assets/icons/icons_515682.png";
 import shared_file_logo from "../../assets/icons/icons_151918.png";
 import archived_logo from "../../assets/icons/icons_417061.png";
 import exclamation from "../../assets/icons/exclamation.png";
 import del from "../../assets/icons/delete.svg";
-import { useState, useRef, useEffect } from "react";
-import { navigateTo } from "../../utils";
 
 // Types
 import type { FC } from "react";
