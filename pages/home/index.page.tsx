@@ -7,6 +7,7 @@ import shared_file_logo from "../../assets/icons/icons_151918.png";
 import archived_logo from "../../assets/icons/icons_417061.png";
 import exclamation from "../../assets/icons/exclamation.png";
 import del from "../../assets/icons/delete.svg";
+import { useRef } from "react";
 
 // Types
 import type { FC } from "react";
