@@ -51,7 +51,7 @@ async function render(pageContext: PageContextServer) {
         <title>${title}</title>
       </head>
       <body>
-        <div id="entry">${html}</div>
+        <div id="entry">${html as unknown as ReadableStream}</div>
         <script id="__preloaded_state__">
           window.__PRELOADED_STATE__ = ${dangerouslySkipEscape(jsonState)}
         </script>
