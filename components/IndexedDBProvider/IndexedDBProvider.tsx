@@ -4,7 +4,7 @@ import { useEffect, createContext, useRef, useCallback, useMemo } from "react";
 // Types
 import type { FC, PropsWithChildren } from "react";
 
-const STORES = ["layers", "elements", "temp"];
+const STORES = ["layers", "elements", "temp", "fileSizes"];
 const VERSION = 1; // Bump this up when the schema changes.
 
 type IndexedUtils = {

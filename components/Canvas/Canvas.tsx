@@ -60,7 +60,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}))
 	);
 
-	const { references, add } = useLayerReferences();
+	const { references, add, getActiveLayer } = useLayerReferences();
 	const { get, remove } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
@@ -268,7 +268,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 						"Tried to get file from temporary storage, there was no file."
 					);
 				} else {
-					const ref = references.current[0]; // The first layer is always the main canvas.
+          const ref = getActiveLayer();
 					const canvasWidth = Number(ref.style.width.replace("px", ""));
 					const canvasHeight = Number(ref.style.height.replace("px", ""));
 					const ctx = ref.getContext("2d");
@@ -360,7 +360,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}
 
 		updateLayers();
-	}, [setLayers, get, references]);
+	}, [setLayers, get, references, getActiveLayer, remove]);
 
 	useEffect(() => {
 		const refs = references.current;

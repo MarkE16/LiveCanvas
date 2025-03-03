@@ -7,7 +7,7 @@ import shared_file_logo from "../../assets/icons/icons_151918.png";
 import archived_logo from "../../assets/icons/icons_417061.png";
 import exclamation from "../../assets/icons/exclamation.png";
 import del from "../../assets/icons/delete.svg";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { navigateTo } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 import useIndexed from "../../state/hooks/useIndexed";
@@ -122,13 +122,18 @@ const outlets: Record<string, FC<{ files: unknown[] }>> = {
 	shared: Shared
 };
 
+const BYTES_PER_MEGABYTE = 1_048_576;
+const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * 300; // 300 megabytes.
+const MAX_MEGABYTES = MAX_BYTES_SIZE / BYTES_PER_MEGABYTE;
+
 const Page: FC = () => {
-  const { set } = useIndexed();
+	const [usedBytes, setUsedBytes] = useState<number>(0);
+	const { set, get } = useIndexed();
 	const fileDialogRef = useRef<HTMLInputElement>(null);
 	const canvases = new Array(10).fill(null);
-	const usedMB = 200;
-	const maxMB = 300;
-	const barWidth = `${(usedMB / maxMB) * 100}%`;
+	const barWidth = `${(usedBytes / MAX_BYTES_SIZE) * 100}%`;
+	const usedMegaBytes = (usedBytes / BYTES_PER_MEGABYTE).toFixed(2);
+
 	let page = undefined;
 	let pageTitle = undefined;
 	if (typeof window !== "undefined") {
@@ -158,15 +163,30 @@ const Page: FC = () => {
 			throw new Error("No file was uploaded when opening a file.");
 		}
 
-		const [name, ext] = file.name.split(".");
-
 		const fileId = uuidv4();
-		
+
 		// Probably a better way to handle this.
-    await set("temp", fileId, file);
+		await set("temp", fileId, file);
 
 		navigateTo(`/editor?f=${fileId}&open=1`);
 	};
+
+	// Get the files to display as well as get
+	// the current size accumulated by all files.
+	useEffect(() => {
+		async function getFilesAndSize() {
+			const sizes = await get<[string, number][]>("fileSizes");
+
+			if (!sizes) {
+				console.error("Cant update size count.");
+			} else {
+				const total = sizes.reduce((acc, [, size]) => acc + size, 0);
+				setUsedBytes(total);
+			}
+		}
+
+		getFilesAndSize();
+	}, [get]);
 
 	const Outlet = outlets[page || "projects"];
 
@@ -255,7 +275,7 @@ const Page: FC = () => {
 							></div>
 						</div>
 						<p className="amountLeft">
-							{usedMB} MB of {maxMB} MB Used
+							{usedMegaBytes} MB of {MAX_MEGABYTES} MB Used
 						</p>
 						<a
 							href=""
