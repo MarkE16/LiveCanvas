@@ -20,14 +20,17 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
+import ScaleIndicator from "../ScaleIndicator/ScaleIndicator";
 
 const MemoizedShapeElement = memo(ShapeElement);
 const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
+const MemoizedScaleIndicator = memo(ScaleIndicator);
 
 const CanvasPane: FC = () => {
 	const {
 		mode,
+		scale,
 		changeX,
 		changeY,
 		increaseScale,
@@ -40,6 +43,7 @@ const CanvasPane: FC = () => {
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
+			scale: state.scale,
 			changeX: state.changeX,
 			changeY: state.changeY,
 			increaseScale: state.increaseScale,
@@ -340,6 +344,8 @@ const CanvasPane: FC = () => {
 			>
 				<MemoizedCanvas isGrabbing={isMoving} />
 			</div>
+			
+			<MemoizedScaleIndicator scale={scale} />
 		</div>
 	);
 };
