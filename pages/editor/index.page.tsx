@@ -2,6 +2,7 @@
 
 // Lib
 import { useEffect } from "react";
+import { navigateTo } from "../../utils";
 
 // Components
 import Navbar from "../../components/Navbar/Navbar";
@@ -34,8 +35,22 @@ function Page() {
 			}
 		}
 
-		// Check if the database persists.
-		checkStoragePersistency();
+		function getFileID() {
+			const urlParams = new URLSearchParams(window.location.search);
+			const fileId = urlParams.get("f"); // Represents the file's ID.
+
+			if (!fileId) {
+				// Redirect to the dashboard page.
+				navigateTo("/home");
+			} else {
+				// Get the file from IndexedDB.
+				// ...
+			}
+		}
+
+		// First, check if the storage is persisted.
+		// Then, get the file ID from the URL.
+		checkStoragePersistency().then(() => getFileID());
 	}, []);
 
 	return (

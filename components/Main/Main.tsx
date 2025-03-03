@@ -21,7 +21,15 @@ const Main: FC = () => {
 
 	useEffect(() => {
 		async function getElements() {
-			const elements = await get<CanvasElement[]>("elements", "items");
+			const urlParams = new URLSearchParams(window.location.search);
+			const fileId = urlParams.get("f");
+
+			if (!fileId) {
+				// Do nothing.
+				return;
+			}
+
+			const elements = await get<CanvasElement[]>("elements", fileId);
 			setElements(elements ?? []);
 		}
 

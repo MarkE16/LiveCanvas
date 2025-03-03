@@ -26,26 +26,62 @@ const SaveCanvasButton: FC = () => {
 			throw new Error(
 				"Cannot export canvas: no references found. This is a bug."
 			);
+		const urlParams = new URLSearchParams(window.location.search);
+		const fileId = urlParams.get("f");
+
+		if (!fileId) {
+			throw new Error("No file ID found in the URL. This is a bug.");
+		}
+
 		// const elements = Array.from(document.getElementsByClassName("element"));
-		references.current.forEach((canvas, index) => {
+		// references.current.forEach((canvas, index) => {
+		// 	if (canvas === null) {
+		// 		remove(index);
+		// 		return;
+		// 	}
+		// 	canvas.toBlob(async (blob) => {
+		// 		if (!blob) {
+		// 			throw new Error(
+		// 				`Failed to save canvas with id: ${canvas.id} and name: ${canvas.getAttribute("data-name")}.`
+		// 			);
+		// 		}
+
+		// 		await set("layers", fileId, {
+		// 			[canvas.id]: {
+		// 				name: canvas.getAttribute("data-name"),
+		// 				image: blob,
+		// 				position: index
+		// 			}
+		// 		});
+		// 	});
+		// });
+		const canvasAsJSON = references.current.map((canvas, index) => {
 			if (canvas === null) {
 				remove(index);
 				return;
 			}
-			canvas.toBlob(async (blob) => {
-				if (!blob) {
-					throw new Error(
-						`Failed to save canvas with id: ${canvas.id} and name: ${canvas.getAttribute("data-name")}.`
-					);
-				}
 
-				await set("layers", canvas.id, {
-					name: canvas.getAttribute("data-name"),
-					image: blob,
-					position: index
+			return new Promise((resolve) => {
+				canvas.toBlob(async (blob) => {
+					if (!blob) {
+						throw new Error(
+							`Failed to save canvas with id: ${canvas.id} and name: ${canvas.getAttribute("data-name")}.`
+						);
+					}
+
+					resolve({
+						name: canvas.getAttribute("data-name"),
+						image: blob,
+						position: index,
+						id: canvas.id
+					});
 				});
 			});
 		});
+
+		const layers = await Promise.all(canvasAsJSON);
+
+		await set("layers", fileId, layers);
 
 		const allUnfocused = elements.current.map<Omit<CanvasElement, "focused">>(
 			(element) => {
@@ -56,7 +92,7 @@ const SaveCanvasButton: FC = () => {
 			}
 		);
 
-		await set("elements", "items", allUnfocused);
+		await set("elements", fileId, allUnfocused);
 
 		// Update the UI to indicate that the canvas has been saved
 		setSaved(true);

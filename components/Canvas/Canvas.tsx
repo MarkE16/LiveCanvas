@@ -24,6 +24,7 @@ type DBLayer = {
 	image: Blob;
 	name: string;
 	position: number;
+	id: string;
 };
 
 const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
@@ -238,7 +239,16 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
 		async function updateLayers() {
-			const entries = await get<[string, DBLayer][]>("layers");
+			const urlParams = new URLSearchParams(window.location.search);
+			const fileId = urlParams.get("f");
+
+			if (!fileId) {
+				// Simply do nothing. We want to redirect if there is no file.
+				// This is handled in the Page component for the editor route.
+				return;
+			}
+
+			const entries = await get<DBLayer[]>("layers", fileId);
 
 			if (!entries) {
 				return;
@@ -248,18 +258,18 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			updateLayerContents(newEntries);
 		}
 
-		function updateLayerState(entries: [string, DBLayer][]) {
-			return new Promise<[string, DBLayer][]>((resolve) => {
+		function updateLayerState(entries: DBLayer[]) {
+			return new Promise<DBLayer[]>((resolve) => {
 				const newLayers: Layer[] = [];
 
-				const sorted = entries.sort((a, b) => b[1].position - a[1].position); // Sort by position, where the highest position is the top layer.
+				const sorted = entries.sort((a, b) => b.position - a.position); // Sort by position, where the highest position is the top layer.
 
 				sorted.forEach((entry, i) => {
-					const [layerId, layer] = entry;
+					const { name, id } = entry;
 
 					newLayers.push({
-						name: layer.name,
-						id: layerId,
+						name: name,
+						id: id,
 						active: i === 0,
 						hidden: false
 					});
@@ -275,10 +285,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			});
 		}
 
-		function updateLayerContents(entries: [string, DBLayer][]) {
+		function updateLayerContents(entries: DBLayer[]) {
 			entries.forEach((entry) => {
-				const [, layer] = entry;
-				const canvas = references.current[layer.position];
+				const { position, image } = entry;
+				const canvas = references.current[position];
 
 				if (!canvas) return;
 
@@ -300,7 +310,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					document.dispatchEvent(ev);
 				};
 
-				img.src = URL.createObjectURL(layer.image);
+				img.src = URL.createObjectURL(image);
 			});
 		}
 
@@ -350,9 +360,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 							transform
 						}}
 						ref={(element) => {
-						if (element !== null) {
-						  add(element, i);
-						}
+							if (element !== null) {
+								add(element, i);
+							}
 						}}
 						id={layer.id}
 						width={width * dpi}
