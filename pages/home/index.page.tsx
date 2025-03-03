@@ -10,6 +10,7 @@ import del from "../../assets/icons/delete.svg";
 import { useRef } from "react";
 import { navigateTo } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
 import type { FC } from "react";
@@ -19,7 +20,6 @@ import type { Option } from "../../types";
 import "./index.styles.css";
 import Dropdown from "../../components/Dropdown/Dropdown";
 import FileCard from "../../components/FileCard/FileCard";
-import useIndexed from "../../state/hooks/useIndexed";
 
 export { Page };
 
@@ -123,7 +123,7 @@ const outlets: Record<string, FC<{ files: unknown[] }>> = {
 };
 
 const Page: FC = () => {
-	const { set } = useIndexed();
+  const { set } = useIndexed();
 	const fileDialogRef = useRef<HTMLInputElement>(null);
 	const canvases = new Array(10).fill(null);
 	const usedMB = 200;
@@ -161,6 +161,9 @@ const Page: FC = () => {
 		const [name, ext] = file.name.split(".");
 
 		const fileId = uuidv4();
+		
+		// Probably a better way to handle this.
+    await set("temp", fileId, file);
 
 		navigateTo(`/editor?f=${fileId}&open=1`);
 	};

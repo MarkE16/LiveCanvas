@@ -60,8 +60,8 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}))
 	);
 
-	const { references, add, remove } = useLayerReferences();
-	const { get } = useIndexed();
+	const { references, add } = useLayerReferences();
+	const { get, remove } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
 	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
@@ -241,6 +241,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		async function updateLayers() {
 			const urlParams = new URLSearchParams(window.location.search);
 			const fileId = urlParams.get("f");
+			// The open query parameter is used to determine if the file
+			// was created from opening a file from the local computer.
+			const open = urlParams.get("open");
 
 			if (!fileId) {
 				// Simply do nothing. We want to redirect if there is no file.
@@ -251,7 +254,49 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			const entries = await get<DBLayer[]>("layers", fileId);
 
 			if (!entries) {
-				return;
+				// We're in a new file. We have one layer by default,
+				// so we'll render the opened file with that layer.
+
+				if (!open) {
+					return;
+				}
+
+				const file = await get<File>("temp", fileId);
+
+				if (!file) {
+					console.error(
+						"Tried to get file from temporary storage, there was no file."
+					);
+				} else {
+					const ref = references.current[0]; // The first layer is always the main canvas.
+					const canvasWidth = Number(ref.style.width.replace("px", ""));
+					const canvasHeight = Number(ref.style.height.replace("px", ""));
+					const ctx = ref.getContext("2d");
+					const img = new Image();
+
+					img.width = canvasWidth;
+					img.height = canvasHeight;
+
+					img.onload = () => {
+						ctx!.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+						URL.revokeObjectURL(img.src);
+
+						// A custom event to notify that the image of the layer
+						// displayed in the layer list needs to be updated.
+
+						const ev = new CustomEvent("imageupdate", {
+							detail: {
+								layer: ref
+							}
+						});
+
+						document.dispatchEvent(ev);
+						remove("temp", fileId);
+					};
+
+					img.src = URL.createObjectURL(file);
+					return;
+				}
 			}
 
 			const newEntries = await updateLayerState(entries);
