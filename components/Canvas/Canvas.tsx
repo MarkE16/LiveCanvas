@@ -261,14 +261,14 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					return;
 				}
 
-				const file = await get<File>("temp", fileId);
+				const file = await get<File>("files", fileId);
 
 				if (!file) {
 					console.error(
 						"Tried to get file from temporary storage, there was no file."
 					);
 				} else {
-          const ref = getActiveLayer();
+					const ref = getActiveLayer();
 					const canvasWidth = Number(ref.style.width.replace("px", ""));
 					const canvasHeight = Number(ref.style.height.replace("px", ""));
 					const ctx = ref.getContext("2d");
@@ -291,7 +291,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 						});
 
 						document.dispatchEvent(ev);
-						remove("temp", fileId);
 					};
 
 					img.src = URL.createObjectURL(file);

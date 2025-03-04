@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
+import { generateCanvasImage } from "../../utils";
 
 // Types
 import type { FC } from "react";
@@ -26,7 +27,6 @@ const SaveCanvasButton: FC = () => {
 			throw new Error(
 				"Cannot export canvas: no references found. This is a bug."
 			);
-		let sizeBytes = 0;
 		const urlParams = new URLSearchParams(window.location.search);
 		const fileId = urlParams.get("f");
 
@@ -48,8 +48,6 @@ const SaveCanvasButton: FC = () => {
 						);
 					}
 
-					sizeBytes += blob.size;
-
 					resolve({
 						name: canvas.getAttribute("data-name"),
 						image: blob,
@@ -70,8 +68,15 @@ const SaveCanvasButton: FC = () => {
 		);
 
 		const layers = await Promise.all(canvasAsJSON);
+		const elementsHTML = document.getElementsByClassName("elements");
 
-		await set("fileSizes", fileId, sizeBytes);
+		const fullImage = await generateCanvasImage(
+			references.current,
+			elementsHTML,
+			0.8
+		);
+
+		await set("files", fileId, fullImage);
 		await set("layers", fileId, layers);
 		await set("elements", fileId, allUnfocused);
 

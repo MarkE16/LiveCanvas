@@ -203,8 +203,8 @@ body {
 .archive-container {
 	width: 100%;
 	display: grid;
-	grid-template-columns: repeat(5, 1fr);
-	gap: 20px;
+	grid-template-columns: repeat(7, 0fr);
+	gap: 10px;
 	margin-top: 20px;
 }
 /* .projectItem,

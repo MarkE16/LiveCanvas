@@ -1,5 +1,5 @@
 // Lib
-import logo from "../../assets/icons/IdeaDrawnNewLogo_invert.png";
+import logo from "../../assets/icons/IdeaDrawnNewLogo_transparent.png";
 import { Snackbar } from "@mui/material";
 import { useState } from "react";
 

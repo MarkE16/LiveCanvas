@@ -34,12 +34,12 @@ const ScaleIndicator: FC<ScaleIndicatorProps> = ({ scale }) => {
 				zIndex: 1000,
 				backgroundColor: "black",
 				borderRadius: "5px",
-				opacity: visible ? 1 : 0.3,
+				opacity: visible ? 1 : 0.2,
 				transition: "opacity 150ms",
 				pointerEvents: "none"
 			}}
 		>
-			{scale.toFixed(2)}x
+			{scale.toFixed(1)}x
 		</div>
 	);
 };

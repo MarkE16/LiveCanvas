@@ -23,6 +23,11 @@ import FileCard from "../../components/FileCard/FileCard";
 
 export { Page };
 
+type CanvasFile = {
+	id: string;
+	file: File;
+};
+
 const FILTER_OPTIONS: Option[] = [
 	{
 		label: "All Files",
@@ -46,20 +51,20 @@ const FILTER_OPTIONS: Option[] = [
 	}
 ];
 
-const Projects = ({ files }: { files: unknown[] }) => (
+const Projects = ({ files }: { files: CanvasFile[] }) => (
 	<>
 		<div className="project-container">
-			{files.map((_, i) => (
+			{files.map((file, i) => (
 				<FileCard
 					key={i}
-					id={i.toString()}
+					{...file}
 				/>
 			))}
 		</div>
 	</>
 );
 
-const Archive = ({ files }: { files: unknown[] }) => (
+const Archive = ({ files }: { files: CanvasFile[] }) => (
 	<>
 		<div className="daysLeft">
 			<img
@@ -89,50 +94,50 @@ const Archive = ({ files }: { files: unknown[] }) => (
 			</button>
 		</div>
 		<div className="archive-container">
-			{files.map((_, i) => (
+			{files.map((file, i) => (
 				<FileCard
 					key={i}
-					id={i.toString()}
+					{...file}
 				/>
 			))}
 		</div>
 	</>
 );
 
-const Shared = ({ files }: { files: unknown[] }) => (
+const Shared = ({ files }: { files: CanvasFile[] }) => (
 	<>
 		<Dropdown
 			description="Sort by"
 			options={FILTER_OPTIONS}
 		/>
 		<div className="shared-container">
-			{files.map((_, i) => (
+			{files.map((file, i) => (
 				<FileCard
 					key={i}
-					id={i.toString()}
+					{...file}
 				/>
 			))}
 		</div>
 	</>
 );
 
-const outlets: Record<string, FC<{ files: unknown[] }>> = {
+const outlets: Record<string, FC<{ files: CanvasFile[] }>> = {
 	projects: Projects,
 	archived: Archive,
 	shared: Shared
 };
 
 const BYTES_PER_MEGABYTE = 1_048_576;
-const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * 300; // 300 megabytes.
-const MAX_MEGABYTES = MAX_BYTES_SIZE / BYTES_PER_MEGABYTE;
+const MAX_MEGABYTES = 500;
+const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * MAX_MEGABYTES;
 
 const Page: FC = () => {
 	const [usedBytes, setUsedBytes] = useState<number>(0);
+	const [canvases, setCanvases] = useState<CanvasFile[]>([]);
 	const { set, get } = useIndexed();
 	const fileDialogRef = useRef<HTMLInputElement>(null);
-	const canvases = new Array(10).fill(null);
-	const barWidth = `${(usedBytes / MAX_BYTES_SIZE) * 100}%`;
-	const usedMegaBytes = (usedBytes / BYTES_PER_MEGABYTE).toFixed(2);
+	const barWidth = `${((usedBytes / MAX_BYTES_SIZE) * 100).toFixed(1)}%`;
+	const usedMegaBytes = (usedBytes / BYTES_PER_MEGABYTE).toFixed(1);
 
 	let page = undefined;
 	let pageTitle = undefined;
@@ -163,10 +168,16 @@ const Page: FC = () => {
 			throw new Error("No file was uploaded when opening a file.");
 		}
 
+		// Check if the file size is within the limit.
+		// If not, alert the user and return.
+		if (usedBytes + file.size > MAX_BYTES_SIZE) {
+			alert("File size limit reached.");
+			return;
+		}
+
 		const fileId = uuidv4();
 
-		// Probably a better way to handle this.
-		await set("temp", fileId, file);
+		await set("files", fileId, file);
 
 		navigateTo(`/editor?f=${fileId}&open=1`);
 	};
@@ -175,13 +186,15 @@ const Page: FC = () => {
 	// the current size accumulated by all files.
 	useEffect(() => {
 		async function getFilesAndSize() {
-			const sizes = await get<[string, number][]>("fileSizes");
+			const files = await get<[string, File][]>("files");
 
-			if (!sizes) {
+			if (!files) {
 				console.error("Cant update size count.");
 			} else {
-				const total = sizes.reduce((acc, [, size]) => acc + size, 0);
+				const total = files.reduce((acc, [, file]) => acc + file.size, 0);
+
 				setUsedBytes(total);
+				setCanvases(files.map(([id, file]) => ({ id, file })));
 			}
 		}
 
