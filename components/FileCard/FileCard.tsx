@@ -6,19 +6,15 @@ import type { FC } from "react";
 import "./FileCard.styles.css";
 
 type FileCardProps = {
-	title?: string;
-	lastUpdated?: string;
 	id: string;
 	file: File;
 };
 
-const FileCard: FC<FileCardProps> = ({
-	title = "Title",
-	lastUpdated = "1/10/2000",
-	file,
-	id
-}) => {
+const FileCard: FC<FileCardProps> = ({ file, id }) => {
 	const fileURL = useRef(URL.createObjectURL(file));
+	const date = new Date(file.lastModified ?? 0);
+	const stringDate = date.toLocaleDateString();
+	const name = file.name ?? "Untitled";
 
 	const onImageLoad = () => {
 		URL.revokeObjectURL(fileURL.current);
@@ -36,9 +32,9 @@ const FileCard: FC<FileCardProps> = ({
 				className="file-preview"
 			/>
 			<div className="file-text">
-				<h3 className="file-title">{title}</h3>
+				<h3 className="file-title">{name}</h3>
 				<p className="file-date">
-					Last Updated: <time dateTime="2000-1-10">{lastUpdated}</time>
+					Last Updated: <time dateTime={stringDate}>{stringDate}</time>
 				</p>
 			</div>
 		</a>

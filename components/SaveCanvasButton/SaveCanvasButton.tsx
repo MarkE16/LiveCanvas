@@ -20,7 +20,7 @@ const SaveCanvasButton: FC = () => {
 	const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 	const elements = useStoreSubscription((state) => state.elements);
 	const { references, remove } = useLayerReferences();
-	const { set } = useIndexed();
+	const { set, get } = useIndexed();
 
 	const saveCanvas = useCallback(async () => {
 		if (!references.current.length)
@@ -76,7 +76,13 @@ const SaveCanvasButton: FC = () => {
 			0.8
 		);
 
-		await set("files", fileId, fullImage);
+		const oldFile = await get<File>("files", fileId);
+
+		if (!oldFile) {
+			throw new Error("No file found with the given id.");
+		}
+
+		await set("files", fileId, new File([fullImage], oldFile.name));
 		await set("layers", fileId, layers);
 		await set("elements", fileId, allUnfocused);
 

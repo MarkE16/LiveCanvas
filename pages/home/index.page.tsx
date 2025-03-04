@@ -54,10 +54,11 @@ const FILTER_OPTIONS: Option[] = [
 const Projects = ({ files }: { files: CanvasFile[] }) => (
 	<>
 		<div className="project-container">
-			{files.map((file, i) => (
+			{files.map(({ id, file }, i) => (
 				<FileCard
 					key={i}
-					{...file}
+					id={id}
+					file={file}
 				/>
 			))}
 		</div>
@@ -94,10 +95,11 @@ const Archive = ({ files }: { files: CanvasFile[] }) => (
 			</button>
 		</div>
 		<div className="archive-container">
-			{files.map((file, i) => (
+			{files.map(({ id, file }, i) => (
 				<FileCard
 					key={i}
-					{...file}
+					id={id}
+					file={file}
 				/>
 			))}
 		</div>
@@ -111,10 +113,11 @@ const Shared = ({ files }: { files: CanvasFile[] }) => (
 			options={FILTER_OPTIONS}
 		/>
 		<div className="shared-container">
-			{files.map((file, i) => (
+			{files.map(({ id, file }, i) => (
 				<FileCard
 					key={i}
-					{...file}
+					id={id}
+					file={file}
 				/>
 			))}
 		</div>
@@ -168,17 +171,25 @@ const Page: FC = () => {
 			throw new Error("No file was uploaded when opening a file.");
 		}
 
-		// Check if the file size is within the limit.
-		// If not, alert the user and return.
+		if (!file.name.match(/\*?.(png|jpg|jpeg)/)) {
+			alert("Invalid file type.");
+			return;
+		}
+
 		if (usedBytes + file.size > MAX_BYTES_SIZE) {
+			// Check if the file size is within the limit.
+			// If not, alert the user and return.
 			alert("File size limit reached.");
 			return;
 		}
 
 		const fileId = uuidv4();
 
-		await set("files", fileId, file);
-
+		await set(
+			"files",
+			fileId,
+			new File([file], file.name, { type: file.type, lastModified: Date.now() })
+		);
 		navigateTo(`/editor?f=${fileId}&open=1`);
 	};
 
@@ -191,10 +202,16 @@ const Page: FC = () => {
 			if (!files) {
 				console.error("Cant update size count.");
 			} else {
-				const total = files.reduce((acc, [, file]) => acc + file.size, 0);
+				let total = 0;
+				const canvases = files
+					.map(([id, file]) => {
+						total += file.size;
+						return { id, file };
+					})
+					.sort((a, b) => b.file.lastModified - a.file.lastModified);
 
 				setUsedBytes(total);
-				setCanvases(files.map(([id, file]) => ({ id, file })));
+				setCanvases(canvases);
 			}
 		}
 
@@ -304,7 +321,11 @@ const Page: FC = () => {
 				</div>
 				<div className="content">
 					{pageTitle && <h1 className="title2">{pageTitle}</h1>}
-					<Outlet files={canvases} />
+					{canvases.length > 0 ? (
+						<Outlet files={canvases} />
+					) : (
+						<p>No files found.</p>
+					)}
 				</div>
 			</div>
 
