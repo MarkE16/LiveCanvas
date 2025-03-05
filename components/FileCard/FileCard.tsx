@@ -59,8 +59,11 @@ const FileCard: FC<FileCardProps> = ({ file, id }) => {
 			</a>
 			<div className="file-text">
 				<div className="interactive-file-options">
-					<a href={`/editor?f=${id}`}>
-						<h3 className="file-title">{name}</h3>
+					<a
+						href={`/editor?f=${id}`}
+						className="file-title"
+					>
+						{name}
 					</a>
 
 					<button
