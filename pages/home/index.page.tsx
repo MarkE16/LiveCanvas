@@ -7,7 +7,7 @@ import shared_file_logo from "../../assets/icons/icons_151918.png";
 import archived_logo from "../../assets/icons/icons_417061.png";
 import exclamation from "../../assets/icons/exclamation.png";
 import del from "../../assets/icons/delete.svg";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { navigateTo } from "../../utils";
 import { v4 as uuidv4 } from "uuid";
 import useIndexed from "../../state/hooks/useIndexed";
@@ -27,6 +27,8 @@ type CanvasFile = {
 	id: string;
 	file: File;
 };
+
+const MemoizedFileCard = memo(FileCard);
 
 const FILTER_OPTIONS: Option[] = [
 	{
@@ -51,21 +53,7 @@ const FILTER_OPTIONS: Option[] = [
 	}
 ];
 
-const Projects = ({ files }: { files: CanvasFile[] }) => (
-	<>
-		<div className="project-container">
-			{files.map(({ id, file }, i) => (
-				<FileCard
-					key={i}
-					id={id}
-					file={file}
-				/>
-			))}
-		</div>
-	</>
-);
-
-const Archive = ({ files }: { files: CanvasFile[] }) => (
+const ArchivedActions = (
 	<>
 		<div className="daysLeft">
 			<img
@@ -94,41 +82,8 @@ const Archive = ({ files }: { files: CanvasFile[] }) => (
 				Empty Archive
 			</button>
 		</div>
-		<div className="archive-container">
-			{files.map(({ id, file }, i) => (
-				<FileCard
-					key={i}
-					id={id}
-					file={file}
-				/>
-			))}
-		</div>
 	</>
 );
-
-const Shared = ({ files }: { files: CanvasFile[] }) => (
-	<>
-		<Dropdown
-			description="Sort by"
-			options={FILTER_OPTIONS}
-		/>
-		<div className="shared-container">
-			{files.map(({ id, file }, i) => (
-				<FileCard
-					key={i}
-					id={id}
-					file={file}
-				/>
-			))}
-		</div>
-	</>
-);
-
-const outlets: Record<string, FC<{ files: CanvasFile[] }>> = {
-	projects: Projects,
-	archived: Archive,
-	shared: Shared
-};
 
 const BYTES_PER_MEGABYTE = 1_048_576;
 const MAX_MEGABYTES = 500;
@@ -137,31 +92,14 @@ const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * MAX_MEGABYTES;
 const Page: FC = () => {
 	const [usedBytes, setUsedBytes] = useState<number>(0);
 	const [canvases, setCanvases] = useState<CanvasFile[]>([]);
+	const [currentPage, setCurrentPage] = useState<"recents" | "archived">(
+		"recents"
+	);
 	const { set, get } = useIndexed();
 	const fileDialogRef = useRef<HTMLInputElement>(null);
 	const barWidth = `${((usedBytes / MAX_BYTES_SIZE) * 100).toFixed(1)}%`;
 	const usedMegaBytes = (usedBytes / BYTES_PER_MEGABYTE).toFixed(1);
-
-	let page = undefined;
-	let pageTitle = undefined;
-	if (typeof window !== "undefined") {
-		const urlParams = new URLSearchParams(window.location.search);
-		page = urlParams.get("p") || "projects";
-
-		switch (page) {
-			case "archived":
-				pageTitle = "Archived";
-				break;
-			case "shared":
-				pageTitle = "Shared files";
-				break;
-
-			case "projects":
-			default:
-				pageTitle = "Recent Projects";
-				break;
-		}
-	}
+	const pageTitle = currentPage === "recents" ? "Recent Projects" : "Archived";
 
 	const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		e.preventDefault();
@@ -215,10 +153,15 @@ const Page: FC = () => {
 			}
 		}
 
+		// Update the page title.
+		const urlParams = new URLSearchParams(window.location.search);
+		const page = urlParams.get("p");
+
+		setCurrentPage(page === "archived" ? "archived" : "recents");
+
+		// Get the files and their sizes.
 		getFilesAndSize();
 	}, [get]);
-
-	const Outlet = outlets[page || "projects"];
 
 	return (
 		<>
@@ -320,12 +263,21 @@ const Page: FC = () => {
 					</p>
 				</div>
 				<div className="content">
-					{pageTitle && <h1 className="title2">{pageTitle}</h1>}
-					{canvases.length > 0 ? (
-						<Outlet files={canvases} />
-					) : (
-						<p>No files found.</p>
-					)}
+					<h1 className="title2">{pageTitle}</h1>
+					{currentPage === "archived" && ArchivedActions}
+					<div className="files-container">
+						{canvases.length > 0 ? (
+							canvases.map((canvas, i) => (
+								<MemoizedFileCard
+									key={i}
+									id={canvas.id}
+									file={canvas.file}
+								/>
+							))
+						) : (
+							<p>No files found.</p>
+						)}
+					</div>
 				</div>
 			</div>
 

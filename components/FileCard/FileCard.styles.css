@@ -1,13 +1,11 @@
 .file-card {
 	border-radius: 6px;
 	border: none;
-	cursor: pointer;
 	display: flex;
 	height: fit-content;
 	width: 230px;
 	/* background-color: #232222; */
 	display: flex;
-	text-decoration: none;
 	flex-direction: column;
 	background: none;
 	border-radius: 6px;
@@ -24,16 +22,37 @@
 .file-text {
 	margin: 12px;
 	margin-inline: 5px;
-	display: flex;
-	gap: 5px;
-	flex-direction: column;
 }
 
 .file-title {
-	width: 0;
+	text-decoration: none;
+	width: 70%;
 	font-weight: 500;
 	color: white;
+	white-space: nowrap;
+	overflow-x: hidden;
+	text-overflow: ellipsis;
 	font-size: 1rem;
+}
+
+.interactive-file-options {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	overflow: hidden;
+	align-items: center;
+}
+
+.interactive-file-options > button {
+	border: none;
+	cursor: pointer;
+	background: none;
+	border-radius: 6px;
+	font-size: large;
+}
+
+.interactive-file-options > button:hover {
+	background: rgba(255, 255, 255, 0.1);
 }
 
 .file-date {
