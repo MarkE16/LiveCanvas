@@ -8,10 +8,10 @@ We're creating a space where creativity meets code, and we need your help! Contr
 
 ## 🤠 Features 
 
-- 🔄 WebSocket Based Syncing
-- 🖥️ Scalable Architecture 
-- 💾 Postgres Database 
-- ⚡ Optimized Performance 
+- 🔄 **WebSocket Based Syncing**
+- 🖥️ **Scalable Architecture**
+- 💾 **Postgres Database** 
+- ⚡ **Optimized Performance** 
 
 ## 📖 Tech Stack 
 - Vite + SSR + React.js
@@ -60,9 +60,9 @@ Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) t
 > to maintain the project! If you are interested, please contact @MarkE16.
 
 ## Why should you contribute?
-- 💡 Experience - Unlike basic e-commerce sites, this project challenges you to write logic for a drawing editor.
-- 😎 Learning - Although React.js is common, building an editor helps you extend your knowledge and tackle new challenges. You can also learn to write tests if you haven’t before.
-- ✨ Visibility - Contributing to open-source is fun and can look good for your experience when contributing to other people.
+- 💡  **Experience** - Unlike basic e-commerce sites, this project challenges you to write logic for a drawing editor.
+- 😎 **Learning** - Although React.js is common, building an editor helps you extend your knowledge and tackle new challenges. You can also learn to write tests if you haven’t before.
+- ✨ **Visibility** - Contributing to open-source is fun and can look good for your experience when contributing to other people.
 
 
 If you are interested in taking the time to propose code implementation, feel free to fork the repo and make a pull request.
