@@ -6,6 +6,19 @@ We're creating a space where creativity meets code, and we need your help! Contr
 
 > Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
 
+## 🤠 Features 
+
+🔄 WebSocket Based Syncing
+🖥️ Scalable Architecture 
+💾 Postgres Database 
+⚡ Optimized Performance 
+
+## 📖 Tech Stack 
+- Vite + SSR + React.js
+- Zustand State Manager
+- Vitest Testing Framework
+- Docker
+
 ## Setup
 
 > **Prerequisites**
@@ -46,5 +59,11 @@ Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) t
 > Note: We are actively looking for talented web developers who are interested in working together
 > to maintain the project! If you are interested, please contact @MarkE16.
 
-In case you haven't already noticed, this project is **open-source**, meaning anyone can contribute to help build this project from the ground up. If you are interested in
+## Why should you contribute?
+💡 Experience - This project is different from a majority of other projects such as basic e-commerce websites as it puts your skills to the test to write logic to facilitate a drawing editor.
+😎 Learning - Although React.js is common, you get to learn how to extend your knowledge when using React for solving problems that may arise in building something like an editor. Additionally, you can learn to write tests if you've never done that sort of thing before.
+✨ Visibility - Contributing to open-source is fun and can look good for your experience when contributing to other people.
+
+
+In case you haven't already noticed, this project is **open-source**, meaning anyone can contribute to help build this project from the ground up. If you are interested in 
 taking the time to propose code implementation, feel free to fork the repo and make a pull request.
