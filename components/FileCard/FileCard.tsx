@@ -1,6 +1,10 @@
-// Types
+// Lib
 import { useRef, useState } from "react";
+import useIndexed from "../../state/hooks/useIndexed";
+
+// Types
 import type { FC, MouseEvent } from "react";
+import type { CanvasFile } from "../../types";
 
 // Styles
 import "./FileCard.styles.css";
@@ -9,19 +13,26 @@ import "./FileCard.styles.css";
 import { Menu, MenuItem } from "@mui/material";
 import KebabMenu from "../icons/KebabMenu/KebabMenu";
 
-type FileCardProps = {
+type ShownFile = {
 	id: string;
-	file: File;
+	file: CanvasFile;
 };
 
-const FileCard: FC<FileCardProps> = ({ file, id }) => {
-	const fileURL = useRef<string>(URL.createObjectURL(file));
+type FileCardProps = {
+	id: string;
+	file: CanvasFile;
+	setCanvases: React.Dispatch<React.SetStateAction<ShownFile[]>>;
+};
+
+const FileCard: FC<FileCardProps> = ({ file, id, setCanvases }) => {
+	const fileURL = useRef<string>(URL.createObjectURL(file.file));
 	const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLButtonElement>(
 		null
 	);
-	const date = new Date(file.lastModified ?? 0);
+	const { set } = useIndexed();
+	const date = new Date(file.file.lastModified ?? 0);
 	const stringDate = date.toLocaleDateString();
-	const name = file.name ?? "Untitled";
+	const name = file.file.name ?? "Untitled";
 	const menuOpen = Boolean(menuAnchorEl);
 
 	const handleMenuOpen = (e: MouseEvent) => {
@@ -36,14 +47,33 @@ const FileCard: FC<FileCardProps> = ({ file, id }) => {
 		URL.revokeObjectURL(fileURL.current);
 	};
 
-	const handleArchive = () => {
+	const handleAction = async () => {
 		handleMenuClose();
-		const confirmArchive = window.confirm(
-			"Are you sure you want to archive this file? You can always restore it later."
-		);
+		const question = file.archived
+			? "Are you sure you want to restore this file?"
+			: "Are you sure you want to archive this file? You can always restore it later.";
+		const confirmArchive = window.confirm(question);
 
 		if (confirmArchive) {
-			// Archive the file.
+			// Toggle the archive status of the file.
+			const newFile = {
+				file: file.file,
+				archived: !file.archived,
+				archivedDate: file.archived ? null : Date.now()
+			};
+			await set<CanvasFile>("files", id, newFile);
+
+			// Update the canvases to reflect the change.
+
+			setCanvases((canvases) => {
+				const index = canvases.findIndex((canvas) => canvas.id === id);
+				const newCanvases = [...canvases];
+				newCanvases[index] = {
+					id,
+					file: newFile
+				};
+				return newCanvases;
+			});
 		}
 	};
 
@@ -99,9 +129,9 @@ const FileCard: FC<FileCardProps> = ({ file, id }) => {
 			>
 				<MenuItem
 					dense
-					onClick={handleArchive}
+					onClick={handleAction}
 				>
-					Archive File
+					{file.archived ? "Restore" : "Archive"} File
 				</MenuItem>
 			</Menu>
 		</div>

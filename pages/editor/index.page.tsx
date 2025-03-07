@@ -2,7 +2,7 @@
 
 // Lib
 import { useEffect } from "react";
-import { navigateTo } from "../../utils";
+import { navigateTo } from "../../lib/utils";
 
 // Components
 import Navbar from "../../components/Navbar/Navbar";

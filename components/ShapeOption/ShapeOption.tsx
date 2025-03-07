@@ -1,6 +1,6 @@
 // Lib
 import useLayerReferences from "../../state/hooks/useLayerReferences";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 // Types
 import type { Shape } from "../../types";
@@ -15,7 +15,7 @@ const ShapeOption: FC<{ icon: string; name: Shape }> = ({ icon, name }) => {
 	const { getActiveLayer } = useLayerReferences();
 
 	const handleShapeChange = () => {
-    const activeLayer = getActiveLayer();
+		const activeLayer = getActiveLayer();
 
 		if (!activeLayer) {
 			throw new Error("No active layer found. Cannot create element.");

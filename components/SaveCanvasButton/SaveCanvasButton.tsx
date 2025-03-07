@@ -3,11 +3,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import useIndexed from "../../state/hooks/useIndexed";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
-import { generateCanvasImage } from "../../utils";
+import { generateCanvasImage } from "../../lib/utils";
 
 // Types
 import type { FC } from "react";
-import type { CanvasElement } from "../../types";
+import type { CanvasElement, CanvasFile } from "../../types";
 
 // Icons
 import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
@@ -76,13 +76,19 @@ const SaveCanvasButton: FC = () => {
 			0.8
 		);
 
-		const oldFile = await get<File>("files", fileId);
+		const oldFile = await get<CanvasFile>("files", fileId);
 
 		if (!oldFile) {
 			throw new Error("No file found with the given id.");
 		}
 
-		await set("files", fileId, new File([fullImage], oldFile.name));
+		await set<CanvasFile>("files", fileId, {
+			...oldFile,
+			file: new File([fullImage], oldFile.file.name, {
+				type: "image/png",
+				lastModified: Date.now()
+			})
+		});
 		await set("layers", fileId, layers);
 		await set("elements", fileId, allUnfocused);
 
@@ -92,7 +98,7 @@ const SaveCanvasButton: FC = () => {
 		timeout.current = setTimeout(() => {
 			setSaved(false);
 		}, 1000);
-	}, [references, set, remove, elements]);
+	}, [references, set, remove, elements, get]);
 
 	useEffect(() => {
 		function handleKeyboardSave(e: KeyboardEvent) {

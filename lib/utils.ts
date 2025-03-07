@@ -230,7 +230,7 @@ async function generateCanvasImage(
 	const referenceLayer = layers[0];
 	const { width, height } = referenceLayer;
 	const dpi = Number(referenceLayer.getAttribute("data-dpi"));
-	const scale = Number(referenceLayer.getAttribute("data-scale"));
+	// const scale = Number(referenceLayer.getAttribute("data-scale"));
 
 	if (!dpi) {
 		throw new Error("Failed to get DPI from canvas when attempting to export.");

@@ -13,6 +13,7 @@ import "./Navbar.styles.css";
 import ExportCanvasButton from "../ExportCanvasButton/ExportCanvasButton";
 import SaveCanvasButton from "../SaveCanvasButton/SaveCanvasButton";
 import { Menu, MenuItem, Snackbar, Fade } from "@mui/material";
+import { CanvasFile } from "../../types";
 
 const Navbar: FC = () => {
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -41,12 +42,12 @@ const Navbar: FC = () => {
 	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
 
 	type MenuOptions = {
-	  [key: string]: {
-      text: string;
-      action: () => void;
-    }[];
-	}
-	
+		[key: string]: {
+			text: string;
+			action: () => void;
+		}[];
+	};
+
 	const menuOptions: MenuOptions = {
 		File: [
 			{
@@ -59,13 +60,13 @@ const Navbar: FC = () => {
 						throw new Error("No file ID found in URL.");
 					}
 
-					const file = await get<File>("files", fileID);
+					const file = await get<CanvasFile>("files", fileID);
 
 					if (!file) {
 						throw new Error("File not found.");
 					}
 
-					const newName = window.prompt("Enter new file name", file.name);
+					const newName = window.prompt("Enter new file name", file.file.name);
 
 					if (!newName) {
 						return;
@@ -75,7 +76,7 @@ const Navbar: FC = () => {
 						return;
 					}
 
-					await set("files", fileID, new File([file], newName));
+					await set("files", fileID, new File([file.file.name], newName));
 				}
 			}
 		]

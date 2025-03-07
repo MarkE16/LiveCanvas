@@ -8,7 +8,7 @@ import type {
 	Dimensions,
 	CanvasStore
 } from "../../types";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 export const createCanvasSlice: StateCreator<
 	CanvasStore,

@@ -1,6 +1,6 @@
 // Lib
 import { useState, useEffect } from "react";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 // Styles
 import "./LayerPreview.styles.css";

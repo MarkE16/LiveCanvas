@@ -1,7 +1,7 @@
 // Lib
 import { useRef } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
-import * as UTILS from "../../utils";
+import * as UTILS from "../../lib/utils";
 
 // Types
 import type { FC } from "react";
@@ -15,7 +15,7 @@ const ExportCanvasButton: FC = () => {
 
 		const elements = document.getElementsByClassName("element");
 		const blob = await UTILS.generateCanvasImage(
-			references.current, 
+			references.current,
 			elements,
 			1,
 			true

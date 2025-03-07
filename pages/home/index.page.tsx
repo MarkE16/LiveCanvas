@@ -8,13 +8,13 @@ import archived_logo from "../../assets/icons/icons_417061.png";
 import exclamation from "../../assets/icons/exclamation.png";
 import del from "../../assets/icons/delete.svg";
 import { useEffect, useRef, useState, memo } from "react";
-import { navigateTo } from "../../utils";
+import { navigateTo } from "../../lib/utils";
 import { v4 as uuidv4 } from "uuid";
 import useIndexed from "../../state/hooks/useIndexed";
 
 // Types
 import type { FC } from "react";
-import type { Option } from "../../types";
+import type { Option, CanvasFile } from "../../types";
 
 // Styles
 import "./index.styles.css";
@@ -22,11 +22,6 @@ import Dropdown from "../../components/Dropdown/Dropdown";
 import FileCard from "../../components/FileCard/FileCard";
 
 export { Page };
-
-type CanvasFile = {
-	id: string;
-	file: File;
-};
 
 const MemoizedFileCard = memo(FileCard);
 
@@ -89,9 +84,14 @@ const BYTES_PER_MEGABYTE = 1_048_576;
 const MAX_MEGABYTES = 500;
 const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * MAX_MEGABYTES;
 
+type ShownFile = {
+	id: string;
+	file: CanvasFile;
+};
+
 const Page: FC = () => {
 	const [usedBytes, setUsedBytes] = useState<number>(0);
-	const [canvases, setCanvases] = useState<CanvasFile[]>([]);
+	const [canvases, setCanvases] = useState<ShownFile[]>([]);
 	const [currentPage, setCurrentPage] = useState<"recents" | "archived">(
 		"recents"
 	);
@@ -123,11 +123,14 @@ const Page: FC = () => {
 
 		const fileId = uuidv4();
 
-		await set(
-			"files",
-			fileId,
-			new File([file], file.name, { type: file.type, lastModified: Date.now() })
-		);
+		await set("files", fileId, {
+			archived: false,
+			archiveDate: null,
+			file: new File([file], file.name, {
+				type: file.type,
+				lastModified: Date.now()
+			})
+		});
 		navigateTo(`/editor?f=${fileId}&open=1`);
 	};
 
@@ -135,7 +138,7 @@ const Page: FC = () => {
 	// the current size accumulated by all files.
 	useEffect(() => {
 		async function getFilesAndSize() {
-			const files = await get<[string, File][]>("files");
+			const files = await get<[string, CanvasFile][]>("files");
 
 			if (!files) {
 				console.error("Cant update size count.");
@@ -143,10 +146,10 @@ const Page: FC = () => {
 				let total = 0;
 				const canvases = files
 					.map(([id, file]) => {
-						total += file.size;
+						total += file.file.size;
 						return { id, file };
 					})
-					.sort((a, b) => b.file.lastModified - a.file.lastModified);
+					.sort((a, b) => b.file.file.lastModified - a.file.file.lastModified);
 
 				setUsedBytes(total);
 				setCanvases(canvases);
@@ -267,13 +270,20 @@ const Page: FC = () => {
 					{currentPage === "archived" && ArchivedActions}
 					<div className="files-container">
 						{canvases.length > 0 ? (
-							canvases.map((canvas, i) => (
-								<MemoizedFileCard
-									key={i}
-									id={canvas.id}
-									file={canvas.file}
-								/>
-							))
+							canvases
+								.filter((canvas) =>
+									currentPage === "archived"
+										? canvas.file.archived
+										: !canvas.file.archived
+								)
+								.map((canvas, i) => (
+									<MemoizedFileCard
+										key={i}
+										id={canvas.id}
+										file={canvas.file}
+										setCanvases={setCanvases}
+									/>
+								))
 						) : (
 							<p>No files found.</p>
 						)}

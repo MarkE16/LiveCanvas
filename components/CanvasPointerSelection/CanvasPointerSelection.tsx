@@ -1,6 +1,6 @@
 // Lib
 import { useRef, useEffect, useState } from "react";
-import * as UTILS from "../../utils";
+import * as UTILS from "../../lib/utils";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import useStore from "../../state/hooks/useStore";

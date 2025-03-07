@@ -1,6 +1,6 @@
 // Lib
 import { useEffect } from "react";
-import { navigateTo } from "../../utils";
+import { navigateTo } from "../../lib/utils";
 
 export { Page };
 

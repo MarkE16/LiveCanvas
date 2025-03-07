@@ -6,12 +6,12 @@ import useIndexed from "../../state/hooks/useIndexed";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStore from "../../state/hooks/useStore";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 import clsx from "clsx";
 
 // Types
 import type { FC, MouseEvent } from "react";
-import type { Layer, Coordinates } from "../../types";
+import type { Layer, Coordinates, CanvasFile } from "../../types";
 
 // Styles
 import "./Canvas.styles.css";
@@ -261,7 +261,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					return;
 				}
 
-				const file = await get<File>("files", fileId);
+				const file = await get<CanvasFile>("files", fileId);
 
 				if (!file) {
 					console.error(
@@ -293,9 +293,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 						document.dispatchEvent(ev);
 					};
 
-					img.src = URL.createObjectURL(file);
-					return;
+					img.src = URL.createObjectURL(file.file);
 				}
+				return;
 			}
 
 			const newEntries = await updateLayerState(entries);

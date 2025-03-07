@@ -7,8 +7,8 @@ import {
 	afterAll,
 	afterEach
 } from "vitest";
-import * as utils from "../../utils";
-import { CanvasElement } from "../../types";
+import * as utils from "../../lib/utils";
+// import { CanvasElement } from "../../types";
 
 describe("capitalize functionality", () => {
 	it("should capitalize the first occurring character", () => {
@@ -357,7 +357,7 @@ describe("generateCanvasImage functionality", () => {
 		expect(ellipseSpy).toHaveBeenCalledOnce();
 		expect(moveToSpy).toHaveBeenCalledOnce();
 		expect(lineToSpy).toHaveBeenCalledTimes(2);
-		
+
 		expect(fillTextSpy).not.toHaveBeenCalled();
 		expect(strokeTextSpy).not.toHaveBeenCalled();
 	});
