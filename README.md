@@ -65,8 +65,7 @@ Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) t
 
 ## Why should you contribute?
 - 💡  **Experience** - Unlike basic e-commerce sites, this project challenges you to write logic for a drawing editor.
-- 😎 **Learning** - Although React.js is common, building an editor helps you extend your knowledge and tackle new challenges. You can also learn to write tests if you haven’t before.
-- ✨ **Visibility** - Contributing to open-source is fun and can look good for your experience when contributing to other people.
-
+- 😎 **Learning** - While React.js is widely used, building an editor allows you to deepen your knowledge and face new challenges. It’s also a great opportunity to learn how to write tests if you haven’t already.
+- ✨ **Visibility** - Contributing to open-source is both enjoyable and valuable, enhancing your experience and credibility in collaborative projects.
 
 If you are interested in taking the time to propose code implementation, feel free to fork the repo and make a pull request.
