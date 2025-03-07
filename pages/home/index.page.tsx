@@ -48,38 +48,6 @@ const FILTER_OPTIONS: Option[] = [
 	}
 ];
 
-const ArchivedActions = (
-	<>
-		<div className="daysLeft">
-			<img
-				src={exclamation}
-				width="20px"
-				className="flip"
-				alt="Info Icon"
-			/>
-			Archived items will be automatically deleted in 30 days.
-		</div>
-		<div className="con2">
-			<Dropdown
-				description="Sort By"
-				options={FILTER_OPTIONS}
-			/>
-			<button
-				className="empty"
-				onClick={() => window.confirm("Clear?")}
-			>
-				<img
-					src={del}
-					alt="Trash Icon"
-					className="flip"
-					width="20px"
-				/>
-				Empty Archive
-			</button>
-		</div>
-	</>
-);
-
 const BYTES_PER_MEGABYTE = 1_048_576;
 const MAX_MEGABYTES = 500;
 const MAX_BYTES_SIZE = BYTES_PER_MEGABYTE * MAX_MEGABYTES;
@@ -95,11 +63,16 @@ const Page: FC = () => {
 	const [currentPage, setCurrentPage] = useState<"recents" | "archived">(
 		"recents"
 	);
-	const { set, get } = useIndexed();
+	const { set, get, remove } = useIndexed();
 	const fileDialogRef = useRef<HTMLInputElement>(null);
 	const barWidth = `${((usedBytes / MAX_BYTES_SIZE) * 100).toFixed(1)}%`;
 	const usedMegaBytes = (usedBytes / BYTES_PER_MEGABYTE).toFixed(1);
 	const pageTitle = currentPage === "recents" ? "Recent Projects" : "Archived";
+	const filesToDisplay = canvases.filter((canvas) => {
+		const isArchivePage = currentPage === "archived";
+
+		return isArchivePage === canvas.file.archived;
+	});
 
 	const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		e.preventDefault();
@@ -165,6 +138,64 @@ const Page: FC = () => {
 		// Get the files and their sizes.
 		getFilesAndSize();
 	}, [get]);
+
+	const handleClearArchive = async () => {
+		const confirm = window.confirm(
+			"Are you sure you want to clear the archive?"
+		);
+
+		if (confirm) {
+			const archivedItems = canvases.filter((canvas) => canvas.file.archived);
+			
+			// Remove all archived items.
+			const promises = archivedItems.map((canvas) => {
+		    return remove("files", canvas.id);
+      });
+			
+			// Wait for all promises to resolve.
+			await Promise.all(promises);
+			
+			// Update byte count and canvases.
+			const archivedBytes = archivedItems.reduce((acc, canvas) => {
+			  return acc + canvas.file.file.size;
+      }, 0);
+			
+      setUsedBytes(prev => prev - archivedBytes);
+      setCanvases(canvases.filter((canvas) => !canvas.file.archived));
+		}
+	};
+
+	const ArchivedActions = (
+		<>
+			<div className="daysLeft">
+				<img
+					src={exclamation}
+					width="20px"
+					className="flip"
+					alt="Info Icon"
+				/>
+				Archived items will be automatically deleted in 30 days.
+			</div>
+			<div className="con2">
+				<Dropdown
+					description="Sort By"
+					options={FILTER_OPTIONS}
+				/>
+				<button
+					className="empty"
+					onClick={handleClearArchive}
+				>
+					<img
+						src={del}
+						alt="Trash Icon"
+						className="flip"
+						width="20px"
+					/>
+					Empty Archive
+				</button>
+			</div>
+		</>
+	);
 
 	return (
 		<>
@@ -269,21 +300,15 @@ const Page: FC = () => {
 					<h1 className="title2">{pageTitle}</h1>
 					{currentPage === "archived" && ArchivedActions}
 					<div className="files-container">
-						{canvases.length > 0 ? (
-							canvases
-								.filter((canvas) =>
-									currentPage === "archived"
-										? canvas.file.archived
-										: !canvas.file.archived
-								)
-								.map((canvas, i) => (
-									<MemoizedFileCard
-										key={i}
-										id={canvas.id}
-										file={canvas.file}
-										setCanvases={setCanvases}
-									/>
-								))
+						{filesToDisplay.length > 0 ? (
+							filesToDisplay.map((canvas, i) => (
+								<MemoizedFileCard
+									key={i}
+									id={canvas.id}
+									file={canvas.file}
+									setCanvases={setCanvases}
+								/>
+							))
 						) : (
 							<p>No files found.</p>
 						)}

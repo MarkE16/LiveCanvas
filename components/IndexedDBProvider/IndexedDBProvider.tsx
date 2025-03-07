@@ -112,7 +112,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	);
 
 	const set = useCallback(
-		async <T,>(store: string, key: string, value: T) => {
+		async <T,>(store: string, key: string | undefined, value: T) => {
 			const db = database.current ?? (await openDatabase());
 
 			return new Promise<void>((resolve, reject) => {

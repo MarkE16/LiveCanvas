@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import type { Layer, Coordinates, CanvasElementType } from "./types";
+import type { Layer, Coordinates, CanvasElementType } from "../types";
 
 type CapitalizeOptions = {
 	titleCase: boolean;

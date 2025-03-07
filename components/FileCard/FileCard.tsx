@@ -77,24 +77,40 @@ const FileCard: FC<FileCardProps> = ({ file, id, setCanvases }) => {
 		}
 	};
 
+	const imageToDisplay = file.archived ? (
+		<img
+			src={fileURL.current}
+			alt="Archived"
+			className="file-preview"
+		/>
+	) : (
+		<a href={`/editor?f=${id}`}>
+			<img
+				src={fileURL.current}
+				onLoad={onImageLoad}
+				alt={name}
+				className="file-preview"
+			/>
+		</a>
+	);
+
+	const nameToDisplay  = file.archived ? (
+		<span className="file-title">{name}</span>
+	) : (
+		<a
+			href={`/editor?f=${id}`}
+			className="file-title"
+		>
+			{name}
+		</a>
+	);
+
 	return (
 		<div className="file-card">
-			<a href={`/editor?f=${id}`}>
-				<img
-					src={fileURL.current}
-					onLoad={onImageLoad}
-					alt={name}
-					className="file-preview"
-				/>
-			</a>
+			{imageToDisplay}
 			<div className="file-text">
 				<div className="interactive-file-options">
-					<a
-						href={`/editor?f=${id}`}
-						className="file-title"
-					>
-						{name}
-					</a>
+					{nameToDisplay}
 
 					<button
 						onClick={handleMenuOpen}
