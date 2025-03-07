@@ -1,8 +1,13 @@
 # IdeaDrawn | LiveCanvas
 
-Welcome to IdeaDrawn, a real time, open source platform for artists, developers, and tech enthusiasts to draw, share, and collaborate on a digital canvas!
+Welcome to IdeaDrawn, a real time, open source platform for artists, developers, and tech enthusiasts to draw, share, and collaborate on a digital canvas! Join our growing community and be part of something innovative!
 
-We're creating a space where creativity meets code, and we need your help! Contribute code, share designs, test features, or simply click the star button to show support!
+We're building a space where creativity thrives, and we’d love for you to be part of it! You can:
+- ✅ **Contribute Code** – Help improve features, fix bugs, or suggest enhancements.
+- 🛠 **Test New Features** – Try out the latest updates and give feedback.
+- ⭐ **Support the Project** – Click the star button to help us grow!
+
+Every contribution, big or small, makes a difference. Join us and help shape the future of IdeaDrawn! 🚀
 
 > Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
 
@@ -11,7 +16,7 @@ We're creating a space where creativity meets code, and we need your help! Contr
 - 🔄 **WebSocket Based Syncing**
 - 🖥️ **Scalable Architecture**
 - 💾 **Postgres Database** 
-- ⚡ **Optimized Performance** 
+- ⚡ **Optimized Performance**
 
 ## 📖 Tech Stack 
 - Vite + SSR + React.js
@@ -56,8 +61,7 @@ Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) t
 
 ## Contribution
 
-> Note: We are actively looking for talented web developers who are interested in working together
-> to maintain the project! If you are interested, please contact @MarkE16.
+- ⭐ We're **actively seeking skilled web developers** to contribute on maintaining this project. If you're interested, reach out to @MarkE16, we'd love to work with you!
 
 ## Why should you contribute?
 - 💡  **Experience** - Unlike basic e-commerce sites, this project challenges you to write logic for a drawing editor.
