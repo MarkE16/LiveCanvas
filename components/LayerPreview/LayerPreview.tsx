@@ -1,6 +1,5 @@
 // Lib
 import { useState, useEffect } from "react";
-import * as Utils from "../../utils";
 
 // Styles
 import "./LayerPreview.styles.css";
@@ -8,12 +7,14 @@ import "./LayerPreview.styles.css";
 // Types
 import type { FC } from "react";
 import type { ImageUpdateEvent } from "../../types";
+import useStore from "../../state/hooks/useStore";
 
 type LayerPreviewProps = {
 	id: string;
 };
 
 const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
+  const prepareForExport = useStore(state => state.prepareForExport);
 	const [url, setUrl] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -23,10 +24,8 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 			// Layer that updated is not the one we are looking for.
 			if (layer.id !== id) return;
 
-			const elements = document.getElementsByClassName("element");
-
 			// Use 0.2 quality for the preview to save space and make it faster on performance.
-			const blob = await Utils.generateCanvasImage([layer], elements, 0.2);
+      const blob = await prepareForExport([layer], 0.2);
 
 			setUrl(URL.createObjectURL(blob));
 		}
@@ -36,7 +35,7 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 		return () => {
 			document.removeEventListener("imageupdate", updateImage);
 		};
-	}, [id]);
+	}, [id, prepareForExport]);
 
 	const onImageLoad = () => {
 		if (url) {

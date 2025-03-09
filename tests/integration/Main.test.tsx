@@ -10,7 +10,7 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";

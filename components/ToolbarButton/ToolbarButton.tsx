@@ -2,7 +2,7 @@
 import { useCallback, useEffect } from "react";
 import useStore from "../../state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
-import * as UTILS from "../../utils";
+import * as UTILS from "../../lib/utils";
 
 // Types
 import type { Mode, ToolbarMode } from "../../types";

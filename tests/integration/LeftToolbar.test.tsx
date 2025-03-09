@@ -3,7 +3,7 @@ import { expect, it, describe, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
 import { MODES } from "../../state/store";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 // Components
 import LeftToolbar from "../../components/LeftToolbar/LeftToolbar";

@@ -9,9 +9,9 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
-import { Page } from "../../pages/index/index.page";
+import { Page } from "../../pages/editor/index.page";
 import { SliceStores } from "../../types";
 
 describe("Page", () => {
