@@ -20,13 +20,29 @@ describe("Navbar functionality", () => {
 			expect(screen.getByText(tab)).not.toBeNull();
 		}
 
-		expect(screen.getByText("Export Canvas")).toBeInTheDocument();
 		expect(exportLink).toBeInTheDocument();
 		expect(exportLink).not.toBeVisible();
 	});
 
-	it("clicking on any tab should open MUI 'not implemented' snackbar", async () => {
-		const TABS = ["File", "Edit", "View", "Filter", "Admin"];
+	it("should open a dropdown for the File option", () => {
+		const fileTab = screen.getByText("File");
+
+		fireEvent.click(fileTab);
+
+		const dropdown = screen.getByRole("menu");
+
+		expect(dropdown).toBeInTheDocument();
+		expect(dropdown).toBeVisible();
+
+		const options = screen.getAllByRole("menuitem");
+
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveTextContent("Save File");
+		expect(options[1]).toHaveTextContent("Export File");
+	});
+
+	it("clicking on any tab other than File should open MUI 'not implemented' snackbar", async () => {
+		const TABS = ["Edit", "View", "Filter", "Admin"];
 
 		for (const tab of TABS) {
 			fireEvent.click(screen.getByText(tab));

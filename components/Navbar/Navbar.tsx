@@ -141,6 +141,7 @@ const Navbar: FC = () => {
 						))}
 
 						<Menu
+							data-testid="menu"
 							open={menuOpen}
 							anchorEl={menuAnchorEl}
 							onClose={handleMenuClose}
@@ -187,6 +188,7 @@ const Navbar: FC = () => {
 				type="file"
 				ref={downloadRef}
 				style={{ display: "none" }}
+				data-testid="export-link"
 			/>
 		</header>
 	);
