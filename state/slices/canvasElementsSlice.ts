@@ -1,9 +1,15 @@
 import type { StateCreator } from "zustand";
 import { v4 as uuid } from "uuid";
-import type { CanvasElement, Shape, CanvasElementsStore } from "../../types";
+import type {
+	CanvasElement,
+	Shape,
+	CanvasElementsStore,
+	CanvasStore,
+	HistoryStore
+} from "../../types";
 
 export const createCanvasElementsSlice: StateCreator<
-	CanvasElementsStore,
+	CanvasElementsStore & CanvasStore & HistoryStore,
 	[],
 	[],
 	CanvasElementsStore
@@ -46,6 +52,8 @@ export const createCanvasElementsSlice: StateCreator<
 			throw new Error("Cannot create element: No existing layer.");
 		}
 
+		const id = uuid();
+
 		// Used NaN to indicate that the x and y values are not set. They will be set later when the user moves the element.
 		const element = {
 			x: NaN,
@@ -57,12 +65,14 @@ export const createCanvasElementsSlice: StateCreator<
 			focused: false,
 			type,
 			...properties, // Override the default properties with the provided properties, if any.
-			id: uuid() // Keep the id as the last property to ensure that it is not overridden.
+			id // Keep the id as the last property to ensure that it is not overridden.
 		};
 
 		set((state) => ({
 			elements: [...state.elements, element as CanvasElement]
 		}));
+
+		return id;
 	}
 
 	function changeElementProperties(
@@ -109,9 +119,7 @@ export const createCanvasElementsSlice: StateCreator<
 	function copyElement(...ids: string[]) {
 		const elements = get().elements;
 		const idsSet = new Set(ids);
-		const copiedElements = elements.filter((element) =>
-			idsSet.has(element.id)
-		);
+		const copiedElements = elements.filter((element) => idsSet.has(element.id));
 		set({ copiedElements });
 	}
 

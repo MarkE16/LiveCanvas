@@ -1,6 +1,5 @@
 // Lib
-import useLayerReferences from "../../state/hooks/useLayerReferences";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 // Types
 import type { Shape } from "../../types";
@@ -9,20 +8,18 @@ import type { FC } from "react";
 // Components
 import { Tooltip } from "@mui/material";
 import useStore from "../../state/hooks/useStore";
+import clsx from "clsx";
 
-const ShapeOption: FC<{ icon: string; name: Shape }> = ({ icon, name }) => {
-	const createElement = useStore((state) => state.createElement);
-	const { getActiveLayer } = useLayerReferences();
+const ShapeOption: FC<{ icon: string; name: Shape; isActive: boolean }> = ({
+	icon,
+	name,
+	isActive
+}) => {
+	const changeShape = useStore((state) => state.changeShape);
+	const cn = clsx("shape-option", { active: isActive });
 
 	const handleShapeChange = () => {
-    const activeLayer = getActiveLayer();
-
-		if (!activeLayer) {
-			throw new Error("No active layer found. Cannot create element.");
-		}
-		createElement(name, {
-			layerId: activeLayer.id
-		});
+		changeShape(name);
 	};
 
 	return (
@@ -33,7 +30,7 @@ const ShapeOption: FC<{ icon: string; name: Shape }> = ({ icon, name }) => {
 		>
 			<span>
 				<button
-					className="shape-option"
+					className={cn}
 					onClick={handleShapeChange}
 					data-testid={`shape-${name}`}
 				>

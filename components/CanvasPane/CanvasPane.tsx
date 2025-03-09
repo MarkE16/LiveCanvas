@@ -5,14 +5,13 @@ import useWindowDimensions from "../../state/hooks/useWindowDimesions";
 import useStore from "../../state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
-// Redux Actions
-
 // Components
 import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import Canvas from "../Canvas/Canvas";
 import CanvasPointerMarker from "../CanvasPointerMarker/CanvasPointerMarker";
 import CanvasPointerSelection from "../CanvasPointerSelection/CanvasPointerSelection";
 import ShapeElement from "../ShapeElement/ShapeElement";
+import ScaleIndicator from "../ScaleIndicator/ScaleIndicator";
 
 // Types
 import type { FC } from "react";
@@ -20,14 +19,17 @@ import type { Coordinates } from "../../types";
 
 // Styles
 import "./CanvasPane.styles.css";
+import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 const MemoizedShapeElement = memo(ShapeElement);
 const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
+const MemoizedScaleIndicator = memo(ScaleIndicator);
 
 const CanvasPane: FC = () => {
 	const {
 		mode,
+		scale,
 		changeX,
 		changeY,
 		increaseScale,
@@ -40,6 +42,7 @@ const CanvasPane: FC = () => {
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
+			scale: state.scale,
 			changeX: state.changeX,
 			changeY: state.changeY,
 			increaseScale: state.increaseScale,
@@ -51,10 +54,14 @@ const CanvasPane: FC = () => {
 			createElement: state.createElement
 		}))
 	);
+	const currentShape = useStoreSubscription((state) => state.shape);
+	const currentColor = useStoreSubscription((state) => state.color);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const isSelecting = useRef<boolean>(false);
+	const createdShapeId = useRef<string | null>(null);
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
+	const [ctrlKey, setCtrlKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
 	const { getActiveLayer } = useLayerReferences();
 	const dimensions = useWindowDimensions();
@@ -90,10 +97,9 @@ const CanvasPane: FC = () => {
 
 				if (!activeLayer) throw new Error("No active layer found");
 
-				const rect = canvasSpace.getBoundingClientRect();
 				createElement("text", {
-					x: e.clientX - rect.left,
-					y: e.clientY - rect.top,
+					x: e.clientX,
+					y: e.clientY,
 					width: 100,
 					height: 30,
 					focused: true,
@@ -104,47 +110,34 @@ const CanvasPane: FC = () => {
 					},
 					layerId: activeLayer.id
 				});
+				return;
+			}
+
+			if (mode === "shapes" && ctrlKey) {
+				const activeLayer = getActiveLayer();
+
+				const id = createElement(currentShape.current, {
+					x: e.clientX,
+					y: e.clientY,
+					width: 18,
+					height: 18,
+					focused: false,
+					layerId: activeLayer.id,
+					fill: currentColor.current
+				});
+				createdShapeId.current = id;
 			}
 
 			setIsGrabbing(isOnCanvas);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1 || !canMove || !isGrabbing || !canvasSpace) return;
+			if (e.buttons !== 1 || !isGrabbing || !canvasSpace) return;
 
 			const layer = getActiveLayer();
 
-			const {
-				left: lLeft,
-				top: lTop,
-				width: lWidth,
-				height: lHeight
-			} = layer.getBoundingClientRect();
-
-			const {
-				left: sLeft,
-				width: sWidth,
-				height: sHeight,
-				top: sTop
-			} = canvasSpace.getBoundingClientRect();
-
 			let dx = e.clientX - clientPosition.current.x;
 			let dy = e.clientY - clientPosition.current.y;
-
-			// Check if the layer is outside the canvas space.
-			// If it is, we don't want to move it.
-			// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
-			if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth + 20) {
-				dx = 0; // Set to 0 so that the layer doesn't move.
-			}
-
-			if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight + 20) {
-				dy = 0; // Set to 0 so that the layer doesn't move.
-			}
-
-			// Apply the changes.
-			changeX(dx);
-			changeY(dy);
 
 			// We grab the elements using the class name "element"
 			// rather than the state variable so that this effect
@@ -154,37 +147,95 @@ const CanvasPane: FC = () => {
 				(element: Element) => element.id
 			) as string[];
 
-			changeElementProperties(
-				(state) => {
-					let { x, y } = state;
+			const {
+				left: sLeft,
+				width: sWidth,
+				height: sHeight,
+				top: sTop
+			} = canvasSpace.getBoundingClientRect();
 
-					if (isNaN(x)) {
-						x = sLeft + sWidth / 2 - state.width / 2 - sLeft;
+			if (canMove && isGrabbing) {
+				const {
+					left: lLeft,
+					top: lTop,
+					width: lWidth,
+					height: lHeight
+				} = layer.getBoundingClientRect();
+
+				// Check if the layer is outside the canvas space.
+				// If it is, we don't want to move it.
+				// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
+				if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth + 20) {
+					dx = 0; // Set to 0 so that the layer doesn't move.
+				}
+
+				if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight + 20) {
+					dy = 0; // Set to 0 so that the layer doesn't move.
+				}
+
+				// Apply the changes.
+				changeX(dx);
+				changeY(dy);
+
+				changeElementProperties(
+					(state) => ({
+						...state,
+						x: state.x + dx,
+						y: state.y + dy
+					}),
+					...elementIds
+				);
+			} else if (mode === "shapes") {
+				// Required for shapes to have a minimum size.
+				// It is also set in `ShapeElement` in the resizing
+				// logic. If you change it here, make sure to change
+				// it there as well.
+				const MIN_SIZE = 18;
+				const pointerX = e.clientX;
+				const pointerY = e.clientY;
+
+				changeElementProperties((state) => {
+					let newWidth = Math.max(MIN_SIZE, state.width + dx);
+					let newHeight = Math.max(MIN_SIZE, state.height + dy);
+
+					if (pointerX < state.x) {
+						newWidth = MIN_SIZE;
 					}
 
-					if (isNaN(y)) {
-						y = sTop + sHeight / 2 - state.height / 2 - sTop;
+					if (pointerY < state.y) {
+						newHeight = MIN_SIZE;
 					}
 
 					return {
 						...state,
-						x: x + dx,
-						y: y + dy
+						width: newWidth,
+						height: newHeight
 					};
-				},
-				...elementIds
-			);
-
+				}, createdShapeId.current!);
+			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
 		function handleMouseUp() {
 			// clientPosition.current = { x: 0, y: 0 };
 			setIsGrabbing(false);
+
+			if (mode === "shapes") {
+				createdShapeId.current = null;
+
+				const ev = new CustomEvent("imageupdate", {
+					detail: {
+						layer: getActiveLayer()
+					}
+				});
+
+				document.dispatchEvent(ev);
+			}
 		}
 
 		function handleKeyDown(e: KeyboardEvent) {
 			setShiftKey(e.shiftKey);
+			setCtrlKey(e.ctrlKey);
 
 			if (e.key === "+") {
 				e.preventDefault();
@@ -299,7 +350,10 @@ const CanvasPane: FC = () => {
 		changeX,
 		changeY,
 		getActiveLayer,
-		shiftKey
+		shiftKey,
+		ctrlKey,
+		currentShape,
+		currentColor
 	]);
 
 	return (
@@ -313,7 +367,7 @@ const CanvasPane: FC = () => {
 					shiftKey={shiftKey}
 				/>
 			)}
-			{(mode === "select" || mode === "shapes") && !isMoving && (
+			{(mode === "select" || (mode === "shapes" && !ctrlKey)) && !isMoving && (
 				<CanvasPointerSelection
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
@@ -340,6 +394,8 @@ const CanvasPane: FC = () => {
 			>
 				<MemoizedCanvas isGrabbing={isMoving} />
 			</div>
+			
+			<MemoizedScaleIndicator scale={scale} />
 		</div>
 	);
 };

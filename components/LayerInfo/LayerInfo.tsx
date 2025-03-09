@@ -115,12 +115,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 		}
 	}, [id, isEditing, editedName, renameLayer]);
 
-	const visibilityTooltipText =
-		!canMoveUp && !canMoveDown
-			? "Two or more layers must be present to toggle."
-			: hidden
-				? "Show"
-				: "Hide";
+	const visibilityTooltipText = hidden ? "Show" : "Hide";
 
 	return (
 		<label
@@ -242,21 +237,19 @@ const LayerInfo: FC<LayerInfoProps> = ({
 									</button>
 								</Tooltip>
 							)}
-							{canMoveUp ||
-								(canMoveDown && (
-									<Tooltip
-										title={visibilityTooltipText}
-										arrow
-										placement="top"
-									>
-										<button
-											onClick={onToggleVisibility}
-											data-testid={`toggle-${id}`}
-										>
-											<Eye lineCross={hidden} />
-										</button>
-									</Tooltip>
-								))}
+
+							<Tooltip
+								title={visibilityTooltipText}
+								arrow
+								placement="top"
+							>
+								<button
+									onClick={onToggleVisibility}
+									data-testid={`toggle-${id}`}
+								>
+									<Eye lineCross={hidden} />
+								</button>
+							</Tooltip>
 						</>
 					)}
 				</div>

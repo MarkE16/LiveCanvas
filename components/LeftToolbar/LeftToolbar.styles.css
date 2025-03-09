@@ -1,8 +1,7 @@
 #left-toolbar-container {
 	display: flex;
 	flex-direction: column;
-	width: 3vw;
-	min-width: 50px;
+	width: 50px;
 	height: 100%;
 	overflow: auto;
 	background-color: rgb(36, 36, 36);
@@ -12,7 +11,7 @@
 
 .toolbar-option {
 	width: 100%;
-	min-height: 4vh;
+	min-height: 3.5vh;
 	border: 1px solid rgb(36, 36, 36);
 	padding: 0.1em;
 	font-size: 1.6em;

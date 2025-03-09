@@ -6,7 +6,8 @@ import type {
 	Mode,
 	Layer,
 	Coordinates,
-	HistoryAction
+	HistoryAction,
+	SavedCanvasProperties
 } from "../types";
 
 export type CanvasElementsStore = {
@@ -18,7 +19,7 @@ export type CanvasElementsStore = {
 	createElement: (
 		type: Shape | "text",
 		properties?: Omit<Partial<CanvasElement>, "id">
-	) => void;
+	) => string;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
 		...ids: string[]
@@ -35,6 +36,7 @@ export type CanvasStore = CanvasState & {
 	changeColor: (payload: string) => void;
 	changeColorAlpha: (payload: number) => void;
 	changeMode: (payload: Mode) => void;
+	changeShape: (payload: Shape) => void;
 	changeDrawStrength: (payload: number) => void;
 	changeEraserStrength: (payload: number) => void;
 	changeDPI: (payload: number) => void;
@@ -52,6 +54,13 @@ export type CanvasStore = CanvasState & {
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
+	prepareForSave: (
+		layerRefs: HTMLCanvasElement[]
+	) => Promise<SavedCanvasProperties>;
+	prepareForExport: (
+		layerRefs: HTMLCanvasElement[],
+		quality?: number
+	) => Promise<Blob>;
 };
 
 export type HistoryStore = {

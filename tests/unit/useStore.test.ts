@@ -10,6 +10,7 @@ import { MODES } from "../../state/store";
 const exampleStore: SliceStores = {
 	width: 400,
 	height: 400,
+	shape: "rectangle",
 	mode: "select",
 	drawStrength: 5,
 	eraserStrength: 3,
@@ -33,6 +34,7 @@ const exampleStore: SliceStores = {
 	setPosition: expect.any(Function),
 	changeX: expect.any(Function),
 	changeY: expect.any(Function),
+	changeShape: expect.any(Function),
 	changeDimensions: expect.any(Function),
 	changeDPI: expect.any(Function),
 	changeColorAlpha: expect.any(Function),
@@ -57,7 +59,9 @@ const exampleStore: SliceStores = {
 	setElements: expect.any(Function),
 	copyElement: expect.any(Function),
 	pasteElement: expect.any(Function),
-	push: expect.any(Function)
+	push: expect.any(Function),
+	prepareForExport: expect.any(Function),
+	prepareForSave: expect.any(Function)
 };
 
 describe("useStore functionality", () => {
