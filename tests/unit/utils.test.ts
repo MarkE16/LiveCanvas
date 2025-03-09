@@ -365,4 +365,4 @@ describe("debounce functionality", () => {
 // 		expect(fillTextSpy).not.toHaveBeenCalled();
 // 		expect(strokeTextSpy).not.toHaveBeenCalled();
 // 	});
-});
+// });

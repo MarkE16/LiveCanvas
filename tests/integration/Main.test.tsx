@@ -10,7 +10,6 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../lib/utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
@@ -73,10 +72,9 @@ describe("Canvas Interactive Functionality", () => {
 				hidden: false
 			}
 		],
-		changeColor: vi.fn()
+		changeColor: vi.fn(),
+		prepareForExport: vi.fn().mockResolvedValue(new Blob())
 	};
-
-	vi.spyOn(Utils, "generateCanvasImage").mockResolvedValue(new Blob());
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, {

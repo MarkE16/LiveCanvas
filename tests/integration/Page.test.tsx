@@ -9,15 +9,11 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../lib/utils";
 
-import { Page } from "../../pages/editor/index.page";
+import { Page } from "../../pages/index/index.page";
 import { SliceStores } from "../../types";
 
 describe("Page", () => {
-	const generateImageSpy = vi
-		.spyOn(Utils, "generateCanvasImage")
-		.mockResolvedValue(new Blob());
 	const mockState: Partial<SliceStores> = {
 		layers: [
 			{
@@ -26,7 +22,8 @@ describe("Page", () => {
 				active: true,
 				hidden: false
 			}
-		]
+		],
+		prepareForExport: vi.fn().mockResolvedValue(new Blob())
 	};
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
@@ -86,7 +83,7 @@ describe("Page", () => {
 				fireEvent.click(exportButton);
 			});
 
-			expect(generateImageSpy).toHaveBeenCalledWith(
+			expect(mockState.prepareForExport).toHaveBeenCalledWith(
 				canvases,
 				// Not really a straightforward way to expect an ArrayLike object.
 				// This is the way I found that works.
@@ -153,7 +150,7 @@ describe("Page", () => {
 				fireEvent.click(exportButton);
 			});
 
-			expect(generateImageSpy).toHaveBeenCalledWith(
+			expect(mockState.prepareForExport).toHaveBeenCalledWith(
 				canvases,
 				expect.objectContaining({
 					0: expect.any(SVGElement),
