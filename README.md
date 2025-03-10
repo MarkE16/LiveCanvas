@@ -1,10 +1,33 @@
 # IdeaDrawn | LiveCanvas
 
-Welcome to IdeaDrawn, a real time, open source platform for artists, developers, and tech enthusiasts to draw, share, and collaborate on a digital canvas!
+## 🖼️ About IdeaDrawn 
 
-We're creating a space where creativity meets code, and we need your help! Contribute code, share designs, test features, or simply click the star button to show support!
+Welcome to IdeaDrawn, a real time, open source platform for artists, developers, and tech enthusiasts to draw, share, and collaborate on a digital canvas! Join our growing community and be part of something innovative!
+
+We're building a space where creativity thrives, and we’d love for you to be part of it! You can:
+- ✅ **Contribute Code** – Help improve features, fix bugs, or suggest enhancements.
+- 🛠 **Test New Features** – Try out the latest updates and give feedback.
+- ⭐ **Support the Project** – Click the star button to help us grow!
+
+Every contribution, big or small, makes a difference. Join us and help shape the future of IdeaDrawn! 🚀
 
 > Please note that this project is in the beginning of its development stages, so there is not an expected stable release of the software at the moment.
+
+## 🤠 Features 
+
+- 🎨 **Basic Editing Tools**
+- 🟩 **Shape Tools**
+- 🔆 **Selection Tools**
+- 🖥️ **Layer System**
+- 💾 **File Management**
+- ⚡ **Optimized Performance**
+- **+ MORE**
+
+## 📖 Tech Stack 
+- Vite + SSR + React.js
+- Zustand State Manager
+- Vitest Testing Framework
+- Docker
 
 ## Setup
 
@@ -43,8 +66,11 @@ Feel free to join [IdeaDrawn Discord community](https://discord.gg/Up7E6gnkuy) t
 
 ## Contribution
 
-> Note: We are actively looking for talented web developers who are interested in working together
-> to maintain the project! If you are interested, please contact @MarkE16.
+- ⭐ We're **actively seeking skilled web developers** to contribute on maintaining this project. If you're interested, reach out to @MarkE16, we'd love to work with you!
 
-In case you haven't already noticed, this project is **open-source**, meaning anyone can contribute to help build this project from the ground up. If you are interested in
-taking the time to propose code implementation, feel free to fork the repo and make a pull request.
+## Why should you contribute?
+- 💡  **Experience** - Unlike basic e-commerce sites, this project challenges you to write logic for a drawing editor.
+- 😎 **Learning** - While React.js is widely used, building an editor allows you to deepen your knowledge and face new challenges. It’s also a great opportunity to learn how to write tests if you haven’t already.
+- ✨ **Visibility** - Contributing to open-source is both enjoyable and valuable, enhancing your experience and credibility in collaborative projects.
+
+If you are interested in taking the time to propose code implementation, feel free to fork the repo and make a pull request.
