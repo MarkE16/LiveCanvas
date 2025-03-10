@@ -1,5 +1,7 @@
 # IdeaDrawn | LiveCanvas
 
+## 🖼️ About IdeaDrawn 
+
 Welcome to IdeaDrawn, a real time, open source platform for artists, developers, and tech enthusiasts to draw, share, and collaborate on a digital canvas! Join our growing community and be part of something innovative!
 
 We're building a space where creativity thrives, and we’d love for you to be part of it! You can:
@@ -13,10 +15,13 @@ Every contribution, big or small, makes a difference. Join us and help shape the
 
 ## 🤠 Features 
 
-- 🔄 **WebSocket Based Syncing**
-- 🖥️ **Scalable Architecture**
-- 💾 **Postgres Database** 
+- 🎨 **Basic Editing Tools**
+- 🟩 **Shape Tools**
+- 🔆 **Selection Tools**
+- 🖥️ **Layer System**
+- 💾 **File Management**
 - ⚡ **Optimized Performance**
+- **+ MORE**
 
 ## 📖 Tech Stack 
 - Vite + SSR + React.js
