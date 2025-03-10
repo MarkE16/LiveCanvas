@@ -10,7 +10,7 @@ import DrawingToolbar from "../DrawingToolbar/DrawingToolbar";
 import Canvas from "../Canvas/Canvas";
 import CanvasPointerMarker from "../CanvasPointerMarker/CanvasPointerMarker";
 import CanvasPointerSelection from "../CanvasPointerSelection/CanvasPointerSelection";
-import ShapeElement from "../ShapeElement/ShapeElement";
+import CanvasInteractiveElement from "../CanvasInteractiveElement/CanvasInteractiveElement";
 import ScaleIndicator from "../ScaleIndicator/ScaleIndicator";
 
 // Types
@@ -21,7 +21,7 @@ import type { Coordinates } from "../../types";
 import "./CanvasPane.styles.css";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
-const MemoizedShapeElement = memo(ShapeElement);
+const MemoizedCanvasInteractiveElement = memo(CanvasInteractiveElement);
 const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
 const MemoizedScaleIndicator = memo(ScaleIndicator);
@@ -376,7 +376,7 @@ const CanvasPane: FC = () => {
 			<MemoizedDrawingToolbar />
 
 			{elements.map((element) => (
-				<MemoizedShapeElement
+				<MemoizedCanvasInteractiveElement
 					key={element.id}
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
@@ -394,7 +394,7 @@ const CanvasPane: FC = () => {
 			>
 				<MemoizedCanvas isGrabbing={isMoving} />
 			</div>
-			
+
 			<MemoizedScaleIndicator scale={scale} />
 		</div>
 	);

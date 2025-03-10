@@ -6,25 +6,20 @@ import useStore from "../../state/hooks/useStore";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 // Types
-import type {
-	Coordinates,
-	ResizePosition,
-	CanvasElement,
-	CanvasElementType
-} from "../../types";
+import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
 import type { FC, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
 import ElementTextField from "../ElementTextField/ElementTextField";
 
-type ShapeElementProps = CanvasElement & {
+type CanvasInteractiveElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	isSelecting: RefObject<boolean>;
 	clientPosition: RefObject<Coordinates>;
 };
 
-const ShapeElement: FC<ShapeElementProps> = ({
+const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 	canvasSpaceReference,
 	type,
 	width,
@@ -488,6 +483,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				preserveAspectRatio="none"
 				viewBox="0 0 100 100"
 				data-focused={focused}
+				data-type={type}
 			>
 				{jsx}
 			</svg>
@@ -495,4 +491,4 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	);
 };
 
-export default ShapeElement;
+export default CanvasInteractiveElement;
