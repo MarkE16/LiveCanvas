@@ -20,6 +20,7 @@ const MemoizedShapeOption = memo(ShapeOption);
 const DrawingToolbar: FC = () => {
 	const {
 		mode,
+		shape,
 		drawStrength,
 		eraserStrength,
 		changeDrawStrength,
@@ -28,6 +29,7 @@ const DrawingToolbar: FC = () => {
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
+			shape: state.shape,
 			drawStrength: state.drawStrength,
 			eraserStrength: state.eraserStrength,
 			changeDrawStrength: state.changeDrawStrength,
@@ -84,6 +86,7 @@ const DrawingToolbar: FC = () => {
 				key={name}
 				icon={icon}
 				name={name}
+			  isActive={shape === name}
 			/>
 		);
 	});

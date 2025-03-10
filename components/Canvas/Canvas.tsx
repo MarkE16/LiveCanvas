@@ -6,7 +6,7 @@ import useIndexed from "../../state/hooks/useIndexed";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import useStore from "../../state/hooks/useStore";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 import clsx from "clsx";
 
 // Types
@@ -24,6 +24,7 @@ type DBLayer = {
 	image: Blob;
 	name: string;
 	position: number;
+	id: string;
 };
 
 const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
@@ -59,7 +60,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		}))
 	);
 
-	const { references, add, remove } = useLayerReferences();
+	const { references, add } = useLayerReferences();
 	const { get } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
@@ -252,14 +253,14 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			return new Promise<[string, DBLayer][]>((resolve) => {
 				const newLayers: Layer[] = [];
 
-				const sorted = entries.sort((a, b) => b[1].position - a[1].position); // Sort by position, where the highest position is the top layer.
+				const sorted = entries.sort((a, b) => a[1].position - b[1].position); // Sort by position, where the highest position is the top layer.
 
 				sorted.forEach((entry, i) => {
-					const [layerId, layer] = entry;
+					const [id, { name }] = entry;
 
 					newLayers.push({
-						name: layer.name,
-						id: layerId,
+						name: name,
+						id: id,
 						active: i === 0,
 						hidden: false
 					});
@@ -277,8 +278,8 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 
 		function updateLayerContents(entries: [string, DBLayer][]) {
 			entries.forEach((entry) => {
-				const [, layer] = entry;
-				const canvas = references.current[layer.position];
+				const [, { position, image }] = entry;
+				const canvas = references.current[position];
 
 				if (!canvas) return;
 
@@ -300,7 +301,7 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					document.dispatchEvent(ev);
 				};
 
-				img.src = URL.createObjectURL(layer.image);
+				img.src = URL.createObjectURL(image);
 			});
 		}
 
@@ -350,9 +351,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 							transform
 						}}
 						ref={(element) => {
-						if (element !== null) {
-						  add(element, i);
-						}
+							if (element !== null) {
+								add(element, i);
+							}
 						}}
 						id={layer.id}
 						width={width * dpi}

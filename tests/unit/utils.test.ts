@@ -7,8 +7,8 @@ import {
 	afterAll,
 	afterEach
 } from "vitest";
-import * as utils from "../../utils";
-import { CanvasElement } from "../../types";
+import * as utils from "../../lib/utils";
+// import { CanvasElement } from "../../types";
 
 describe("capitalize functionality", () => {
 	it("should capitalize the first occurring character", () => {
@@ -224,141 +224,145 @@ describe("debounce functionality", () => {
 	});
 });
 
-describe("generateCanvasImage functionality", () => {
-	let dummyCanvases: HTMLCanvasElement[];
-	let dummyElements: SVGGElement[];
+// This function no longer exists and is replaced by the prepareForExport
+// function in the canvasSlice.ts file. They will be commented out for
+// reference when writing tests for the prepareForExport function.
 
-	beforeAll(() => {
-		dummyCanvases = [
-			document.createElement("canvas"),
-			document.createElement("canvas"),
-			document.createElement("canvas")
-		];
-		dummyElements = [
-			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
-			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
-			document.createElementNS("http://www.w3.org/2000/svg", "svg")
-		];
+// describe("generateCanvasImage functionality", () => {
+// 	let dummyCanvases: HTMLCanvasElement[];
+// 	let dummyElements: SVGGElement[];
 
-		dummyCanvases.forEach((canvas, i) => {
-			canvas.width = 400;
-			canvas.height = 400;
-			canvas.id = `${i}`;
+// 	beforeAll(() => {
+// 		dummyCanvases = [
+// 			document.createElement("canvas"),
+// 			document.createElement("canvas"),
+// 			document.createElement("canvas")
+// 		];
+// 		dummyElements = [
+// 			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+// 			document.createElementNS("http://www.w3.org/2000/svg", "svg"),
+// 			document.createElementNS("http://www.w3.org/2000/svg", "svg")
+// 		];
 
-			canvas.setAttribute("data-dpi", "1");
-		});
+// 		dummyCanvases.forEach((canvas, i) => {
+// 			canvas.width = 400;
+// 			canvas.height = 400;
+// 			canvas.id = `${i}`;
 
-		dummyElements.forEach((element, i) => {
-			element.setAttribute("width", "400");
-			element.setAttribute("height", "400");
-			element.setAttribute("data-layerid", "1");
+// 			canvas.setAttribute("data-dpi", "1");
+// 		});
 
-			const idxType = i % 3;
-			let type = "";
-			switch (idxType) {
-				case 0: {
-					type = "circle";
-					break;
-				}
-				case 1: {
-					type = "rectangle";
-					break;
-				}
-				case 2: {
-					type = "triangle";
-					break;
-				}
-				default:
-					type = "circle";
-			}
+// 		dummyElements.forEach((element, i) => {
+// 			element.setAttribute("width", "400");
+// 			element.setAttribute("height", "400");
+// 			element.setAttribute("data-layerid", "1");
 
-			element.setAttribute("data-type", type);
-		});
-	});
+// 			const idxType = i % 3;
+// 			let type = "";
+// 			switch (idxType) {
+// 				case 0: {
+// 					type = "circle";
+// 					break;
+// 				}
+// 				case 1: {
+// 					type = "rectangle";
+// 					break;
+// 				}
+// 				case 2: {
+// 					type = "triangle";
+// 					break;
+// 				}
+// 				default:
+// 					type = "circle";
+// 			}
 
-	afterEach(() => {
-		vi.clearAllMocks();
-	});
+// 			element.setAttribute("data-type", type);
+// 		});
+// 	});
 
-	afterAll(() => {
-		vi.restoreAllMocks();
-	});
+// 	afterEach(() => {
+// 		vi.clearAllMocks();
+// 	});
 
-	it("should properly draw the layers in order", () => {
-		const dummySubCanvas = document.createElement("canvas");
+// 	afterAll(() => {
+// 		vi.restoreAllMocks();
+// 	});
 
-		dummySubCanvas.width = 400;
-		dummySubCanvas.height = 400;
+// 	it("should properly draw the layers in order", () => {
+// 		const dummySubCanvas = document.createElement("canvas");
 
-		const createMock = vi
-			.spyOn(document, "createElement")
-			.mockReturnValue(dummySubCanvas);
+// 		dummySubCanvas.width = 400;
+// 		dummySubCanvas.height = 400;
 
-		const ctx = dummySubCanvas.getContext("2d");
+// 		const createMock = vi
+// 			.spyOn(document, "createElement")
+// 			.mockReturnValue(dummySubCanvas);
 
-		if (!ctx) {
-			throw new Error("Canvas context not found");
-		}
+// 		const ctx = dummySubCanvas.getContext("2d");
 
-		const drawImageSpy = vi.spyOn(ctx, "drawImage");
+// 		if (!ctx) {
+// 			throw new Error("Canvas context not found");
+// 		}
 
-		utils.generateCanvasImage(dummyCanvases);
+// 		const drawImageSpy = vi.spyOn(ctx, "drawImage");
 
-		expect(createMock).toHaveBeenCalledOnce();
+// 		utils.generateCanvasImage(dummyCanvases);
 
-		expect(drawImageSpy.mock.calls).toEqual([
-			[dummyCanvases[0], 0, 0],
-			[dummyCanvases[1], 0, 0],
-			[dummyCanvases[2], 0, 0]
-		]);
-	});
+// 		expect(createMock).toHaveBeenCalledOnce();
 
-	it("should throw if no layers are provided", () => {
-		expect(() => utils.generateCanvasImage([])).rejects.toThrow();
-	});
+// 		expect(drawImageSpy.mock.calls).toEqual([
+// 			[dummyCanvases[0], 0, 0],
+// 			[dummyCanvases[1], 0, 0],
+// 			[dummyCanvases[2], 0, 0]
+// 		]);
+// 	});
 
-	it("should properly draw shape elements", () => {
-		const dummySubCanvas = document.createElement("canvas");
+// 	it("should throw if no layers are provided", () => {
+// 		expect(() => utils.generateCanvasImage([])).rejects.toThrow();
+// 	});
 
-		dummySubCanvas.width = 400;
-		dummySubCanvas.height = 400;
+// 	it("should properly draw shape elements", () => {
+// 		const dummySubCanvas = document.createElement("canvas");
 
-		const createMock = vi
-			.spyOn(document, "createElement")
-			.mockReturnValue(dummySubCanvas);
+// 		dummySubCanvas.width = 400;
+// 		dummySubCanvas.height = 400;
 
-		const ctx = dummySubCanvas.getContext("2d");
+// 		const createMock = vi
+// 			.spyOn(document, "createElement")
+// 			.mockReturnValue(dummySubCanvas);
 
-		if (!ctx) {
-			throw new Error("Canvas context not found");
-		}
+// 		const ctx = dummySubCanvas.getContext("2d");
 
-		const strokeSpy = vi.spyOn(ctx, "stroke");
-		const fillSpy = vi.spyOn(ctx, "fill");
-		const fillRectSpy = vi.spyOn(ctx, "fillRect");
-		const strokeRectSpy = vi.spyOn(ctx, "strokeRect");
-		const ellipseSpy = vi.spyOn(ctx, "ellipse");
-		const moveToSpy = vi.spyOn(ctx, "moveTo");
-		const lineToSpy = vi.spyOn(ctx, "lineTo");
-		const fillTextSpy = vi.spyOn(ctx, "fillText");
-		const strokeTextSpy = vi.spyOn(ctx, "strokeText");
+// 		if (!ctx) {
+// 			throw new Error("Canvas context not found");
+// 		}
 
-		utils.generateCanvasImage(dummyCanvases, dummyElements);
+// 		const strokeSpy = vi.spyOn(ctx, "stroke");
+// 		const fillSpy = vi.spyOn(ctx, "fill");
+// 		const fillRectSpy = vi.spyOn(ctx, "fillRect");
+// 		const strokeRectSpy = vi.spyOn(ctx, "strokeRect");
+// 		const ellipseSpy = vi.spyOn(ctx, "ellipse");
+// 		const moveToSpy = vi.spyOn(ctx, "moveTo");
+// 		const lineToSpy = vi.spyOn(ctx, "lineTo");
+// 		const fillTextSpy = vi.spyOn(ctx, "fillText");
+// 		const strokeTextSpy = vi.spyOn(ctx, "strokeText");
 
-		expect(createMock).toHaveBeenCalledOnce();
+// 		utils.generateCanvasImage(dummyCanvases, dummyElements);
 
-		expect(strokeSpy).toHaveBeenCalledTimes(2);
-		expect(fillSpy).toHaveBeenCalledTimes(2);
-		// Note: In reality, fillRect is called once since there is only one rectangle.
-		// However, fillRect is called before drawing anything to set
-		// the background color of the canvas. So, it is called twice.
-		expect(fillRectSpy).toHaveBeenCalledTimes(2);
-		expect(strokeRectSpy).toHaveBeenCalledOnce();
-		expect(ellipseSpy).toHaveBeenCalledOnce();
-		expect(moveToSpy).toHaveBeenCalledOnce();
-		expect(lineToSpy).toHaveBeenCalledTimes(2);
-		
-		expect(fillTextSpy).not.toHaveBeenCalled();
-		expect(strokeTextSpy).not.toHaveBeenCalled();
-	});
-});
+// 		expect(createMock).toHaveBeenCalledOnce();
+
+// 		expect(strokeSpy).toHaveBeenCalledTimes(2);
+// 		expect(fillSpy).toHaveBeenCalledTimes(2);
+// 		// Note: In reality, fillRect is called once since there is only one rectangle.
+// 		// However, fillRect is called before drawing anything to set
+// 		// the background color of the canvas. So, it is called twice.
+// 		expect(fillRectSpy).toHaveBeenCalledTimes(2);
+// 		expect(strokeRectSpy).toHaveBeenCalledOnce();
+// 		expect(ellipseSpy).toHaveBeenCalledOnce();
+// 		expect(moveToSpy).toHaveBeenCalledOnce();
+// 		expect(lineToSpy).toHaveBeenCalledTimes(2);
+
+// 		expect(fillTextSpy).not.toHaveBeenCalled();
+// 		expect(strokeTextSpy).not.toHaveBeenCalled();
+// 	});
+// });

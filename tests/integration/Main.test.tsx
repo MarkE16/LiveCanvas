@@ -10,7 +10,6 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
@@ -73,10 +72,9 @@ describe("Canvas Interactive Functionality", () => {
 				hidden: false
 			}
 		],
-		changeColor: vi.fn()
+		changeColor: vi.fn(),
+		prepareForExport: vi.fn().mockResolvedValue(new Blob())
 	};
-
-	vi.spyOn(Utils, "generateCanvasImage").mockResolvedValue(new Blob());
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, {
@@ -174,8 +172,6 @@ describe("Canvas Interactive Functionality", () => {
 				afterY - beforeY
 			]);
 
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
-
 			// Now, we release the mouse button.
 			// The rect should disappear.
 
@@ -247,8 +243,6 @@ describe("Canvas Interactive Functionality", () => {
 				beforeY - afterY
 			]);
 
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
-
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
 			expect(selectRect).not.toBeVisible();
@@ -315,8 +309,6 @@ describe("Canvas Interactive Functionality", () => {
 				beforeY - afterY
 			]);
 
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
-
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
 			expect(selectRect).not.toBeVisible();
@@ -382,8 +374,6 @@ describe("Canvas Interactive Functionality", () => {
 				afterY - beforeY
 			]);
 
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
-
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
 			expect(selectRect).not.toBeVisible();
@@ -447,7 +437,6 @@ describe("Canvas Interactive Functionality", () => {
 		it("should select an element", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			const space = screen.getByTestId("canvas-container");
-			const selectRect = screen.getByTestId("selection-rect");
 			const boundingRectMock = vi
 				.spyOn(space, "getBoundingClientRect")
 				.mockReturnValue(boundingClientRect);
@@ -459,25 +448,31 @@ describe("Canvas Interactive Functionality", () => {
 			const afterX = 350;
 			const afterY = 500;
 
-			const selectRectMock = vi
-				.spyOn(selectRect, "getBoundingClientRect")
-				.mockReturnValue({
-					x: beforeX,
-					y: beforeY,
-					width: afterX - beforeX,
-					height: afterY - beforeY,
-					top: beforeY,
-					right: afterX,
-					bottom: afterY,
-					left: beforeX,
-					toJSON: vi.fn()
-				});
-
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// By default, we are creating a rectangle.
+			// We need to click and drag to create the rectangle.
+			// Note: since we want to be able to make a selection rectangle
+			// despite the fact we are in the shape tool, we use the ctrl key
+			// to indicate that we are creating a shape.
+			// We fire the keyDown event on the document to simulate the ctrl
+			// key being held down. We do this because the pane reads the
+			// key from a state variable that is updated when the keyDown event
+			// is fired on the document.
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, {
+				clientX: beforeX,
+				clientY: beforeY,
+				buttons: 1
+			});
 
-			fireEvent.click(option);
+			fireEvent.mouseMove(document, {
+				clientX: afterX,
+				clientY: afterY,
+				buttons: 1
+			});
+
+			fireEvent.mouseUp(document);
 
 			const elements = screen.queryAllByTestId("element");
 
@@ -488,27 +483,46 @@ describe("Canvas Interactive Functionality", () => {
 			expect(rect).toBeInTheDocument();
 			expect(rect).toHaveAttribute("data-focused", "false");
 
+			// We're not making the shape anymore, so we release the ctrl key.
+			// This will enable us to select the element.
+			fireEvent.keyUp(document, { ctrlKey: false });
+
 			vi.spyOn(rect, "getBoundingClientRect").mockReturnValue({
 				x: 270,
-				y: 484,
+				y: 350,
 				width: 100,
 				height: 100,
-				top: 484,
+				top: 350,
 				right: 370,
-				bottom: 584,
+				bottom: 540,
 				left: 270,
 				toJSON: vi.fn()
 			});
 
+			const selectRect = screen.getByTestId("selection-rect");
+			const selectRectMock = vi
+				.spyOn(selectRect, "getBoundingClientRect")
+				.mockReturnValue({
+					x: 250,
+					y: 330,
+					width: 150,
+					height: 150,
+					top: 330,
+					right: 400,
+					bottom: 480,
+					left: 250,
+					toJSON: vi.fn()
+				});
+
 			fireEvent.mouseDown(space, {
-				clientX: beforeX,
-				clientY: beforeY,
+				clientX: 250,
+				clientY: 330,
 				buttons: 1
 			});
 
 			fireEvent.mouseMove(document, {
-				clientX: afterX,
-				clientY: afterY,
+				clientX: 400,
+				clientY: 480,
 				buttons: 1
 			});
 

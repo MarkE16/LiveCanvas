@@ -1,8 +1,8 @@
 import type { StateCreator } from "zustand";
-import type { HistoryAction, HistoryStore } from "../../types";
+import type { CanvasElementsStore, CanvasStore, HistoryAction, HistoryStore } from "../../types";
 
 export const createHistorySlice: StateCreator<
-	HistoryStore,
+	HistoryStore & CanvasStore & CanvasElementsStore,
 	[],
 	[],
 	HistoryStore

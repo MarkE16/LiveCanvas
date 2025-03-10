@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import useStore from "../../state/hooks/useStore";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
-import * as Utils from "../../utils";
+import * as Utils from "../../lib/utils";
 
 // Types
 import type { FC, RefObject } from "react";
@@ -51,8 +51,7 @@ const CanvasPointerMarker: FC<CanvasPointerMarker> = ({
 				setIsVisible(false);
 			}
 
-			const { x, y, left, top, width, height } =
-				canvasSpace.getBoundingClientRect();
+			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
 			let newX;
 			let newY;
 

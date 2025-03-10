@@ -4,6 +4,7 @@ export type CanvasState = {
 	width: number;
 	height: number;
 	mode: Mode;
+	shape: Shape;
 	color: string;
 	drawStrength: number;
 	eraserStrength: number;
@@ -52,10 +53,10 @@ export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 export type CanvasElementType = Shape | "text";
 
 export type FontProperties = {
-  size: number;
-  family: string;
-  content: string;
-}
+	size: number;
+	family: string;
+	content: string;
+};
 
 export type CanvasElement = {
 	x: number;
@@ -66,7 +67,7 @@ export type CanvasElement = {
 	fill: string;
 	stroke: string;
 	id: string;
-  text?: FontProperties;
+	text?: FontProperties;
 	layerId: string;
 	focused: boolean;
 	// More properties later...
@@ -75,4 +76,14 @@ export type CanvasElement = {
 export type Dimensions = {
 	width: number;
 	height: number;
+};
+
+export type SavedCanvasProperties = {
+	layers: {
+		name: string;
+		image: Blob;
+		position: number;
+		id: string;
+	}[];
+	elements: Omit<CanvasElement, "focused">[];
 };
