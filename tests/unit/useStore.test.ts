@@ -401,6 +401,150 @@ describe("useStore functionality", () => {
 			});
 			expect(result.result.current.dpi).toBe(2);
 		});
+
+		it("should return json of layers and elements for saving", () => {
+			const layers = [
+				{
+					name: "Layer 1",
+					id: "1234-5678-9123-4567",
+					image: expect.any(Blob),
+					position: 0
+				},
+				{
+					name: "Layer 3",
+					id: "1234-5678-9123-4569",
+					image: expect.any(Blob),
+					position: 1
+				}
+			];
+			const elements: CanvasElement[] = [
+				{
+					id: "1234-5678-9123-4567",
+					type: "rectangle",
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567"
+				},
+				{
+					id: "1234-5678-9123-4568",
+					type: "text",
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567",
+					text: {
+						size: 16,
+						family: "Arial",
+						content: "Text"
+					}
+				}
+			];
+			const layersAsCanvas = layers.map((layer) => {
+				const canvas = document.createElement("canvas");
+				canvas.width = 400;
+				canvas.height = 400;
+				canvas.id = layer.id;
+				canvas.setAttribute("data-name", layer.name);
+				return canvas;
+			});
+			const elementsWithoutFocused = elements.map((element) => {
+				//eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { focused, ...rest } = element;
+				return rest;
+			});
+			const expected = {
+				layers,
+				elements: elementsWithoutFocused
+			};
+			act(() => {
+				result.result.current.setElements(elements);
+			});
+			expect(
+				result.result.current.prepareForSave(layersAsCanvas)
+			).resolves.toEqual(expected);
+		});
+
+		it("should return json of layers and elements for exporting", () => {
+			const layers = [
+				{
+					name: "Layer 1",
+					id: "1234-5678-9123-4567",
+					image: expect.any(Blob),
+					position: 0
+				},
+				{
+					name: "Layer 3",
+					id: "1234-5678-9123-4569",
+					image: expect.any(Blob),
+					position: 1
+				}
+			];
+			const elements: CanvasElement[] = [
+				{
+					id: "1234-5678-9123-4567",
+					type: "rectangle",
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567"
+				},
+				{
+					id: "1234-5678-9123-4568",
+					type: "text",
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567",
+					text: {
+						size: 16,
+						family: "Arial",
+						content: "Text"
+					}
+				}
+			];
+			const layersAsCanvas = layers.map((layer) => {
+				const canvas = document.createElement("canvas");
+				canvas.width = 400;
+				canvas.height = 400;
+				canvas.id = layer.id;
+				canvas.setAttribute("data-name", layer.name);
+				canvas.setAttribute("data-dpi", "1");
+				return canvas;
+			});
+			act(() => {
+				result.result.current.setElements(elements);
+			});
+			expect(
+				result.result.current.prepareForExport(layersAsCanvas)
+			).resolves.toEqual(expect.any(Blob));
+		});
+
+		it("should throw if not given layers to save", () => {
+			expect(() => result.result.current.prepareForSave([])).rejects.toThrow();
+		});
+
+		it("should throw if not given layers to export", () => {
+			expect(() =>
+				result.result.current.prepareForExport([])
+			).rejects.toThrow();
+		});
 	});
 
 	describe("History store functionality", () => {

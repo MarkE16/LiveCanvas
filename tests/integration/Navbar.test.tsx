@@ -1,15 +1,62 @@
-import { expect, describe, it, vi, beforeEach } from "vitest";
+import {
+	expect,
+	describe,
+	it,
+	vi,
+	beforeEach,
+	afterEach,
+	afterAll
+} from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Navbar from "../../components/Navbar/Navbar";
 import { renderWithProviders } from "../test-utils";
+import { SliceStores } from "../../types";
+import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
 vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
 }));
 
 describe("Navbar functionality", () => {
+	const mockState: Partial<SliceStores> = {
+		prepareForSave: vi.fn().mockResolvedValue({
+			layers: [],
+			elments: []
+		}),
+		prepareForExport: vi.fn().mockResolvedValue(new Blob())
+	};
+	let originalCreateObjectURL: typeof URL.createObjectURL;
+	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+
 	beforeEach(() => {
-		renderWithProviders(<Navbar />);
+		renderWithProviders(<Navbar />, { preloadedState: mockState });
+
+		originalCreateObjectURL = URL.createObjectURL;
+		originalRevokeObjectURL = URL.revokeObjectURL;
+		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
+		URL.revokeObjectURL = vi.fn();
+
+		const canvas = document.createElement("canvas");
+
+		vi.spyOn(useLayerReferences, "default").mockReturnValue({
+			references: {
+				current: [canvas]
+			},
+			add: vi.fn(),
+			remove: vi.fn(),
+			setActiveIndex: vi.fn(),
+			getActiveLayer: vi.fn()
+		});
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	afterAll(() => {
+		URL.createObjectURL = originalCreateObjectURL;
+		URL.revokeObjectURL = originalRevokeObjectURL;
+		vi.restoreAllMocks();
 	});
 
 	it("should render the Navbar component", () => {
@@ -58,38 +105,31 @@ describe("Navbar functionality", () => {
 		}
 	});
 
-	it("clicking on logo should redirect to home page", () => {
-		const originalLocation = window.location;
+	it("should call prepareForSave when clicking Save File from File dropdown", () => {
+		const fileTab = screen.getByText("File");
 
-		// Mocking the window.location object is a bit tricky due to
-		// a majority of the properties being read-only.
-		// We can use Object.defineProperty to make the pathname writable
-		Object.defineProperty(window, "location", {
-			configurable: true,
-			enumerable: true,
-			value: new URL(window.location.href)
-		});
+		fireEvent.click(fileTab);
 
-		// Assume we are on the editor page
+		const saveFileOption = screen.getByText("Save File");
 
-		window.location.href = "http://localhost:3000/editor";
+		fireEvent.click(saveFileOption);
 
-		expect(window.location.pathname).toBe("/editor");
+		expect(mockState.prepareForSave).toHaveBeenCalledWith(
+			expect.any(Array<HTMLCanvasElement>)
+		);
+	});
 
-		fireEvent.click(screen.getByAltText("logo"));
+	it("should call prepareForExport when clicking Export File from File dropdown", () => {
+		const fileTab = screen.getByText("File");
 
-		// Assume we have been redirected to the home page
+		fireEvent.click(fileTab);
 
-		window.location.href = "http://localhost:3000/";
+		const exportFileOption = screen.getByText("Export File");
 
-		expect(window.location.pathname).toBe("/");
+		fireEvent.click(exportFileOption);
 
-		// Reset the window.location object
-
-		Object.defineProperty(window, "location", {
-			configurable: true,
-			enumerable: true,
-			value: originalLocation
-		});
+		expect(mockState.prepareForExport).toHaveBeenCalledWith(
+			expect.any(Array<HTMLCanvasElement>)
+		);
 	});
 });
