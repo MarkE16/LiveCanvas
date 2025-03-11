@@ -982,19 +982,7 @@ describe("Canvas Interactive Functionality", () => {
 	});
 
 	describe("Element functionality", () => {
-		const exampleElementProperies = {
-			x: NaN,
-			y: NaN,
-			width: 100,
-			height: 100,
-			fill: "#000000",
-			stroke: "#000000"
-		};
-		const { x, y, width, height, left, top } = boundingClientRect;
-		const elementCenterX =
-			x + width / 2 - exampleElementProperies.width / 2 - left;
-		const elementCenterY =
-			y + height / 2 - exampleElementProperies.height / 2 - top;
+
 
 		it("should create a rectangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
@@ -1202,6 +1190,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1230,6 +1219,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1261,6 +1251,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			let elements = screen.queryAllByTestId("element");
@@ -1324,11 +1315,15 @@ describe("Canvas Interactive Functionality", () => {
 					buttons: 1
 				});
 				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 				// END: Create a shape
 
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
 			}
+
+			fireEvent.keyDown(document, { ctrlKey: true });
+
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const [rectGrid, circleGrid, triangleGrid] = resizeGrids;
 			const [rect, circle, triangle] = elements;
@@ -1339,14 +1334,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(circle).toHaveAttribute("data-focused", "false");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(document, { ctrlKey: true });
 			fireEvent.focus(circleGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "true");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(document, { ctrlKey: true });
 			fireEvent.focus(triangleGrid);
 
 			expect(
@@ -1375,6 +1368,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			let elements = screen.queryAllByTestId("element");
@@ -1406,6 +1400,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			let elements = screen.queryAllByTestId("element");
@@ -1437,6 +1432,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			let elements = screen.queryAllByTestId("element");
@@ -1476,6 +1472,7 @@ describe("Canvas Interactive Functionality", () => {
 					buttons: 1
 				});
 				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
@@ -1515,6 +1512,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			let elements = screen.queryAllByTestId("element");
@@ -1568,6 +1566,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1620,6 +1619,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1672,6 +1672,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1736,6 +1737,7 @@ describe("Canvas Interactive Functionality", () => {
 					buttons: 1
 				});
 				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
@@ -1798,6 +1800,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1856,6 +1859,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const elements = screen.queryAllByTestId("element");
@@ -1908,6 +1912,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -1963,6 +1968,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2017,6 +2023,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2071,6 +2078,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2125,6 +2133,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2179,6 +2188,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2233,6 +2243,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2288,6 +2299,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2344,6 +2356,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2377,9 +2390,9 @@ describe("Canvas Interactive Functionality", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
 
-			const boundingRectMock = vi
-				.spyOn(space, "getBoundingClientRect")
-				.mockReturnValue(boundingClientRect);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
 
 			fireEvent.click(shapeTool);
 
@@ -2388,6 +2401,7 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -2395,20 +2409,22 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.focus(resizeGrid, { buttons: 1 });
 
-			fireEvent.mouseMove(document, {
-				clientX: 100,
-				clientY: 100,
+			fireEvent.mouseDown(resizeGrid, {
+				clientX: 350,
+				clientY: 350,
 				buttons: 1
 			});
 
 			fireEvent.mouseMove(document, {
-				clientX: 200,
-				clientY: 200,
+				clientX: 450,
+				clientY: 450,
 				buttons: 1
 			});
 
 			// From now on, the x and y values should be changed based
 			// on dx and dy values.
+			// dx: 100
+			// dy: 100
 
 			expect(resizeGrid).toHaveStyle({
 				left: `${300 - boundingClientRect.x + 100}px`,
@@ -2449,29 +2465,34 @@ describe("Canvas Interactive Functionality", () => {
 					buttons: 1
 				});
 				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 
 				grids = screen.queryAllByTestId("resize-grid");
 				expect(grids).toHaveLength(i + 1);
-
-				fireEvent.focus(grids[i], { ctrlKey: true, buttons: 1 });
 			}
 
-			fireEvent.mouseMove(document, {
-				clientX: 100,
-				clientY: 100,
-				buttons: 1
-			});
-
-			fireEvent.mouseMove(document, {
-				clientX: 200,
-				clientY: 200,
-				buttons: 1
-			});
-
 			for (const grid of grids) {
-				expect(grid).toHaveStyle({
-					left: `${300 - boundingClientRect.x + 100}px`,
-					top: `${300 - boundingClientRect.y + 100}px`
+				fireEvent.focus(grid, { buttons: 1 });
+			}
+
+			fireEvent.mouseDown(grids[0], {
+				clientX: 350,
+				clientY: 350,
+				buttons: 1,
+				ctrlKey: true
+			});
+
+			fireEvent.mouseMove(document, {
+				clientX: 450,
+				clientY: 450,
+				buttons: 1,
+				ctrlKey: true
+			});
+
+			for (let i = 0; i < grids.length; i++) {
+				expect(grids[i]).toHaveStyle({
+					left: `${300 + 100 * i - boundingClientRect.x + 100}px`,
+					top: `${300 + 100 * i - boundingClientRect.y + 100}px`
 				});
 			}
 		});
@@ -2480,9 +2501,9 @@ describe("Canvas Interactive Functionality", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
 
-			const boundingRectMock = vi
-				.spyOn(space, "getBoundingClientRect")
-				.mockReturnValue(boundingClientRect);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
 
 			fireEvent.click(shapeTool);
 
@@ -2491,19 +2512,12 @@ describe("Canvas Interactive Functionality", () => {
 			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
 			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
 			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
 			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
 			const resizeGrid = resizeGrids[0];
-
-			fireEvent.focus(resizeGrid, { buttons: 1 });
-
-			fireEvent.mouseMove(document, {
-				clientX: 100,
-				clientY: 100,
-				buttons: 1
-			});
 
 			// Note: Default window size is 1024 x 768.
 			fireEvent.resize(window, {

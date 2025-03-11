@@ -107,6 +107,7 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 			}
 		}
 
+
 		function handleMouseDown(e: MouseEvent) {
 			updateMovingState(true);
 			startPos.current = { x: e.clientX, y: e.clientY };
