@@ -16,6 +16,7 @@ import ElementTextField from "../ElementTextField/ElementTextField";
 type CanvasInteractiveElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	isSelecting: RefObject<boolean>;
+	isCreatingElement: boolean;
 	clientPosition: RefObject<Coordinates>;
 };
 
@@ -33,6 +34,7 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 	id,
 	layerId,
 	isSelecting,
+	isCreatingElement,
 	clientPosition
 }) => {
 	const layers = useStore((state) => state.layers);
@@ -106,7 +108,6 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 				unfocusElement(id);
 			}
 		}
-
 
 		function handleMouseDown(e: MouseEvent) {
 			updateMovingState(true);
@@ -337,7 +338,7 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 
 				const isEditing = element.getAttribute("data-isediting") === "true";
 
-				if (type === "text" && isEditing) {
+				if ((type === "text" && isEditing) || isCreatingElement) {
 					return;
 				}
 
@@ -407,7 +408,8 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 		movingElement,
 		clientPosition,
 		getActiveLayer,
-		type
+		type,
+		isCreatingElement
 	]);
 
 	if (type === "text" && text !== undefined) {

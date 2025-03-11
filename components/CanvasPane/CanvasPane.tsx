@@ -198,11 +198,11 @@ const CanvasPane: FC = () => {
 					let newWidth = Math.max(MIN_SIZE, state.width + dx);
 					let newHeight = Math.max(MIN_SIZE, state.height + dy);
 
-					if (pointerX < state.x) {
+					if (pointerX - MIN_SIZE < state.x) {
 						newWidth = MIN_SIZE;
 					}
 
-					if (pointerY < state.y) {
+					if (pointerY - MIN_SIZE < state.y) {
 						newHeight = MIN_SIZE;
 					}
 
@@ -380,6 +380,7 @@ const CanvasPane: FC = () => {
 					key={element.id}
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
+					isCreatingElement={createdShapeId.current !== null}
 					clientPosition={clientPosition}
 					{...element}
 				/>
