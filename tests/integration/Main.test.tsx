@@ -2515,7 +2515,7 @@ describe("Canvas Interactive Functionality", () => {
 
 				fireEvent.click(option);
 
-				// START: Create a rectangle
+				// START: Create a shape
 				fireEvent.keyDown(document, { ctrlKey: true });
 				fireEvent.mouseDown(space, {
 					buttons: 1,
@@ -2529,6 +2529,7 @@ describe("Canvas Interactive Functionality", () => {
 				});
 				fireEvent.mouseUp(document);
 				fireEvent.keyUp(document, { ctrlKey: false });
+				// END: Create a shape
 
 				grids = screen.queryAllByTestId("resize-grid");
 				expect(grids).toHaveLength(i + 1);
