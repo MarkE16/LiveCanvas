@@ -982,8 +982,6 @@ describe("Canvas Interactive Functionality", () => {
 	});
 
 	describe("Element functionality", () => {
-
-
 		it("should create a rectangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			const space = screen.getByTestId("canvas-container");
@@ -2495,6 +2493,83 @@ describe("Canvas Interactive Functionality", () => {
 					top: `${300 + 100 * i - boundingClientRect.y + 100}px`
 				});
 			}
+		});
+
+		it("should not move multiple elements but create a shape", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let grids = screen.queryAllByTestId("resize-grid");
+
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			expect(grids).toHaveLength(0);
+
+			fireEvent.click(shapeTool);
+
+			const shapes = ["rectangle", "circle", "triangle"];
+
+			for (let i = 0; i < shapes.length; i++) {
+				const option = screen.getByTestId(`shape-${shapes[i]}`);
+
+				fireEvent.click(option);
+
+				// START: Create a rectangle
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
+
+				grids = screen.queryAllByTestId("resize-grid");
+				expect(grids).toHaveLength(i + 1);
+			}
+
+			for (const grid of grids) {
+				fireEvent.focus(grid, { buttons: 1 });
+			}
+
+			fireEvent.keyDown(document, { ctrlKey: true });
+
+			fireEvent.mouseDown(space, {
+				clientX: 350,
+				clientY: 350,
+				buttons: 1
+			});
+
+			fireEvent.mouseMove(document, {
+				clientX: 450,
+				clientY: 450,
+				buttons: 1
+			});
+			fireEvent.mouseUp(document);
+
+			const newGrids = screen.queryAllByTestId("resize-grid");
+
+			expect(newGrids).toHaveLength(4);
+
+			// The first three elements should not move.
+			for (let i = 0; i < newGrids.length - 1; i++) {
+				expect(newGrids[i]).toHaveStyle({
+					left: `${300 + 100 * i - boundingClientRect.x}px`,
+					top: `${300 + 100 * i - boundingClientRect.y}px`
+				});
+			}
+
+			// The last element should be created.
+			expect(newGrids[3]).toHaveStyle({
+				left: `${350 - boundingClientRect.x}px`,
+				top: `${350 - boundingClientRect.y}px`
+			});
 		});
 
 		it("should move an element in the direction of the window resize", () => {

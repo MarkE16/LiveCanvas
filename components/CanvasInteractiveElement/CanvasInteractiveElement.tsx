@@ -338,7 +338,12 @@ const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 
 				const isEditing = element.getAttribute("data-isediting") === "true";
 
-				if ((type === "text" && isEditing) || isCreatingElement) {
+				if (type === "text" && isEditing) {
+					return;
+				}
+
+				if (isCreatingElement) {
+					unfocusElement(id);
 					return;
 				}
 
