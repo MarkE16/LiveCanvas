@@ -52,7 +52,7 @@ const Navbar: FC = () => {
 	type MenuOptions = {
 		[key: string]: {
 			text: string;
-			action: () => void;
+			action: (() => void) | (() => Promise<void>);
 		}[];
 	};
 
