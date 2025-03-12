@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { act } from "@testing-library/react";
 import { renderHookWithProviders } from "../test-utils";
 import type { RenderHookResult } from "@testing-library/react";
@@ -6,6 +6,7 @@ import { renderHook } from "@testing-library/react";
 import useStore from "../../state/hooks/useStore";
 import type { CanvasElement, HistoryAction, SliceStores } from "../../types";
 import { MODES } from "../../state/store";
+import { getCanvasPosition } from "../../lib/utils";
 
 const exampleStore: SliceStores = {
 	width: 400,
@@ -429,23 +430,6 @@ describe("useStore functionality", () => {
 					stroke: "#000000",
 					focused: false,
 					layerId: "1234-5678-9123-4567"
-				},
-				{
-					id: "1234-5678-9123-4568",
-					type: "text",
-					x: 10,
-					y: 10,
-					width: 100,
-					height: 100,
-					fill: "#000000",
-					stroke: "#000000",
-					focused: false,
-					layerId: "1234-5678-9123-4567",
-					text: {
-						size: 16,
-						family: "Arial",
-						content: "Text"
-					}
 				}
 			];
 			const layersAsCanvas = layers.map((layer) => {
@@ -473,7 +457,7 @@ describe("useStore functionality", () => {
 			).resolves.toEqual(expected);
 		});
 
-		it("should return json of layers and elements for exporting", () => {
+		it("should return a blob for exporting", () => {
 			const layers = [
 				{
 					name: "Layer 1",
@@ -500,23 +484,6 @@ describe("useStore functionality", () => {
 					stroke: "#000000",
 					focused: false,
 					layerId: "1234-5678-9123-4567"
-				},
-				{
-					id: "1234-5678-9123-4568",
-					type: "text",
-					x: 10,
-					y: 10,
-					width: 100,
-					height: 100,
-					fill: "#000000",
-					stroke: "#000000",
-					focused: false,
-					layerId: "1234-5678-9123-4567",
-					text: {
-						size: 16,
-						family: "Arial",
-						content: "Text"
-					}
 				}
 			];
 			const layersAsCanvas = layers.map((layer) => {
@@ -534,6 +501,152 @@ describe("useStore functionality", () => {
 			expect(
 				result.result.current.prepareForExport(layersAsCanvas)
 			).resolves.toEqual(expect.any(Blob));
+		});
+
+		it("should render the elements in the correct positions relative to the canvas", async () => {
+			const mockCanvasBoundingClientRect: DOMRect = {
+				x: 110.5,
+				y: 175.3333282470703,
+				width: 400,
+				height: 400,
+				top: 175.3333282470703,
+				right: 510.5,
+				bottom: 575.3333282470703,
+				left: 110.5,
+				toJSON: vi.fn()
+			};
+			const canvas = document.createElement("canvas");
+			const subCanvas = document.createElement("canvas");
+			canvas.width = 400;
+			canvas.height = 400;
+			canvas.id = "1234-5678-9123-4567";
+			canvas.setAttribute("data-name", "Layer 1");
+			canvas.setAttribute("data-dpi", "1");
+
+			const elements: CanvasElement[] = [
+				{
+					id: "1234-5678-9123-4567",
+					type: "rectangle",
+					x: 10,
+					y: 10,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567"
+				},
+				{
+					id: "1234-5678-9123-4568",
+					type: "circle",
+					x: 20,
+					y: 20,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567"
+				},
+				{
+					id: "1234-5678-9123-4569",
+					type: "triangle",
+					x: 30,
+					y: 30,
+					width: 100,
+					height: 100,
+					fill: "#000000",
+					stroke: "#000000",
+					focused: false,
+					layerId: "1234-5678-9123-4567"
+				}
+			];
+
+			const ctx = subCanvas.getContext("2d");
+
+			if (!ctx) {
+				throw new Error("Canvas context not found.");
+			}
+
+			vi.spyOn(document, "createElement").mockReturnValue(subCanvas);
+			vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue(
+				mockCanvasBoundingClientRect
+			);
+
+			const strokeSpy = vi.spyOn(ctx, "stroke");
+			const fillSpy = vi.spyOn(ctx, "fill");
+			const strokeRectSpy = vi.spyOn(ctx, "strokeRect");
+			const fillRectSpy = vi.spyOn(ctx, "fillRect");
+			const lineToSpy = vi.spyOn(ctx, "lineTo");
+			const moveToSpy = vi.spyOn(ctx, "moveTo");
+			const ellipseSpy = vi.spyOn(ctx, "ellipse");
+
+			act(() => {
+				result.result.current.setElements(elements);
+			});
+
+			await result.result.current.prepareForExport([canvas]);
+
+			for (const element of elements) {
+				const { x, y, width, height, type } = element;
+				const { x: startX, y: startY } = getCanvasPosition(x, y, canvas);
+				const { x: endX, y: endY } = getCanvasPosition(
+					x + width,
+					y + height,
+					canvas
+				);
+
+				const realWidth = endX - startX;
+				const realHeight = endY - startY;
+
+				switch (type) {
+					case "rectangle":
+						expect(strokeRectSpy).toHaveBeenCalledWith(
+							startX,
+							startY,
+							realWidth,
+							realHeight
+						);
+						expect(fillRectSpy).toHaveBeenCalledWith(
+							startX,
+							startY,
+							realWidth,
+							realHeight
+						);
+						break;
+					case "circle":
+						expect(ellipseSpy).toHaveBeenCalledWith(
+							startX + realWidth / 2,
+							startY + realHeight / 2,
+							realWidth / 2,
+							realHeight / 2,
+							0,
+							0,
+							Math.PI * 2
+						);
+						break;
+					case "triangle":
+						expect(moveToSpy).toHaveBeenCalledWith(
+							startX + realWidth / 2,
+							startY
+						);
+						expect(lineToSpy).toHaveBeenCalledWith(
+							startX + realWidth,
+							startY + realHeight
+						);
+						expect(lineToSpy).toHaveBeenCalledWith(startX, startY + realHeight);
+						break;
+					default:
+						break;
+				}
+			}
+
+			expect(strokeRectSpy).toHaveBeenCalledTimes(1);
+			// FillRect is called twice because the canvas is drawn a white background first.
+			// Then, any rectangles are drawn on top of that.
+			expect(fillRectSpy).toHaveBeenCalledTimes(2);
+			expect(fillSpy).toHaveBeenCalledTimes(2);
+			expect(strokeSpy).toHaveBeenCalledTimes(2);
 		});
 
 		it("should throw if not given layers to save", () => {

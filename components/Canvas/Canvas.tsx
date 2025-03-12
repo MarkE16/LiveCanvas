@@ -34,9 +34,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 		height,
 		layers,
 		dpi,
-		eraserStrength,
-		drawStrength,
-		color,
 		scale,
 		position,
 		changeMode,
@@ -49,9 +46,6 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			height: state.height,
 			layers: state.layers,
 			dpi: state.dpi,
-			eraserStrength: state.eraserStrength,
-			drawStrength: state.drawStrength,
-			color: state.color,
 			scale: state.scale,
 			position: state.position,
 			changeMode: state.changeMode,
@@ -59,6 +53,9 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 			setLayers: state.setLayers
 		}))
 	);
+	const color = useStoreSubscription((state) => state.color);
+	const drawStrength = useStoreSubscription((state) => state.drawStrength);
+	const eraserStrength = useStoreSubscription((state) => state.eraserStrength);
 
 	const { references, add } = useLayerReferences();
 	const { get } = useIndexed();
@@ -154,8 +151,8 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 					console.error("Couldn't create a Path2D object.");
 					return;
 				}
-				ctx.strokeStyle = color;
-				ctx.lineWidth = drawStrength * dpi;
+				ctx.strokeStyle = color.current;
+				ctx.lineWidth = drawStrength.current * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
 
@@ -169,10 +166,10 @@ const Canvas: FC<CanvasProps> = ({ isGrabbing }) => {
 
 			case "erase": {
 				ctx.clearRect(
-					x - ((ERASER_RADIUS * eraserStrength) / 2) * dpi,
-					y - ((ERASER_RADIUS * eraserStrength) / 2) * dpi,
-					ERASER_RADIUS * eraserStrength * dpi,
-					ERASER_RADIUS * eraserStrength * dpi
+					x - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
+					y - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
+					ERASER_RADIUS * eraserStrength.current * dpi,
+					ERASER_RADIUS * eraserStrength.current * dpi
 				);
 				break;
 			}
