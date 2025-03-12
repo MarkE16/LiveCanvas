@@ -68,6 +68,27 @@ describe("Page", () => {
 		expect(call2).toEqual(["elements", "items"]);
 	});
 
+	it("should update the canvas with existing layers from IndexedDB", () => {
+		indexedGetMock.mockReturnValueOnce([
+			[
+				"123",
+				{
+					id: "123",
+					name: "Layer 1",
+					image: new Blob(),
+					position: 0
+				}
+			]
+		]);
+
+		// Verify that the layer is being added to the canvas
+
+		const layer = screen.getByTestId("canvas-layer");
+		expect(layer).toBeInTheDocument();
+		expect(layer).toHaveAttribute("id", "123");
+		expect(layer).toHaveAttribute("data-name", "Layer 1");
+	});
+
 	it("should set the layers in IndexedDB when saving", async () => {
 		// Setting elements in the preloaded state actually doesn't work, as
 		// the elements are not being set in the IndexedDB. When
