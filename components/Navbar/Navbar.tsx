@@ -57,39 +57,42 @@ const Navbar: FC = () => {
 	};
 
 	const handleSaveFile = useCallback(async () => {
-		if (!references.current.length)
-			throw new Error(
-				"Cannot export canvas: no references found. This is a bug."
-			);
+		try {
+			const { layers, elements } = await prepareForSave(references.current);
 
-		const { layers, elements } = await prepareForSave(references.current);
+			const promises = [];
 
-		const promises = [];
+			// Save the layers
+			layers.forEach((layer) => {
+				promises.push(set("layers", layer.id, layer));
+			});
+			promises.push(set("elements", "items", elements));
 
-		// Save the layers
-		layers.forEach((layer) => {
-			promises.push(set("layers", layer.id, layer));
-		});
-		promises.push(set("elements", "items", elements));
+			await Promise.all(promises);
 
-		await Promise.all(promises);
-
-		alert("Saved!");
+			alert("Saved!");
+		} catch (e) {
+			alert("Error saving file. Reason: " + (e as Error).message);
+		}
 	}, [references, set, prepareForSave]);
 
 	const handleExportFile = async () => {
 		if (!downloadRef.current) throw new Error("Download ref not found");
 
-		const blob = await prepareForExport(references.current);
+		try {
+			const blob = await prepareForExport(references.current);
 
-		const url = URL.createObjectURL(blob);
+			const url = URL.createObjectURL(blob);
 
-		const a = downloadRef.current;
-		a.href = url;
-		a.download = "canvas.png";
-		a.click();
+			const a = downloadRef.current;
+			a.href = url;
+			a.download = "canvas.png";
+			a.click();
 
-		URL.revokeObjectURL(url);
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			alert("Error exporting file. Reason: " + (e as Error).message);
+		}
 	};
 
 	const menuOptions: MenuOptions = {

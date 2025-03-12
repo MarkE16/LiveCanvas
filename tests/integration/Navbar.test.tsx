@@ -5,12 +5,12 @@ import {
 	vi,
 	beforeEach,
 	afterEach,
-	afterAll
+	afterAll,
+  MockInstance
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Navbar from "../../components/Navbar/Navbar";
 import { renderWithProviders } from "../test-utils";
-import { SliceStores } from "../../types";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
 vi.mock("../../renderer/usePageContext", () => ({
@@ -18,35 +18,30 @@ vi.mock("../../renderer/usePageContext", () => ({
 }));
 
 describe("Navbar functionality", () => {
-	const mockState: Partial<SliceStores> = {
-		prepareForSave: vi.fn().mockResolvedValue({
-			layers: [],
-			elments: []
-		}),
-		prepareForExport: vi.fn().mockResolvedValue(new Blob())
-	};
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+	let useLayerReferencesSpy: MockInstance;
+	const canvas = document.createElement("canvas");
+	canvas.setAttribute("data-dpi", "1");
 
 	beforeEach(() => {
-		renderWithProviders(<Navbar />, { preloadedState: mockState });
+		useLayerReferencesSpy = vi
+			.spyOn(useLayerReferences, "default")
+			.mockReturnValue({
+				references: {
+					current: [canvas]
+				},
+				add: vi.fn(),
+				remove: vi.fn(),
+				setActiveIndex: vi.fn(),
+				getActiveLayer: vi.fn()
+			});
+		renderWithProviders(<Navbar />);
 
 		originalCreateObjectURL = URL.createObjectURL;
 		originalRevokeObjectURL = URL.revokeObjectURL;
 		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
 		URL.revokeObjectURL = vi.fn();
-
-		const canvas = document.createElement("canvas");
-
-		vi.spyOn(useLayerReferences, "default").mockReturnValue({
-			references: {
-				current: [canvas]
-			},
-			add: vi.fn(),
-			remove: vi.fn(),
-			setActiveIndex: vi.fn(),
-			getActiveLayer: vi.fn()
-		});
 	});
 
 	afterEach(() => {
@@ -105,7 +100,8 @@ describe("Navbar functionality", () => {
 		}
 	});
 
-	it("should call prepareForSave when clicking Save File from File dropdown", () => {
+	it("should call prepareForSave when clicking Save File from File dropdown", async () => {
+		const alertSpy = vi.spyOn(window, "alert");
 		const fileTab = screen.getByText("File");
 
 		fireEvent.click(fileTab);
@@ -114,13 +110,55 @@ describe("Navbar functionality", () => {
 
 		fireEvent.click(saveFileOption);
 
-		expect(mockState.prepareForSave).toHaveBeenCalledWith(
-			expect.any(Array<HTMLCanvasElement>)
-		);
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith("Saved!");
+		});
 	});
 
-	it("should call prepareForExport when clicking Export File from File dropdown", () => {
+	it("should show an error if failed to save", async () => {
+		useLayerReferencesSpy.mockReturnValue({
+			references: {
+				current: []
+			},
+			add: vi.fn(),
+			remove: vi.fn(),
+			setActiveIndex: vi.fn(),
+			getActiveLayer: vi.fn()
+		});
+		
+		const alertSpy = vi.spyOn(window, "alert");
+		const error = new Error(
+			"Cannot export canvas: no references found. This is a bug."
+		);
+
 		const fileTab = screen.getByText("File");
+
+		fireEvent.click(fileTab);
+
+		const saveFileOption = screen.getByText("Save File");
+
+		fireEvent.click(saveFileOption);
+
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith(
+				"Error saving file. Reason: " + error.message
+			);
+		});
+	});
+
+	it("should perform a save when using CTRL S", async () => {
+		const alertSpy = vi.spyOn(window, "alert");
+		fireEvent.keyDown(document, { key: "s", ctrlKey: true });
+
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith("Saved!");
+		});
+	});
+
+	it("should call prepareForExport when clicking Export File from File dropdown", async () => {
+		const fileTab = screen.getByText("File");
+		const exportLink = screen.getByTestId("export-link");
+		const clickSpy = vi.spyOn(exportLink, "click");
 
 		fireEvent.click(fileTab);
 
@@ -128,8 +166,8 @@ describe("Navbar functionality", () => {
 
 		fireEvent.click(exportFileOption);
 
-		expect(mockState.prepareForExport).toHaveBeenCalledWith(
-			expect.any(Array<HTMLCanvasElement>)
-		);
+		await vi.waitFor(() => {
+			expect(clickSpy).toHaveBeenCalled();
+		});
 	});
 });
