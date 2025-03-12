@@ -63,7 +63,7 @@ describe("Canvas Interactive Functionality", () => {
 		left: 50,
 		toJSON: vi.fn()
 	};
-	const mockLayer: Partial<CanvasStore> = {
+	const mockState: Partial<CanvasStore> = {
 		layers: [
 			{
 				id: "1",
@@ -78,7 +78,7 @@ describe("Canvas Interactive Functionality", () => {
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, {
-			preloadedState: mockLayer
+			preloadedState: mockState
 		});
 	});
 
@@ -133,15 +133,12 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -159,18 +156,12 @@ describe("Canvas Interactive Functionality", () => {
 			// Note that because it is a testing environment, we cannot use
 			// the getBoundingClientRect method to get the rect dimensions and position.
 			// Instead, we will use the x, y, width, and height attributes of the rect element.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				afterX - beforeX,
-				afterY - beforeY
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: `${afterX - beforeX}px`,
+				height: `${afterY - beforeY}px`
+			});
 
 			// Now, we release the mouse button.
 			// The rect should disappear.
@@ -206,16 +197,12 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -230,18 +217,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				afterY - boundingClientRect.top,
-				afterX - beforeX,
-				beforeY - afterY
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${afterY - boundingClientRect.top}px`,
+				width: `${afterX - beforeX}px`,
+				height: `${beforeY - afterY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -272,16 +253,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -296,18 +273,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				afterX - boundingClientRect.left,
-				afterY - boundingClientRect.top,
-				beforeX - afterX,
-				beforeY - afterY
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${afterX - boundingClientRect.left}px`,
+				top: `${afterY - boundingClientRect.top}px`,
+				width: `${beforeX - afterX}px`,
+				height: `${beforeY - afterY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -338,14 +309,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(selectRect).not.toBeVisible();
 			expect(boundingRectMock).toHaveBeenCalled();
@@ -361,18 +330,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				afterX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				beforeX - afterX,
-				afterY - beforeY
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${afterX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: `${beforeX - afterX}px`,
+				height: `${afterY - beforeY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -403,9 +366,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([0, 0, 0, 0]);
+			expect(selectRect).toHaveStyle({
+				left: "0px",
+				top: "0px",
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(selectRect).not.toBeVisible();
 
@@ -416,13 +382,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([0, 0, 0, 0]);
+			expect(selectRect).toHaveStyle({
+				left: "0px",
+				top: "0px",
+				width: "0px",
+				height: "0px"
+			});
 
 			// The rect should not be visible.
 			expect(selectRect).not.toBeVisible();
@@ -972,7 +937,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.mouseDown(canvas, { buttons: 1 });
 
-			expect(mockLayer.changeColor).toHaveBeenCalledWith(
+			expect(mockState.changeColor).toHaveBeenCalledWith(
 				MOCK_COLOR.toString("hsla")
 			);
 			// After the color is changed, the eye drop tool should be deactivated
