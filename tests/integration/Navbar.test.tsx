@@ -1,15 +1,57 @@
-import { expect, describe, it, vi, beforeEach } from "vitest";
+import {
+	expect,
+	describe,
+	it,
+	vi,
+	beforeEach,
+	afterEach,
+	afterAll,
+  MockInstance
+} from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Navbar from "../../components/Navbar/Navbar";
 import { renderWithProviders } from "../test-utils";
+import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
 vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
 }));
 
 describe("Navbar functionality", () => {
+	let originalCreateObjectURL: typeof URL.createObjectURL;
+	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+	let useLayerReferencesSpy: MockInstance;
+	const canvas = document.createElement("canvas");
+	canvas.setAttribute("data-dpi", "1");
+
 	beforeEach(() => {
+		useLayerReferencesSpy = vi
+			.spyOn(useLayerReferences, "default")
+			.mockReturnValue({
+				references: {
+					current: [canvas]
+				},
+				add: vi.fn(),
+				remove: vi.fn(),
+				setActiveIndex: vi.fn(),
+				getActiveLayer: vi.fn()
+			});
 		renderWithProviders(<Navbar />);
+
+		originalCreateObjectURL = URL.createObjectURL;
+		originalRevokeObjectURL = URL.revokeObjectURL;
+		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
+		URL.revokeObjectURL = vi.fn();
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	afterAll(() => {
+		URL.createObjectURL = originalCreateObjectURL;
+		URL.revokeObjectURL = originalRevokeObjectURL;
+		vi.restoreAllMocks();
 	});
 
 	it("should render the Navbar component", () => {
@@ -20,13 +62,29 @@ describe("Navbar functionality", () => {
 			expect(screen.getByText(tab)).not.toBeNull();
 		}
 
-		expect(screen.getByText("Export Canvas")).toBeInTheDocument();
 		expect(exportLink).toBeInTheDocument();
 		expect(exportLink).not.toBeVisible();
 	});
 
-	it("clicking on any tab should open MUI 'not implemented' snackbar", async () => {
-		const TABS = ["File", "Edit", "View", "Filter", "Admin"];
+	it("should open a dropdown for the File option", () => {
+		const fileTab = screen.getByText("File");
+
+		fireEvent.click(fileTab);
+
+		const dropdown = screen.getByRole("menu");
+
+		expect(dropdown).toBeInTheDocument();
+		expect(dropdown).toBeVisible();
+
+		const options = screen.getAllByRole("menuitem");
+
+		expect(options).toHaveLength(2);
+		expect(options[0]).toHaveTextContent("Save File");
+		expect(options[1]).toHaveTextContent("Export File");
+	});
+
+	it("clicking on any tab other than File should open MUI 'not implemented' snackbar", async () => {
+		const TABS = ["Edit", "View", "Filter", "Admin"];
 
 		for (const tab of TABS) {
 			fireEvent.click(screen.getByText(tab));
@@ -42,38 +100,74 @@ describe("Navbar functionality", () => {
 		}
 	});
 
-	it("clicking on logo should redirect to home page", () => {
-		const originalLocation = window.location;
+	it("should call prepareForSave when clicking Save File from File dropdown", async () => {
+		const alertSpy = vi.spyOn(window, "alert");
+		const fileTab = screen.getByText("File");
 
-		// Mocking the window.location object is a bit tricky due to
-		// a majority of the properties being read-only.
-		// We can use Object.defineProperty to make the pathname writable
-		Object.defineProperty(window, "location", {
-			configurable: true,
-			enumerable: true,
-			value: new URL(window.location.href)
+		fireEvent.click(fileTab);
+
+		const saveFileOption = screen.getByText("Save File");
+
+		fireEvent.click(saveFileOption);
+
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith("Saved!");
 		});
+	});
 
-		// Assume we are on the editor page
+	it("should show an error if failed to save", async () => {
+		useLayerReferencesSpy.mockReturnValue({
+			references: {
+				current: []
+			},
+			add: vi.fn(),
+			remove: vi.fn(),
+			setActiveIndex: vi.fn(),
+			getActiveLayer: vi.fn()
+		});
+		
+		const alertSpy = vi.spyOn(window, "alert");
+		const error = new Error(
+			"Cannot export canvas: no references found. This is a bug."
+		);
 
-		window.location.href = "http://localhost:3000/editor";
+		const fileTab = screen.getByText("File");
 
-		expect(window.location.pathname).toBe("/editor");
+		fireEvent.click(fileTab);
 
-		fireEvent.click(screen.getByAltText("logo"));
+		const saveFileOption = screen.getByText("Save File");
 
-		// Assume we have been redirected to the home page
+		fireEvent.click(saveFileOption);
 
-		window.location.href = "http://localhost:3000/";
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith(
+				"Error saving file. Reason: " + error.message
+			);
+		});
+	});
 
-		expect(window.location.pathname).toBe("/");
+	it("should perform a save when using CTRL S", async () => {
+		const alertSpy = vi.spyOn(window, "alert");
+		fireEvent.keyDown(document, { key: "s", ctrlKey: true });
 
-		// Reset the window.location object
+		await vi.waitFor(() => {
+			expect(alertSpy).toHaveBeenCalledWith("Saved!");
+		});
+	});
 
-		Object.defineProperty(window, "location", {
-			configurable: true,
-			enumerable: true,
-			value: originalLocation
+	it("should call prepareForExport when clicking Export File from File dropdown", async () => {
+		const fileTab = screen.getByText("File");
+		const exportLink = screen.getByTestId("export-link");
+		const clickSpy = vi.spyOn(exportLink, "click");
+
+		fireEvent.click(fileTab);
+
+		const exportFileOption = screen.getByText("Export File");
+
+		fireEvent.click(exportFileOption);
+
+		await vi.waitFor(() => {
+			expect(clickSpy).toHaveBeenCalled();
 		});
 	});
 });

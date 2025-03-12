@@ -10,7 +10,6 @@ import {
 } from "vitest";
 import { screen, fireEvent, act } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
 import Main from "../../components/Main/Main";
@@ -64,7 +63,7 @@ describe("Canvas Interactive Functionality", () => {
 		left: 50,
 		toJSON: vi.fn()
 	};
-	const mockLayer: Partial<CanvasStore> = {
+	const mockState: Partial<CanvasStore> = {
 		layers: [
 			{
 				id: "1",
@@ -73,14 +72,13 @@ describe("Canvas Interactive Functionality", () => {
 				hidden: false
 			}
 		],
-		changeColor: vi.fn()
+		changeColor: vi.fn(),
+		prepareForExport: vi.fn().mockResolvedValue(new Blob())
 	};
-
-	vi.spyOn(Utils, "generateCanvasImage").mockResolvedValue(new Blob());
 
 	beforeEach(() => {
 		renderWithProviders(<Main />, {
-			preloadedState: mockLayer
+			preloadedState: mockState
 		});
 	});
 
@@ -135,15 +133,12 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -161,20 +156,12 @@ describe("Canvas Interactive Functionality", () => {
 			// Note that because it is a testing environment, we cannot use
 			// the getBoundingClientRect method to get the rect dimensions and position.
 			// Instead, we will use the x, y, width, and height attributes of the rect element.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				afterX - beforeX,
-				afterY - beforeY
-			]);
-
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: `${afterX - beforeX}px`,
+				height: `${afterY - beforeY}px`
+			});
 
 			// Now, we release the mouse button.
 			// The rect should disappear.
@@ -210,16 +197,12 @@ describe("Canvas Interactive Functionality", () => {
 			});
 
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -234,20 +217,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				afterY - boundingClientRect.top,
-				afterX - beforeX,
-				beforeY - afterY
-			]);
-
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${afterY - boundingClientRect.top}px`,
+				width: `${afterX - beforeX}px`,
+				height: `${beforeY - afterY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -278,16 +253,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 			expect(selectRect).not.toBeVisible();
-
-			let { left, top, width, height } = selectRect.style;
-
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(boundingRectMock).toHaveBeenCalled();
 
@@ -302,20 +273,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				afterX - boundingClientRect.left,
-				afterY - boundingClientRect.top,
-				beforeX - afterX,
-				beforeY - afterY
-			]);
-
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
+			expect(selectRect).toHaveStyle({
+				left: `${afterX - boundingClientRect.left}px`,
+				top: `${afterY - boundingClientRect.top}px`,
+				width: `${beforeX - afterX}px`,
+				height: `${beforeY - afterY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -346,14 +309,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				beforeX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				0,
-				0
-			]);
+			expect(selectRect).toHaveStyle({
+				left: `${beforeX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(selectRect).not.toBeVisible();
 			expect(boundingRectMock).toHaveBeenCalled();
@@ -369,20 +330,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(selectRect).toBeVisible();
 
 			// now, calculate the rect dimensions and position.
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([
-				afterX - boundingClientRect.left,
-				beforeY - boundingClientRect.top,
-				beforeX - afterX,
-				afterY - beforeY
-			]);
-
-			expect(boundingRectMock).toHaveBeenCalledTimes(2);
+			expect(selectRect).toHaveStyle({
+				left: `${afterX - boundingClientRect.left}px`,
+				top: `${beforeY - boundingClientRect.top}px`,
+				width: `${beforeX - afterX}px`,
+				height: `${afterY - beforeY}px`
+			});
 
 			// Now, we release the mouse button.
 			fireEvent.mouseUp(document);
@@ -413,9 +366,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			let { left, top, width, height } = selectRect.style;
-			let stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([0, 0, 0, 0]);
+			expect(selectRect).toHaveStyle({
+				left: "0px",
+				top: "0px",
+				width: "0px",
+				height: "0px"
+			});
 
 			expect(selectRect).not.toBeVisible();
 
@@ -426,13 +382,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			left = selectRect.style.left;
-			top = selectRect.style.top;
-			width = selectRect.style.width;
-			height = selectRect.style.height;
-
-			stripped = stripUnits([left, top, width, height], "px");
-			expect(stripped).toEqual([0, 0, 0, 0]);
+			expect(selectRect).toHaveStyle({
+				left: "0px",
+				top: "0px",
+				width: "0px",
+				height: "0px"
+			});
 
 			// The rect should not be visible.
 			expect(selectRect).not.toBeVisible();
@@ -447,7 +402,6 @@ describe("Canvas Interactive Functionality", () => {
 		it("should select an element", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
 			const space = screen.getByTestId("canvas-container");
-			const selectRect = screen.getByTestId("selection-rect");
 			const boundingRectMock = vi
 				.spyOn(space, "getBoundingClientRect")
 				.mockReturnValue(boundingClientRect);
@@ -459,25 +413,31 @@ describe("Canvas Interactive Functionality", () => {
 			const afterX = 350;
 			const afterY = 500;
 
-			const selectRectMock = vi
-				.spyOn(selectRect, "getBoundingClientRect")
-				.mockReturnValue({
-					x: beforeX,
-					y: beforeY,
-					width: afterX - beforeX,
-					height: afterY - beforeY,
-					top: beforeY,
-					right: afterX,
-					bottom: afterY,
-					left: beforeX,
-					toJSON: vi.fn()
-				});
-
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// By default, we are creating a rectangle.
+			// We need to click and drag to create the rectangle.
+			// Note: since we want to be able to make a selection rectangle
+			// despite the fact we are in the shape tool, we use the ctrl key
+			// to indicate that we are creating a shape.
+			// We fire the keyDown event on the document to simulate the ctrl
+			// key being held down. We do this because the pane reads the
+			// key from a state variable that is updated when the keyDown event
+			// is fired on the document.
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, {
+				clientX: beforeX,
+				clientY: beforeY,
+				buttons: 1
+			});
 
-			fireEvent.click(option);
+			fireEvent.mouseMove(document, {
+				clientX: afterX,
+				clientY: afterY,
+				buttons: 1
+			});
+
+			fireEvent.mouseUp(document);
 
 			const elements = screen.queryAllByTestId("element");
 
@@ -488,27 +448,46 @@ describe("Canvas Interactive Functionality", () => {
 			expect(rect).toBeInTheDocument();
 			expect(rect).toHaveAttribute("data-focused", "false");
 
+			// We're not making the shape anymore, so we release the ctrl key.
+			// This will enable us to select the element.
+			fireEvent.keyUp(document, { ctrlKey: false });
+
 			vi.spyOn(rect, "getBoundingClientRect").mockReturnValue({
 				x: 270,
-				y: 484,
+				y: 350,
 				width: 100,
 				height: 100,
-				top: 484,
+				top: 350,
 				right: 370,
-				bottom: 584,
+				bottom: 540,
 				left: 270,
 				toJSON: vi.fn()
 			});
 
+			const selectRect = screen.getByTestId("selection-rect");
+			const selectRectMock = vi
+				.spyOn(selectRect, "getBoundingClientRect")
+				.mockReturnValue({
+					x: 250,
+					y: 330,
+					width: 150,
+					height: 150,
+					top: 330,
+					right: 400,
+					bottom: 480,
+					left: 250,
+					toJSON: vi.fn()
+				});
+
 			fireEvent.mouseDown(space, {
-				clientX: beforeX,
-				clientY: beforeY,
+				clientX: 250,
+				clientY: 330,
 				buttons: 1
 			});
 
 			fireEvent.mouseMove(document, {
-				clientX: afterX,
-				clientY: afterY,
+				clientX: 400,
+				clientY: 480,
 				buttons: 1
 			});
 
@@ -958,7 +937,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.mouseDown(canvas, { buttons: 1 });
 
-			expect(mockLayer.changeColor).toHaveBeenCalledWith(
+			expect(mockState.changeColor).toHaveBeenCalledWith(
 				MOCK_COLOR.toString("hsla")
 			);
 			// After the color is changed, the eye drop tool should be deactivated
@@ -968,93 +947,100 @@ describe("Canvas Interactive Functionality", () => {
 	});
 
 	describe("Element functionality", () => {
-		const exampleElementProperies = {
-			x: NaN,
-			y: NaN,
-			width: 100,
-			height: 100,
-			fill: "#000000",
-			stroke: "#000000"
-		};
-		const { x, y, width, height, left, top } = boundingClientRect;
-		const elementCenterX =
-			x + width / 2 - exampleElementProperies.width / 2 - left;
-		const elementCenterY =
-			y + height / 2 - exampleElementProperies.height / 2 - top;
-
 		it("should create a rectangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// Default shape is rectangle.
+			// Prepare to create the rectangle.
+			fireEvent.keyDown(document, { ctrlKey: true });
 
-			fireEvent.click(option);
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
 
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
+			const grids = screen.queryAllByTestId("resize-grid");
+			const [element] = elements;
+			const [grid] = grids;
 
 			expect(elements).toHaveLength(1);
-			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-type", "rectangle");
-			for (const key in exampleElementProperies) {
-				expect(elements[0]).toHaveAttribute(
-					`data-${key}`,
-					`${exampleElementProperies[key as keyof typeof exampleElementProperies]}`
-				);
-			}
+			expect(element).toBeInTheDocument();
+			expect(element).toHaveAttribute("data-type", "rectangle");
+			expect(element).toHaveAttribute("stroke", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
+			// 18 is the minimum width and height for a rectangle.
+			// Since we moved 100px to the right and 100px down, the width and height should be 118px.
+			expect(grid).toHaveStyle({
+				width: "118px",
+				height: "118px"
+			});
 		});
 
 		it("should create a circle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
+			// This time, we want to create a circle.
 			const option = screen.getByTestId("shape-circle");
 
 			fireEvent.click(option);
 
-			elements = screen.queryAllByTestId("element");
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+
+			const elements = screen.queryAllByTestId("element");
+			const grids = screen.queryAllByTestId("resize-grid");
+			const [element] = elements;
+			const [grid] = grids;
 
 			expect(elements).toHaveLength(1);
-			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-type", "circle");
-			for (const key in exampleElementProperies) {
-				expect(elements[0]).toHaveAttribute(
-					`data-${key}`,
-					`${exampleElementProperies[key as keyof typeof exampleElementProperies]}`
-				);
-			}
+			expect(element).toBeInTheDocument();
+			expect(element).toHaveAttribute("data-type", "circle");
+			expect(element).toHaveAttribute("stroke", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
+			expect(grid).toHaveStyle({
+				width: "118px",
+				height: "118px"
+			});
 		});
 
 		it("should create a triangle", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
+			// This time, we want to create a triangle.
 			const option = screen.getByTestId("shape-triangle");
 
 			fireEvent.click(option);
 
-			elements = screen.queryAllByTestId("element");
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+
+			const elements = screen.queryAllByTestId("element");
+			const grids = screen.queryAllByTestId("resize-grid");
+			const [element] = elements;
+			const [grid] = grids;
 
 			expect(elements).toHaveLength(1);
-			expect(elements[0]).toBeInTheDocument();
-			expect(elements[0]).toHaveAttribute("data-type", "triangle");
-			for (const key in exampleElementProperies) {
-				expect(elements[0]).toHaveAttribute(
-					`data-${key}`,
-					`${exampleElementProperies[key as keyof typeof exampleElementProperies]}`
-				);
-			}
+			expect(element).toBeInTheDocument();
+			expect(element).toHaveAttribute("data-type", "triangle");
+			expect(element).toHaveAttribute("stroke", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
+			expect(grid).toHaveStyle({
+				width: "118px",
+				height: "118px"
+			});
 		});
 
 		it.skip("should create a text element", () => {
@@ -1158,17 +1144,19 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should focus an element on mouse down", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 
 			expect(elements).toHaveLength(1);
 
@@ -1185,15 +1173,19 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should lose focus after clicking off the element", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 
-			expect(elements).toHaveLength(0);
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
@@ -1211,20 +1203,31 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should switch focus between different elements", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 
-			expect(elements).toHaveLength(0);
 			fireEvent.click(shapeTool);
 
-			const rectOption = screen.getByTestId("shape-rectangle");
 			const circleOption = screen.getByTestId("shape-circle");
 
-			fireEvent.click(rectOption);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			elements = screen.queryAllByTestId("element");
+			let elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			fireEvent.click(circleOption);
+
+			// START: Create a circle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 400, clientY: 400 });
+			fireEvent.mouseMove(document, { clientX: 500, clientY: 500, buttons: 1 });
+			fireEvent.mouseUp(document);
+			// END: Create a circle
 
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(2);
@@ -1250,9 +1253,8 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should select multiple elements with ctrl key", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
+			const space = screen.getByTestId("canvas-container");
 			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
 
 			fireEvent.click(shapeTool);
 
@@ -1263,9 +1265,28 @@ describe("Canvas Interactive Functionality", () => {
 
 				fireEvent.click(option);
 
+				// START: Create a shape
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
+				// END: Create a shape
+
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
 			}
+
+			fireEvent.keyDown(document, { ctrlKey: true });
+
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const [rectGrid, circleGrid, triangleGrid] = resizeGrids;
 			const [rect, circle, triangle] = elements;
@@ -1276,14 +1297,12 @@ describe("Canvas Interactive Functionality", () => {
 			expect(circle).toHaveAttribute("data-focused", "false");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(document, { ctrlKey: true });
 			fireEvent.focus(circleGrid);
 
 			expect(rect).toHaveAttribute("data-focused", "true");
 			expect(circle).toHaveAttribute("data-focused", "true");
 			expect(triangle).toHaveAttribute("data-focused", "false");
 
-			fireEvent.mouseDown(document, { ctrlKey: true });
 			fireEvent.focus(triangleGrid);
 
 			expect(
@@ -1303,17 +1322,19 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should delete an element with the delete key", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			let elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
@@ -1333,17 +1354,19 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should delete an element with the backspace key", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			let elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
@@ -1363,17 +1386,19 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should not delete an element with the delete key if no element is focused", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
+			const space = screen.getByTestId("canvas-container");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			let elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			fireEvent.keyDown(document, { key: "Delete" });
@@ -1385,9 +1410,8 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should delete multiple elements", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
+			const space = screen.getByTestId("canvas-container");
 			let elements = screen.queryAllByTestId("element");
-
-			expect(elements).toHaveLength(0);
 
 			fireEvent.click(shapeTool);
 
@@ -1397,6 +1421,21 @@ describe("Canvas Interactive Functionality", () => {
 				const option = screen.getByTestId(`shape-${shapes[i]}`);
 
 				fireEvent.click(option);
+
+				// START: Create a shape
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
@@ -1423,20 +1462,26 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should copy and paste an element", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 
-			expect(elements).toHaveLength(0);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			let elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
-			const resizeGrids = screen.getAllByTestId("resize-grid");
+			let resizeGrids = screen.getAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
 			const element = elements[0];
 
@@ -1451,33 +1496,43 @@ describe("Canvas Interactive Functionality", () => {
 			elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(2);
 
-			const [element1, element2] = elements;
-			const el1X = Number(element1.getAttribute("data-x"));
-			const el1Y = Number(element1.getAttribute("data-y"));
-			const el1Width = element1.getAttribute("data-width");
-			const el1Height = element1.getAttribute("data-height");
+			resizeGrids = screen.getAllByTestId("resize-grid");
+			const [grid1, grid2] = resizeGrids;
 
-			expect(element2).toHaveAttribute("data-x", (el1X + 10).toString());
-			expect(element2).toHaveAttribute("data-y", (el1Y + 10).toString());
-			expect(element2).toHaveAttribute("data-width", el1Width);
-			expect(element2).toHaveAttribute("data-height", el1Height);
+			const element1X = 300 - boundingClientRect.x;
+			const element1Y = 300 - boundingClientRect.y;
+			expect(grid1).toHaveStyle({
+				left: `${element1X}px`,
+				top: `${element1Y}px`,
+				width: "118px",
+				height: "118px"
+			});
+			expect(grid2).toHaveStyle({
+				left: `${element1X + 10}px`,
+				top: `${element1Y + 10}px`,
+				width: "118px",
+				height: "118px"
+			});
 		});
 
 		it("should change the fill color of an element through hex field", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 			let pickerButton = screen.queryByTestId("fill-picker-button");
 
-			expect(elements).toHaveLength(0);
 			expect(pickerButton).not.toBeInTheDocument();
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
@@ -1504,30 +1559,33 @@ describe("Canvas Interactive Functionality", () => {
 			const colorField = colorFieldDiv.lastChild;
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-fill", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
 
 			fireEvent.change(colorField as Node, { target: { value: color } });
 
 			// Color field is automatically converted to uppercase.
 			// So, we need to convert the color to uppercase to compare.
-			expect(element).toHaveAttribute("data-fill", color.toUpperCase());
+			expect(element).toHaveAttribute("fill", color.toUpperCase());
 		});
 
 		it("should change the border color of an element through hex field", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 			let pickerButton = screen.queryByTestId("stroke-picker-button");
 
-			expect(elements).toHaveLength(0);
 			expect(pickerButton).not.toBeInTheDocument();
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
@@ -1554,30 +1612,33 @@ describe("Canvas Interactive Functionality", () => {
 			const colorField = colorFieldDiv.lastChild;
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-stroke", "#000000");
+			expect(element).toHaveAttribute("stroke", "#000000");
 
 			fireEvent.change(colorField as Node, { target: { value: color } });
 
 			// Color field is automatically converted to uppercase.
 			// So, we need to convert the color to uppercase to compare.
-			expect(element).toHaveAttribute("data-stroke", color.toUpperCase());
+			expect(element).toHaveAttribute("stroke", color.toUpperCase());
 		});
 
 		it("should change fill color through color area", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 			let pickerButton = screen.queryByTestId("fill-picker-button");
 
-			expect(elements).toHaveLength(0);
 			expect(pickerButton).not.toBeInTheDocument();
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 			expect(elements).toHaveLength(1);
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
@@ -1602,20 +1663,20 @@ describe("Canvas Interactive Functionality", () => {
 			const colorArea = screen.getByTestId("picker-area");
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-fill", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
 
 			// The color area should change the fill color of the element.
 			fireEvent.click(colorArea);
 
-			expect(element).toHaveAttribute("data-fill", color.toUpperCase());
+			expect(element).toHaveAttribute("fill", color.toUpperCase());
 		});
 
 		it("should change the fill color for multiple focused elements", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
+			const space = screen.getByTestId("canvas-container");
 			let elements = screen.queryAllByTestId("element");
 			let pickerButton = screen.queryByTestId("fill-picker-button");
 
-			expect(elements).toHaveLength(0);
 			expect(pickerButton).not.toBeInTheDocument();
 			fireEvent.click(shapeTool);
 
@@ -1625,6 +1686,21 @@ describe("Canvas Interactive Functionality", () => {
 				const option = screen.getByTestId(`shape-${shapes[i]}`);
 
 				fireEvent.click(option);
+
+				// START: Create a shape
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
 
 				elements = screen.queryAllByTestId("element");
 				expect(elements).toHaveLength(i + 1);
@@ -1661,7 +1737,7 @@ describe("Canvas Interactive Functionality", () => {
 			// Default color is black.
 			expect(
 				elements.every(
-					(element) => element.getAttribute("data-fill") === "#000000"
+					(element) => element.getAttribute("fill") === "hsla(0, 0%, 0%, 1)"
 				)
 			).toBe(true);
 
@@ -1669,24 +1745,28 @@ describe("Canvas Interactive Functionality", () => {
 
 			expect(
 				elements.every(
-					(element) => element.getAttribute("data-fill") === color.toUpperCase()
+					(element) => element.getAttribute("fill") === color.toUpperCase()
 				)
 			).toBe(true);
 		});
 
 		it("should update a layer preview after closing the popover", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 			let pickerButton = screen.queryByTestId("fill-picker-button");
 			const dispatchEventSpy = vi.spyOn(document, "dispatchEvent");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1710,12 +1790,12 @@ describe("Canvas Interactive Functionality", () => {
 			const colorArea = screen.getByTestId("picker-area");
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-fill", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
 
 			// The color area should change the fill color of the element.
 			fireEvent.click(colorArea);
 
-			expect(element).toHaveAttribute("data-fill", color.toUpperCase());
+			expect(element).toHaveAttribute("fill", color.toUpperCase());
 
 			// Click outside the popover to close it.
 			fireEvent.click(pickerButton);
@@ -1731,17 +1811,21 @@ describe("Canvas Interactive Functionality", () => {
 
 		it("should not update the preview if the color hasn't changed", () => {
 			const shapeTool = screen.getByTestId("tool-shapes");
-			let elements = screen.queryAllByTestId("element");
+			const space = screen.getByTestId("canvas-container");
 			let pickerButton = screen.queryByTestId("fill-picker-button");
 			const dispatchEventSpy = vi.spyOn(document, "dispatchEvent");
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			elements = screen.queryAllByTestId("element");
+			const elements = screen.queryAllByTestId("element");
 
 			const resizeGrids = screen.getAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1762,7 +1846,7 @@ describe("Canvas Interactive Functionality", () => {
 			expect(popover).toBeInTheDocument();
 
 			// Default color is black.
-			expect(element).toHaveAttribute("data-fill", "#000000");
+			expect(element).toHaveAttribute("fill", "hsla(0, 0%, 0%, 1)");
 
 			// Click outside the popover to close it.
 			fireEvent.click(pickerButton);
@@ -1786,8 +1870,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1818,15 +1907,12 @@ describe("Canvas Interactive Functionality", () => {
 				buttons: 1
 			});
 
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX,
-				elementCenterY - 50,
-				exampleElementProperies.width,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x}px`,
+				top: `${300 - boundingClientRect.y - 50}px`,
+				width: "118px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -1840,8 +1926,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1871,15 +1962,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 100,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX,
-				elementCenterY,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x}px`,
+				top: `${300 - boundingClientRect.y}px`,
+				width: "168px",
+				height: "118px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -1893,8 +1981,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1924,15 +2017,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 550,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX,
-				elementCenterY,
-				exampleElementProperies.width,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x}px`,
+				top: `${300 - boundingClientRect.y}px`,
+				width: "118px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -1946,8 +2036,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -1977,15 +2072,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 100,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX - 50,
-				elementCenterY,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x - 50}px`,
+				top: `${300 - boundingClientRect.y}px`,
+				width: "168px",
+				height: "118px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -1999,8 +2091,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -2030,15 +2127,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 50,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX,
-				elementCenterY - 50,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x}px`,
+				top: `${300 - boundingClientRect.y - 50}px`,
+				width: "168px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -2052,8 +2146,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 			const resizeGrid = resizeGrids[0];
@@ -2083,15 +2182,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 50,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX - 50,
-				elementCenterY - 50,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x - 50}px`,
+				top: `${300 - boundingClientRect.y - 50}px`,
+				width: "168px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -2105,9 +2201,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
@@ -2138,15 +2238,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 550,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX,
-				elementCenterY,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x}px`,
+				top: `${300 - boundingClientRect.y}px`,
+				width: "168px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -2160,9 +2257,13 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
@@ -2193,15 +2294,12 @@ describe("Canvas Interactive Functionality", () => {
 				clientY: 550,
 				buttons: 1
 			});
-			const { left, top, width, height } = resizeGrid.style;
-			const stripped = stripUnits([left, top, width, height], "px");
-
-			expect(stripped).toEqual([
-				elementCenterX - 50,
-				elementCenterY,
-				exampleElementProperies.width + 50,
-				exampleElementProperies.height + 50
-			]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x - 50}px`,
+				top: `${300 - boundingClientRect.y}px`,
+				width: "168px",
+				height: "168px"
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -2216,44 +2314,38 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
-
-			expect(element).toHaveAttribute("data-x", "NaN");
-			expect(element).toHaveAttribute("data-y", "NaN");
 
 			fireEvent.click(moveTool);
 
-			const pointerX = 100;
-			const pointerY = 100;
-
 			fireEvent.mouseDown(space, {
-				clientX: pointerX,
-				clientY: pointerY,
+				clientX: 100,
+				clientY: 100,
 				buttons: 1
 			});
 
 			fireEvent.mouseMove(document, {
-				clientX: pointerX + 100,
-				clientY: pointerY + 100,
+				clientX: 200,
+				clientY: 200,
 				buttons: 1
 			});
 
 			fireEvent.mouseUp(document);
 
-			const { left, top } = resizeGrid.style;
-			const stripped = stripUnits([left, top], "px");
-
-			// The values are NaN, so we need to calculate the center of the space and
-			// then apply the 100 offset to the x and y values.
-			expect(stripped).toEqual([elementCenterX + 100, elementCenterY + 100]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x + 100}px`,
+				top: `${300 - boundingClientRect.y + 100}px`
+			});
 			expect(boundingRectMock).toHaveBeenCalled();
 		});
 
@@ -2261,69 +2353,46 @@ describe("Canvas Interactive Functionality", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
 
-			const boundingRectMock = vi
-				.spyOn(space, "getBoundingClientRect")
-				.mockReturnValue(boundingClientRect);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
-			fireEvent.click(option);
-
-			const elements = screen.queryAllByTestId("element");
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
-
-			const element = elements[0];
 			const resizeGrid = resizeGrids[0];
-
-			expect(element).toHaveAttribute("data-x", "NaN");
-			expect(element).toHaveAttribute("data-y", "NaN");
 
 			fireEvent.focus(resizeGrid, { buttons: 1 });
 
-			expect(element).toHaveAttribute("data-focused", "true");
-
-			let pointerX = 100;
-			let pointerY = 100;
-
-			fireEvent.mouseMove(document, {
-				clientX: pointerX,
-				clientY: pointerY,
+			fireEvent.mouseDown(resizeGrid, {
+				clientX: 350,
+				clientY: 350,
 				buttons: 1
 			});
 
-			let { left, top } = resizeGrid.style;
-			let stripped = stripUnits([left, top], "px");
-
-			// Since the values are NaN, the element should be centered at the pointer.
-			// x: pointerX - boundingClientRect.left - exampleElementProperies.width / 2
-			// y: pointerY - boundingClientRect.top - exampleElementProperies.height / 2
-			// x: 100 - 50 - 50 = 0
-			// y: 100 - 64 - 50 = -14
-			expect(stripped).toEqual([0, -14]);
-			expect(boundingRectMock).toHaveBeenCalled();
-
-			pointerX = 200;
-			pointerY = 200;
-
 			fireEvent.mouseMove(document, {
-				clientX: pointerX,
-				clientY: pointerY,
+				clientX: 450,
+				clientY: 450,
 				buttons: 1
 			});
 
 			// From now on, the x and y values should be changed based
 			// on dx and dy values.
-
-			({ left, top } = resizeGrid.style);
-			stripped = stripUnits([left, top], "px");
-
 			// dx: 100
 			// dy: 100
-			// x: 0 + 100 = 100
-			// y: -14 + 100 = 86
-			expect(stripped).toEqual([100, 86]);
+
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x + 100}px`,
+				top: `${300 - boundingClientRect.y + 100}px`
+			});
 		});
 
 		it("should directly move multiple selected elements", () => {
@@ -2346,72 +2415,150 @@ describe("Canvas Interactive Functionality", () => {
 
 				fireEvent.click(option);
 
+				// START: Create a rectangle
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
+
 				grids = screen.queryAllByTestId("resize-grid");
 				expect(grids).toHaveLength(i + 1);
-
-				fireEvent.focus(grids[i], { ctrlKey: true, buttons: 1 });
 			}
 
-			const pointerX = 100;
-			const pointerY = 100;
+			for (const grid of grids) {
+				fireEvent.focus(grid, { buttons: 1 });
+			}
+
+			fireEvent.mouseDown(grids[0], {
+				clientX: 350,
+				clientY: 350,
+				buttons: 1,
+				ctrlKey: true
+			});
 
 			fireEvent.mouseMove(document, {
-				clientX: pointerX,
-				clientY: pointerY,
+				clientX: 450,
+				clientY: 450,
+				buttons: 1,
+				ctrlKey: true
+			});
+
+			for (let i = 0; i < grids.length; i++) {
+				expect(grids[i]).toHaveStyle({
+					left: `${300 + 100 * i - boundingClientRect.x + 100}px`,
+					top: `${300 + 100 * i - boundingClientRect.y + 100}px`
+				});
+			}
+		});
+
+		it("should not move multiple elements but create a shape", () => {
+			const space = screen.getByTestId("canvas-container");
+			const shapeTool = screen.getByTestId("tool-shapes");
+			let grids = screen.queryAllByTestId("resize-grid");
+
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
+
+			expect(grids).toHaveLength(0);
+
+			fireEvent.click(shapeTool);
+
+			const shapes = ["rectangle", "circle", "triangle"];
+
+			for (let i = 0; i < shapes.length; i++) {
+				const option = screen.getByTestId(`shape-${shapes[i]}`);
+
+				fireEvent.click(option);
+
+				// START: Create a shape
+				fireEvent.keyDown(document, { ctrlKey: true });
+				fireEvent.mouseDown(space, {
+					buttons: 1,
+					clientX: 300 + 100 * i,
+					clientY: 300 + 100 * i
+				});
+				fireEvent.mouseMove(document, {
+					clientX: 400 + 100 * i,
+					clientY: 400 + 100 * i,
+					buttons: 1
+				});
+				fireEvent.mouseUp(document);
+				fireEvent.keyUp(document, { ctrlKey: false });
+				// END: Create a shape
+
+				grids = screen.queryAllByTestId("resize-grid");
+				expect(grids).toHaveLength(i + 1);
+			}
+
+			for (const grid of grids) {
+				fireEvent.focus(grid, { buttons: 1 });
+			}
+
+			fireEvent.keyDown(document, { ctrlKey: true });
+
+			fireEvent.mouseDown(space, {
+				clientX: 350,
+				clientY: 350,
 				buttons: 1
 			});
 
-			for (const grid of grids) {
-				expect(grid).toHaveStyle("left: 0px; top: -14px");
-			}
-
 			fireEvent.mouseMove(document, {
-				clientX: 200,
-				clientY: 200,
+				clientX: 450,
+				clientY: 450,
 				buttons: 1
 			});
+			fireEvent.mouseUp(document);
 
-			for (const grid of grids) {
-				expect(grid).toHaveStyle("left: 100px; top: 86px");
+			const newGrids = screen.queryAllByTestId("resize-grid");
+
+			expect(newGrids).toHaveLength(4);
+
+			// The first three elements should not move.
+			for (let i = 0; i < newGrids.length - 1; i++) {
+				expect(newGrids[i]).toHaveStyle({
+					left: `${300 + 100 * i - boundingClientRect.x}px`,
+					top: `${300 + 100 * i - boundingClientRect.y}px`
+				});
 			}
+
+			// The last element should be created.
+			expect(newGrids[3]).toHaveStyle({
+				left: `${350 - boundingClientRect.x}px`,
+				top: `${350 - boundingClientRect.y}px`
+			});
 		});
 
 		it("should move an element in the direction of the window resize", () => {
 			const space = screen.getByTestId("canvas-container");
 			const shapeTool = screen.getByTestId("tool-shapes");
 
-			const boundingRectMock = vi
-				.spyOn(space, "getBoundingClientRect")
-				.mockReturnValue(boundingClientRect);
+			vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+				boundingClientRect
+			);
 
 			fireEvent.click(shapeTool);
 
-			const option = screen.getByTestId("shape-rectangle");
-
-			fireEvent.click(option);
+			// START: Create a rectangle
+			fireEvent.keyDown(document, { ctrlKey: true });
+			fireEvent.mouseDown(space, { buttons: 1, clientX: 300, clientY: 300 });
+			fireEvent.mouseMove(document, { clientX: 400, clientY: 400, buttons: 1 });
+			fireEvent.mouseUp(document);
+			fireEvent.keyUp(document, { ctrlKey: false });
+			// END: Create a rectangle
 
 			const resizeGrids = screen.queryAllByTestId("resize-grid");
 
 			const resizeGrid = resizeGrids[0];
-
-			fireEvent.focus(resizeGrid, { buttons: 1 });
-
-			fireEvent.mouseMove(document, {
-				clientX: 100,
-				clientY: 100,
-				buttons: 1
-			});
-
-			let { left, top } = resizeGrid.style;
-			let stripped = stripUnits([left, top], "px");
-
-			// Since the values are NaN, the element should be centered at the pointer.
-			// x: pointerX - boundingClientRect.left - exampleElementProperies.width / 2
-			// y: pointerY - boundingClientRect.top - exampleElementProperies.height / 2
-			// x: 100 - 50 - 50 = 0
-			// y: 100 - 64 - 50 = -14
-			expect(stripped).toEqual([0, -14]);
-			expect(boundingRectMock).toHaveBeenCalled();
 
 			// Note: Default window size is 1024 x 768.
 			fireEvent.resize(window, {
@@ -2421,10 +2568,10 @@ describe("Canvas Interactive Functionality", () => {
 			// The element should move in the direction of the window resize.
 			// dx: -224
 			// dy: 32
-			({ left, top } = resizeGrid.style);
-			stripped = stripUnits([left, top], "px");
-
-			expect(stripped).toEqual([-224, 18]);
+			expect(resizeGrid).toHaveStyle({
+				left: `${300 - boundingClientRect.x - 224}px`,
+				top: `${300 - boundingClientRect.y + 32}px`
+			});
 		});
 	});
 });

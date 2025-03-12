@@ -3,21 +3,18 @@ import {
 	it,
 	expect,
 	vi,
+	beforeEach,
 	afterEach,
-	afterAll,
-	beforeAll
+	afterAll
 } from "vitest";
-import { screen, fireEvent, act } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
-import * as Utils from "../../utils";
 
 import { Page } from "../../pages/index/index.page";
 import { SliceStores } from "../../types";
+import * as useIndexed from "../../state/hooks/useIndexed";
 
 describe("Page", () => {
-	const generateImageSpy = vi
-		.spyOn(Utils, "generateCanvasImage")
-		.mockResolvedValue(new Blob());
 	const mockState: Partial<SliceStores> = {
 		layers: [
 			{
@@ -28,10 +25,20 @@ describe("Page", () => {
 			}
 		]
 	};
+	const indexedGetMock = vi.fn();
+	const indexedSetMock = vi.fn();
+	const indexedDeleteMock = vi.fn();
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 
-	beforeAll(() => {
+	beforeEach(() => {
+		renderWithProviders(<Page />, { preloadedState: mockState });
+		vi.spyOn(useIndexed, "default").mockReturnValue({
+			get: indexedGetMock,
+			set: indexedSetMock,
+			remove: indexedDeleteMock
+		});
+
 		originalCreateObjectURL = URL.createObjectURL;
 		originalRevokeObjectURL = URL.revokeObjectURL;
 		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
@@ -43,132 +50,114 @@ describe("Page", () => {
 	});
 
 	afterAll(() => {
+		vi.restoreAllMocks();
+
 		URL.createObjectURL = originalCreateObjectURL;
 		URL.revokeObjectURL = originalRevokeObjectURL;
-		vi.restoreAllMocks();
 	});
 
 	it("should render the page", () => {
-		renderWithProviders(<Page />, { preloadedState: mockState });
-
 		expect(screen.getByTestId("nav-bar")).toBeInTheDocument();
 		expect(screen.getByTestId("main-content")).toBeInTheDocument();
 	});
 
-	describe("Exporting Canvas functionality", () => {
-		it("should export an image with no elements", async () => {
-			renderWithProviders(<Page />, { preloadedState: mockState });
+	it("should get the layers and elements from IndexedDB", () => {
+		const [call1, call2] = indexedGetMock.mock.calls;
 
-			const createObjectURLSpy = vi.spyOn(URL, "createObjectURL");
-			const revokeObjectURLSpy = vi.spyOn(URL, "revokeObjectURL");
-			const exportButton = screen.getByTestId("export-button");
-			const exportLink = screen.getByTestId("export-link") as HTMLAnchorElement;
-			const exportLinkClickSpy = vi.spyOn(exportLink, "click");
+		expect(call1).toEqual(["layers"]);
+		expect(call2).toEqual(["elements", "items"]);
+	});
 
-			const canvases = mockState.layers!.map((layer) => {
-				const canvas = document.createElement("canvas");
-				canvas.width = 400;
-				canvas.height = 400;
-				canvas.id = layer.id;
-				canvas.className = "canvas " + (layer.active ? "active" : "");
-				canvas.setAttribute("data-name", layer.name);
-				canvas.setAttribute("data-dpi", "1");
-				canvas.setAttribute("data-scale", "1");
-				canvas.setAttribute("data-testid", "canvas-layer");
-				canvas.style.width = "400px";
-				canvas.style.height = "400px";
-				canvas.style.transform = "translate(0px, 0px) scale(1)";
-
-				return canvas;
-			});
-
-			await act(async () => {
-				fireEvent.click(exportButton);
-			});
-
-			expect(generateImageSpy).toHaveBeenCalledWith(
-				canvases,
-				// Not really a straightforward way to expect an ArrayLike object.
-				// This is the way I found that works.
-				expect.objectContaining({
-					length: 0
-				}),
-				1,
-				true
-			);
-			expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
-			expect(exportLink).toHaveAttribute("href", "blob://localhost:3000/1234");
-			expect(exportLink).toHaveAttribute("download", "canvas.png");
-			expect(exportLinkClickSpy).toHaveBeenCalled();
-			expect(revokeObjectURLSpy).toHaveBeenCalledWith(
-				"blob://localhost:3000/1234"
-			);
-		});
-
-		it("should export an image with elements", async () => {
-			renderWithProviders(<Page />, {
-				preloadedState: {
-					...mockState,
-					elements: [
-						{
-							id: "123",
-							type: "rectangle",
-							x: 0,
-							y: 0,
-							width: 100,
-							height: 100,
-							fill: "#000",
-							stroke: "#000",
-							layerId: "123",
-							focused: false
-						}
-					]
+	it("should update the canvas with existing layers from IndexedDB", () => {
+		indexedGetMock.mockReturnValueOnce([
+			[
+				"123",
+				{
+					id: "123",
+					name: "Layer 1",
+					image: new Blob(),
+					position: 0
 				}
-			});
+			]
+		]);
 
-			const createObjectURLSpy = vi.spyOn(URL, "createObjectURL");
-			const revokeObjectURLSpy = vi.spyOn(URL, "revokeObjectURL");
-			const exportButton = screen.getByTestId("export-button");
-			const exportLink = screen.getByTestId("export-link") as HTMLAnchorElement;
-			const exportLinkClickSpy = vi.spyOn(exportLink, "click");
+		// Verify that the layer is being added to the canvas
 
-			const canvases = mockState.layers!.map((layer) => {
-				const canvas = document.createElement("canvas");
-				canvas.width = 400;
-				canvas.height = 400;
-				canvas.id = layer.id;
-				canvas.className = "canvas " + (layer.active ? "active" : "");
-				canvas.setAttribute("data-name", layer.name);
-				canvas.setAttribute("data-dpi", "1");
-				canvas.setAttribute("data-scale", "1");
-				canvas.setAttribute("data-testid", "canvas-layer");
-				canvas.style.width = "400px";
-				canvas.style.height = "400px";
-				canvas.style.transform = "translate(0px, 0px) scale(1)";
+		const layer = screen.getByTestId("canvas-layer");
+		expect(layer).toBeInTheDocument();
+		expect(layer).toHaveAttribute("id", "123");
+		expect(layer).toHaveAttribute("data-name", "Layer 1");
+	});
 
-				return canvas;
-			});
+	it("should set the layers in IndexedDB when saving", async () => {
+		// Setting elements in the preloaded state actually doesn't work, as
+		// the elements are not being set in the IndexedDB. When
+		// the elements are being set on first render, the elements are empty,
+		// overridding the preloaded state. This is why we have to create
+		// an element in the test itself.
+		const boundingClientRect: DOMRect = {
+			x: 50,
+			y: 64,
+			width: 1364,
+			height: 939,
+			top: 64,
+			right: 1414,
+			bottom: 1003,
+			left: 50,
+			toJSON: vi.fn()
+		};
 
-			await act(async () => {
-				fireEvent.click(exportButton);
-			});
+		// Create an element
+		const space = screen.getByTestId("canvas-container");
+		const shapeTool = screen.getByTestId("tool-shapes");
 
-			expect(generateImageSpy).toHaveBeenCalledWith(
-				canvases,
-				expect.objectContaining({
-					0: expect.any(SVGElement),
-					length: 1
-				}),
-				1,
-				true
-			);
-			expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
-			expect(exportLink).toHaveAttribute("href", "blob://localhost:3000/1234");
-			expect(exportLink).toHaveAttribute("download", "canvas.png");
-			expect(exportLinkClickSpy).toHaveBeenCalled();
-			expect(revokeObjectURLSpy).toHaveBeenCalledWith(
-				"blob://localhost:3000/1234"
-			);
+		vi.spyOn(space, "getBoundingClientRect").mockReturnValue(
+			boundingClientRect
+		);
+
+		fireEvent.click(shapeTool);
+
+		// Create a rectangle
+		fireEvent.keyDown(document, { ctrlKey: true });
+		fireEvent.mouseDown(space, { buttons: 1, clientX: 100, clientY: 100 });
+		fireEvent.mouseMove(document, { buttons: 1, clientX: 200, clientY: 200 });
+		fireEvent.mouseUp(document);
+		fireEvent.keyUp(document, { ctrlKey: false });
+
+		fireEvent.keyDown(document, { key: "s", ctrlKey: true }); // Shortcut to save the layers
+		const [layer] = mockState.layers!;
+
+		await vi.waitFor(() => {
+			const [call1, call2] = indexedSetMock.mock.calls;
+
+			expect(call1).toEqual([
+				"layers",
+				layer.id,
+				{
+					id: layer.id,
+					name: layer.name,
+					image: expect.any(Blob),
+					position: 0
+				}
+			]);
+
+			expect(call2).toEqual([
+				"elements",
+				"items",
+				[
+					{
+						id: expect.any(String),
+						layerId: expect.any(String),
+						type: "rectangle",
+						x: 100,
+						y: 100,
+						width: 118,
+						height: 118,
+						fill: "hsla(0, 0%, 0%, 1)",
+						stroke: "#000000"
+					}
+				]
+			]);
 		});
 	});
 });

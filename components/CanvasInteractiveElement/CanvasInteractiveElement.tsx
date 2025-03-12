@@ -6,25 +6,21 @@ import useStore from "../../state/hooks/useStore";
 import useStoreSubscription from "../../state/hooks/useStoreSubscription";
 
 // Types
-import type {
-	Coordinates,
-	ResizePosition,
-	CanvasElement,
-	CanvasElementType
-} from "../../types";
+import type { Coordinates, ResizePosition, CanvasElement } from "../../types";
 import type { FC, ReactElement, RefObject } from "react";
 
 // Components
 import ResizeGrid from "../ResizeGrid/ResizeGrid";
 import ElementTextField from "../ElementTextField/ElementTextField";
 
-type ShapeElementProps = CanvasElement & {
+type CanvasInteractiveElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;
 	isSelecting: RefObject<boolean>;
+	isCreatingElement: boolean;
 	clientPosition: RefObject<Coordinates>;
 };
 
-const ShapeElement: FC<ShapeElementProps> = ({
+const CanvasInteractiveElement: FC<CanvasInteractiveElementProps> = ({
 	canvasSpaceReference,
 	type,
 	width,
@@ -38,6 +34,7 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	id,
 	layerId,
 	isSelecting,
+	isCreatingElement,
 	clientPosition
 }) => {
 	const layers = useStore((state) => state.layers);
@@ -47,26 +44,18 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	const startPos = useRef<Coordinates>({ x: 0, y: 0 });
 	const activeLayer = layers.find((layer) => layer.active);
 	let sLeft = NaN,
-		sTop = NaN,
-		sWidth = NaN,
-		sHeight = NaN;
+		sTop = NaN;
 
 	if (!activeLayer) {
 		throw new Error("No active layer found. This is a bug.");
 	}
 
 	if (canvasSpaceReference.current) {
-		const {
-			left: l,
-			top: t,
-			width: w,
-			height: h
-		} = canvasSpaceReference.current.getBoundingClientRect();
+		const { left: l, top: t } =
+			canvasSpaceReference.current.getBoundingClientRect();
 
 		sLeft = l;
 		sTop = t;
-		sWidth = w;
-		sHeight = h;
 	}
 
 	let jsx: ReactElement;
@@ -144,8 +133,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				"data-resizing"
 			) as ResizePosition | null;
 
-			const { left, top, width, height } = canvasSpace.getBoundingClientRect();
-
 			const focusedIds = Array.prototype.filter
 				.call(
 					document.getElementsByClassName("element"),
@@ -154,8 +141,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				.map((element: Element) => element.id);
 
 			if (resizePos !== null) {
-				const pointerX = e.clientX - left;
-				const pointerY = e.clientY - top;
+				const pointerX = e.clientX;
+				const pointerY = e.clientY;
 
 				changeElementProperties(
 					(state) => {
@@ -168,17 +155,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 						// is back into resizing limits, the element can be resized again.
 						// This is supposed to ensure that the element resize handle "follows"
 						// the cursor even when the cursor is outside the element.
-
-						// If the x or y is NaN, we set it to the center of the space.
-						// Dev note: `left` and `top` are being subtracted to
-						// account for the canvas space's left and top properties.
-						if (isNaN(newState.x)) {
-							newState.x = left + width / 2 - newState.width / 2 - left;
-						}
-
-						if (isNaN(newState.y)) {
-							newState.y = top + height / 2 - newState.height / 2 - top;
-						}
 
 						switch (resizePos) {
 							case "nw": {
@@ -360,34 +336,23 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				const element = document.getElementById(id);
 				if (!element) return;
 
-				const type = element.getAttribute("data-type") as CanvasElementType;
 				const isEditing = element.getAttribute("data-isediting") === "true";
 
 				if (type === "text" && isEditing) {
 					return;
 				}
 
+				if (isCreatingElement) {
+					unfocusElement(id);
+					return;
+				}
+
 				changeElementProperties(
-					(state) => {
-						let { x, y } = state;
-						const { width, height } = state;
-						// We subtract each coordinate by half of the width and height
-						// to get the cursor to appear in the middle of the element
-
-						if (isNaN(x)) {
-							x = clientPosition.current.x - left - width / 2;
-						}
-
-						if (isNaN(y)) {
-							y = clientPosition.current.y - top - height / 2;
-						}
-
-						return {
-							...state,
-							x: x + deltaX,
-							y: y + deltaY
-						};
-					},
+					(state) => ({
+						...state,
+						x: state.x + deltaX,
+						y: state.y + deltaY
+					}),
 					...focusedIds
 				);
 			}
@@ -447,15 +412,17 @@ const ShapeElement: FC<ShapeElementProps> = ({
 		updateMovingState,
 		movingElement,
 		clientPosition,
-		getActiveLayer
+		getActiveLayer,
+		type,
+		isCreatingElement
 	]);
 
 	if (type === "text" && text !== undefined) {
 		return (
 			<ResizeGrid
 				ref={ref}
-				x={x}
-				y={y}
+				x={x - (sLeft || 0)}
+				y={y - (sTop || 0)}
 				width={width}
 				height={height}
 				focused={focused}
@@ -469,19 +436,6 @@ const ShapeElement: FC<ShapeElementProps> = ({
 					stroke={stroke}
 					fill={fill}
 					elementId={id}
-					data-x={x}
-					data-y={y}
-					data-width={width}
-					data-height={height}
-					data-fill={fill}
-					data-stroke={stroke}
-					data-focused={focused}
-					data-type={type}
-					data-canvas-space-left={sLeft}
-					data-canvas-space-top={sTop}
-					data-canvas-space-width={sWidth}
-					data-canvas-space-height={sHeight}
-					data-layerid={layerId}
 				/>
 			</ResizeGrid>
 		);
@@ -514,8 +468,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	return (
 		<ResizeGrid
 			ref={ref}
-			x={x}
-			y={y}
+			x={x - (sLeft || 0)}
+			y={y - (sTop || 0)}
 			elementId={id}
 			width={width}
 			height={height}
@@ -536,19 +490,8 @@ const ShapeElement: FC<ShapeElementProps> = ({
 				// Below is so that the size of the SVG element is the same as the size of the ResizeGrid.
 				preserveAspectRatio="none"
 				viewBox="0 0 100 100"
-				data-x={x}
-				data-y={y}
-				data-type={type}
-				data-layerid={layerId}
-				data-width={width}
-				data-height={height}
-				data-fill={fill}
-				data-stroke={stroke}
 				data-focused={focused}
-				data-canvas-space-left={sLeft}
-				data-canvas-space-top={sTop}
-				data-canvas-space-width={sWidth}
-				data-canvas-space-height={sHeight}
+				data-type={type}
 			>
 				{jsx}
 			</svg>
@@ -556,4 +499,4 @@ const ShapeElement: FC<ShapeElementProps> = ({
 	);
 };
 
-export default ShapeElement;
+export default CanvasInteractiveElement;

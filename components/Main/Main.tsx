@@ -21,8 +21,16 @@ const Main: FC = () => {
 
 	useEffect(() => {
 		async function getElements() {
-			const elements = await get<CanvasElement[]>("elements", "items");
-			setElements(elements ?? []);
+			const elements = await get<Omit<CanvasElement, "focused">[]>(
+				"elements",
+				"items"
+			);
+			setElements(
+				(elements ?? []).map((e) => ({
+					...e,
+					focused: false
+				}))
+			);
 		}
 
 		getElements();

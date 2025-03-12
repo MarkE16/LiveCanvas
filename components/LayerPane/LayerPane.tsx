@@ -12,11 +12,9 @@ import "./LayerPane.styles.css";
 // Components
 import LayerInfo from "../LayerInfo/LayerInfo";
 import ColorWheel from "../ColorWheel/ColorWheel";
-import Footer from "../Footer/Footer";
 
 const MemoizedLayerInfo = memo(LayerInfo);
 const MemoizedColorWheel = memo(ColorWheel);
-const MemoizedFooter = memo(Footer);
 
 const LayerPane: FC = () => {
 	const { layers, createLayer } = useStore(
@@ -28,7 +26,7 @@ const LayerPane: FC = () => {
 	const totalLayers = layers.length;
 
 	const onNewLayer = () => createLayer();
-	
+
 	return (
 		<aside id="layer-manager-container">
 			<MemoizedColorWheel />
@@ -54,7 +52,6 @@ const LayerPane: FC = () => {
 					/>
 				))}
 			</div>
-			<MemoizedFooter />
 		</aside>
 	);
 };
