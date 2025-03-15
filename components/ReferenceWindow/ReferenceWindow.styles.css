@@ -2,7 +2,7 @@
 	--header-height: 45px;
 	--header-padding: 10px;
 	--controls-padding: 10px;
-	--controls-height: 45px;
+	--controls-height: 70px;
 }
 
 #reference-window {
@@ -14,6 +14,7 @@
 			10px
 	);
 	min-width: 300px;
+	max-height: 95%;
 	background-color: rgb(36, 36, 36);
 	border: 1px solid rgb(56, 55, 55);
 	border-radius: 5px;
@@ -64,10 +65,49 @@
 }
 
 #reference-window-controls {
+	padding: var(--controls-padding);
+	height: var(--controls-height);
+	border-top: 1px solid white;
+}
+
+#reference-window-controls > input[type="range"] {
+	width: 100%;
+}
+
+#reference-window-controls-button-group {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--controls-padding);
-	height: var(--controls-height);
-	border: 1px solid red;
+}
+
+.reference-window-controls-button {
+	background-color: transparent;
+	border: none;
+	color: white;
+	border-radius: 10px;
+	padding: 5px;
+	font-size: 0.9em;
+	margin: 0 2px;
+	cursor: pointer;
+}
+
+.reference-window-controls-button:disabled {
+	color: rgba(255, 255, 255, 0.5);
+	cursor: not-allowed;
+}
+
+.reference-window-controls-button:disabled:hover {
+	background-color: transparent;
+}
+
+.reference-window-controls-button:first-child {
+	margin-left: 0;
+}
+
+.reference-window-controls-button:last-child {
+	margin-right: 0;
+}
+
+.reference-window-controls-button:hover {
+	background-color: rgba(255, 255, 255, 0.1);
 }

@@ -29,13 +29,13 @@
 	margin-right: 0.5rem;
 }
 
-#navbar-links {
+#navbar-links > div {
 	overflow: auto;
 	white-space: nowrap;
 }
 
-#navbar-links > button {
-	margin-right: 1rem;
+#navbar-links button {
+	margin-right: 0.8rem;
 	font-size: 1.1em;
 	font-weight: 500;
 	color: #fdfdfd;
@@ -49,7 +49,7 @@
 
 #navbar-links > button:hover {
 	color: #d1836a;
-	border-bottom: 2px solid #d1836a;
+	/* border-bottom: 2px solid #d1836a; */
 }
 
 #navbar-links > button:last-child {

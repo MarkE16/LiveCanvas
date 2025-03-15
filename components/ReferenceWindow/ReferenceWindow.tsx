@@ -1,5 +1,5 @@
 // Lib
-import { useState } from "react";
+import { useState, memo } from "react";
 import { createPortal } from "react-dom";
 
 // Styles
@@ -12,10 +12,17 @@ import ReferenceWindowControls from "../ReferenceWindowControls/ReferenceWindowC
 
 // Types
 import type { CSSProperties, FC } from "react";
-import { Coordinates, Dimensions } from "../../types";
+import { Coordinates } from "../../types";
+
+const MemoizedReferenceWindowHeader = memo(ReferenceWindowHeader);
+const MemoizedReferenceWindowContent = memo(ReferenceWindowContent);
+const MemoizedReferenceWindowControls = memo(ReferenceWindowControls);
 
 const ReferenceWindow: FC = () => {
 	const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+	const [flipped, setFlipped] = useState<boolean>(false);
+	const [rotationDegrees, setRotationDegrees] = useState<number>(0);
+
 	const [position, setPosition] = useState<Coordinates>(() => {
 		if (typeof window !== "undefined") {
 			const { innerWidth, innerHeight } = window;
@@ -42,14 +49,21 @@ const ReferenceWindow: FC = () => {
 			id="reference-window"
 			style={styles}
 		>
-			<ReferenceWindowHeader setPosition={setPosition}>
+			<MemoizedReferenceWindowHeader setPosition={setPosition}>
 				Reference Window
-			</ReferenceWindowHeader>
-			<ReferenceWindowContent
+			</MemoizedReferenceWindowHeader>
+			<MemoizedReferenceWindowContent
 				imageURL={imageURL}
+				flipped={flipped}
+				rotationDegrees={rotationDegrees}
 				setImageURL={setImageURL}
 			/>
-			<ReferenceWindowControls setImageURL={setImageURL} />
+			<MemoizedReferenceWindowControls
+				imageAvailable={Boolean(imageURL)}
+				setImageURL={setImageURL}
+				setFlipped={setFlipped}
+				setRotationDegrees={setRotationDegrees}
+			/>
 		</div>
 	);
 

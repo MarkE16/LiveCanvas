@@ -4,14 +4,24 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
 
+// Icons
+import Fullscreen from "../icons/Fullscreen/Fullscreen";
+
 // Types
-import type { FC, MouseEvent } from "react";
+import type { FC, MouseEvent, ReactElement } from "react";
 
 // Styles
 import "./Navbar.styles.css";
 
 // Components
-import { Menu, MenuItem, Snackbar, Fade } from "@mui/material";
+import {
+	MenuItem,
+	Snackbar,
+	Popper,
+	Paper,
+	MenuList,
+	ClickAwayListener
+} from "@mui/material";
 import useStore from "../../state/hooks/useStore";
 import useIndexed from "../../state/hooks/useIndexed";
 
@@ -33,7 +43,12 @@ const Navbar: FC = () => {
 	const menuOpen = Boolean(menuAnchorEl);
 
 	const handleMenuOpen = (e: MouseEvent) => {
-		setMenuAnchorEl(e.currentTarget as HTMLButtonElement);
+		const target = e.currentTarget as HTMLButtonElement;
+
+		if (target.name !== "File" && target.name !== "View") {
+			return;
+		}
+		setMenuAnchorEl(target);
 	};
 
 	const handleMenuClose = () => {
@@ -54,6 +69,7 @@ const Navbar: FC = () => {
 		[key: string]: {
 			text: string;
 			action: (() => void) | (() => Promise<void>);
+			icon?: () => ReactElement;
 		}[];
 	};
 
@@ -96,6 +112,17 @@ const Navbar: FC = () => {
 		}
 	};
 
+	const toggleFullScreen = () => {
+		const doc = window.document;
+		const docEl = doc.documentElement;
+
+		if (doc.fullscreenElement) {
+			doc.exitFullscreen();
+		} else {
+			docEl.requestFullscreen();
+		}
+	};
+
 	const menuOptions: MenuOptions = {
 		File: [
 			{
@@ -111,6 +138,11 @@ const Navbar: FC = () => {
 			{
 				text: "Reference Window",
 				action: toggleReferenceWindow
+			},
+			{
+				text: "Toggle Full Screen",
+				action: toggleFullScreen,
+				icon: Fullscreen
 			}
 		]
 	};
@@ -144,6 +176,11 @@ const Navbar: FC = () => {
 							<button
 								key={tab}
 								name={tab}
+								onMouseOver={(e) => {
+									if (menuAnchorEl !== null) {
+										handleMenuOpen(e);
+									}
+								}}
 								onClick={
 									tab === "File" || tab === "View"
 										? handleMenuOpen
@@ -153,38 +190,6 @@ const Navbar: FC = () => {
 								{tab}
 							</button>
 						))}
-
-						<Menu
-							data-testid="menu"
-							open={menuOpen}
-							anchorEl={menuAnchorEl}
-							onClose={handleMenuClose}
-							TransitionComponent={Fade}
-							transitionDuration={200}
-							variant="menu"
-							sx={{
-								"& .MuiPaper-root": {
-									backgroundColor: "#3b3b3b",
-									color: "white"
-								},
-								"& .MuiMenuItem-root:hover": {
-									backgroundColor: "#333" // Dark gray on hover
-								}
-							}}
-						>
-							{menuAnchorEl &&
-								menuOptions[menuAnchorEl.name].map((option) => (
-									<MenuItem
-										key={option.text}
-										onClick={() => {
-											option.action();
-											handleMenuClose();
-										}}
-									>
-										{option.text}
-									</MenuItem>
-								))}
-						</Menu>
 					</div>
 				</section>
 			</nav>
@@ -197,6 +202,48 @@ const Navbar: FC = () => {
 				message="This feature is not yet implemented."
 				onClick={closeSnackbar}
 			/>
+
+			<Popper
+				open={menuOpen}
+				anchorEl={menuAnchorEl}
+				placement="bottom-start"
+				role={undefined}
+				sx={{
+					"& .MuiPaper-root": {
+						backgroundColor: "#3b3b3b",
+						color: "white"
+					},
+					"& .MuiMenuItem-root:hover": {
+						backgroundColor: "#333" // Dark gray on hover
+					},
+					zIndex: 1000
+				}}
+			>
+				<Paper>
+					<ClickAwayListener onClickAway={handleMenuClose}>
+						<MenuList
+							autoFocusItem={menuOpen}
+							id="composition-menu"
+							aria-labelledby="composition-button"
+							dense
+							// onKeyDown={handleListKeyDown}
+						>
+							{menuAnchorEl &&
+								menuOptions[menuAnchorEl.name].map((item, index) => (
+									<MenuItem
+										key={index}
+										onClick={() => {
+											item.action();
+											handleMenuClose();
+										}}
+									>
+										{item.text}
+									</MenuItem>
+								))}
+						</MenuList>
+					</ClickAwayListener>
+				</Paper>
+			</Popper>
 
 			<a
 				type="file"

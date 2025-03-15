@@ -12,6 +12,9 @@ import type {
 } from "react";
 import type { Coordinates } from "../../types";
 
+// Icons
+import Close from "../icons/Close/Close";
+
 type ReferenceWindowHeaderProps = {
 	setPosition: Dispatch<SetStateAction<Coordinates>>;
 	children: ReactNode;
@@ -28,25 +31,27 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 	const headerRef = useRef<HTMLHeadingElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 
-	function handleMouseDown() {
+	function handleMouseDown(e: ReactMouseEvent) {
 		isDraggingWindow.current = true;
+		clientPosition.current = { x: e.clientX, y: e.clientY };
 	}
 	function handleMouseUp() {
 		isDraggingWindow.current = false;
 	}
 	useEffect(() => {
 		function handleMouseMove(e: MouseEvent) {
-			if (!isDraggingWindow.current) return;
+			if (!isDraggingWindow.current || !headerRef.current) return;
 
 			const x = e.clientX;
 			const y = e.clientY;
+
 			const dx = x - clientPosition.current.x;
 			const dy = y - clientPosition.current.y;
 
 			setPosition((prev) => ({
 				...prev,
-				x: x - prev.x + dx,
-				y: y - prev.y + dy
+				x: prev.x + dx,
+				y: prev.y + dy
 			}));
 
 			clientPosition.current = { x, y };
@@ -71,7 +76,9 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 			onMouseUp={handleMouseUp}
 		>
 			<h5 id="reference-window-header-title">{children}</h5>
-			<button onClick={toggleReferenceWindowState}>X</button>
+			<button onClick={toggleReferenceWindowState}>
+				<Close />
+			</button>
 		</header>
 	);
 };

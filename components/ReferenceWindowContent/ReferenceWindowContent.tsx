@@ -1,16 +1,25 @@
 // Types
-import type { FC, DragEvent, Dispatch, SetStateAction } from "react";
+import type {
+	FC,
+	DragEvent,
+	Dispatch,
+	SetStateAction,
+	CSSProperties
+} from "react";
 
 type ReferenceWindowContentProps = {
 	imageURL: string | undefined;
+	flipped: boolean;
+	rotationDegrees: number;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;
 };
 
 const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	imageURL,
+	flipped,
+	rotationDegrees,
 	setImageURL
 }) => {
-
 	function onDragOver(e: DragEvent) {
 		e.preventDefault();
 	}
@@ -38,6 +47,10 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 		}
 	};
 
+	const imageStyles: CSSProperties = {
+		transform: `rotate(${rotationDegrees}deg) scaleX(${flipped ? -1 : 1})`
+	};
+
 	return (
 		<section
 			id="reference-window-content"
@@ -46,6 +59,7 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 		>
 			{imageURL ? (
 				<img
+					style={imageStyles}
 					id="reference-image"
 					src={imageURL}
 					alt="Reference"
