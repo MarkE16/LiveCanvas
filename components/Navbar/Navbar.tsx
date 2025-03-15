@@ -16,8 +16,9 @@ import useStore from "../../state/hooks/useStore";
 import useIndexed from "../../state/hooks/useIndexed";
 
 const Navbar: FC = () => {
-	const { prepareForExport, prepareForSave } = useStore(
+	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
 		useShallow((state) => ({
+			toggleReferenceWindow: state.toggleReferenceWindow,
 			prepareForExport: state.prepareForExport,
 			prepareForSave: state.prepareForSave
 		}))
@@ -105,6 +106,12 @@ const Navbar: FC = () => {
 				text: "Export File",
 				action: handleExportFile
 			}
+		],
+		View: [
+			{
+				text: "Reference Window",
+				action: toggleReferenceWindow
+			}
 		]
 	};
 
@@ -137,7 +144,11 @@ const Navbar: FC = () => {
 							<button
 								key={tab}
 								name={tab}
-								onClick={tab === "File" ? handleMenuOpen : openSnackbar}
+								onClick={
+									tab === "File" || tab === "View"
+										? handleMenuOpen
+										: openSnackbar
+								}
 							>
 								{tab}
 							</button>

@@ -1,11 +1,13 @@
 "use client";
 
 // Lib
-import { useEffect } from "react";
+import { useEffect, memo } from "react";
+import useStore from "../../state/hooks/useStore";
 
 // Components
 import Navbar from "../../components/Navbar/Navbar";
 import Main from "../../components/Main/Main";
+import ReferenceWindow from "../../components/ReferenceWindow/ReferenceWindow";
 
 // The <head> tags
 // eslint-disable-next-line
@@ -14,7 +16,13 @@ export const documentProps = {
 	desc: "A drawing canvas editor on the browser" // <meta name="description">
 };
 
+const MemoizedNavbar = memo(Navbar);
+const MemoizedMain = memo(Main);
+
 function Page() {
+	const referenceWindowEnabled = useStore(
+		(state) => state.referenceWindowEnabled
+	);
 	useEffect(() => {
 		async function checkStoragePersistency() {
 			if (!navigator.storage || !navigator.storage.persist) return;
@@ -40,9 +48,11 @@ function Page() {
 
 	return (
 		<>
-			<Navbar />
+			<MemoizedNavbar />
 
-			<Main />
+			<MemoizedMain />
+
+			{referenceWindowEnabled && <ReferenceWindow />}
 		</>
 	);
 }

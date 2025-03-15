@@ -1,0 +1,73 @@
+:root {
+	--header-height: 45px;
+	--header-padding: 10px;
+	--controls-padding: 10px;
+	--controls-height: 45px;
+}
+
+#reference-window {
+	position: fixed;
+	top: 50%;
+	left: 45%;
+	min-height: calc(
+		var(--header-height) + var(--controls-height) + var(--controls-padding) +
+			10px
+	);
+	min-width: 300px;
+	background-color: rgb(36, 36, 36);
+	border: 1px solid rgb(56, 55, 55);
+	border-radius: 5px;
+	z-index: 100;
+	overflow: hidden;
+	resize: both;
+}
+
+#reference-window > header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid white;
+	padding: var(--header-padding);
+	height: var(--header-height);
+	cursor: move;
+}
+
+#reference-window > header > #reference-window-header-title {
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#reference-window > header > button {
+	background-color: transparent;
+	border: none;
+	color: white;
+	font-size: 1.5em;
+	cursor: pointer;
+}
+
+#reference-window > #reference-window-content {
+	margin: 10px;
+	height: calc(100% - var(--header-height) - var(--controls-height) - 20px);
+	border: 1px solid rgb(56, 55, 55);
+	border-radius: 5px;
+	overflow: hidden;
+	text-align: center;
+	font-size: small;
+}
+
+#reference-image {
+	width: 100%;
+	height: 100%;
+	/* object-fit: contain; */
+}
+
+#reference-window-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--controls-padding);
+	height: var(--controls-height);
+	border: 1px solid red;
+}
