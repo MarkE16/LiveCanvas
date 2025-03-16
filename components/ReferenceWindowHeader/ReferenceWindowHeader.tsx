@@ -76,7 +76,10 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 			onMouseUp={handleMouseUp}
 		>
 			<h5 id="reference-window-header-title">{children}</h5>
-			<button onClick={toggleReferenceWindowState}>
+			<button
+				data-testid="close-ref-window"
+				onClick={toggleReferenceWindowState}
+			>
 				<Close />
 			</button>
 		</header>

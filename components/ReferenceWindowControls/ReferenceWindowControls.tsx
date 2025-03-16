@@ -13,7 +13,7 @@ import ZoomOut from "../icons/ZoomOut/ZoomOut";
 import ZoomIn from "../icons/ZoomIn/ZoomIn";
 
 type ReferenceWindowControlsProps = {
-	scale: number;
+  scale: number;
 	setScale: Dispatch<SetStateAction<number>>;
 	imageAvailable: boolean;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;

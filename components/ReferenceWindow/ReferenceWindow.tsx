@@ -21,6 +21,7 @@ const MemoizedReferenceWindowControls = memo(ReferenceWindowControls);
 const ReferenceWindow: FC = () => {
 	const [imageURL, setImageURL] = useState<string | undefined>(undefined);
 	const [flipped, setFlipped] = useState<boolean>(false);
+	const [minimal, setMinimal] = useState<boolean>(false);
 	const [rotationDegrees, setRotationDegrees] = useState<number>(0);
 	// 50 is considered 1x. In the controls, the scale is divided by 50 to get the actual scale.
 	// Therefore, 50 / 50 is 1.
@@ -62,6 +63,7 @@ const ReferenceWindow: FC = () => {
 	const jsx = (
 		<div
 			id="reference-window"
+			data-testid="reference-window"
 			ref={windowRef}
 			style={styles}
 		>
@@ -72,17 +74,21 @@ const ReferenceWindow: FC = () => {
 				imageURL={imageURL}
 				flipped={flipped}
 				scale={scale}
+				minimal={minimal}
 				rotationDegrees={rotationDegrees}
 				setImageURL={setImageURL}
+				setMinimal={setMinimal}
 			/>
-			<MemoizedReferenceWindowControls
-				scale={scale}
-				setScale={setScale}
-				imageAvailable={Boolean(imageURL)}
-				setImageURL={setImageURL}
-				setFlipped={setFlipped}
-				setRotationDegrees={setRotationDegrees}
-			/>
+			{!minimal && (
+				<MemoizedReferenceWindowControls
+					scale={scale}
+					setScale={setScale}
+					imageAvailable={Boolean(imageURL)}
+					setImageURL={setImageURL}
+					setFlipped={setFlipped}
+					setRotationDegrees={setRotationDegrees}
+				/>
+			)}
 		</div>
 	);
 

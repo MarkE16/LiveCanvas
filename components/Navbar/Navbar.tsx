@@ -173,33 +173,28 @@ const Navbar: FC = () => {
 	return (
 		<header data-testid="nav-bar">
 			<nav id="navbar-container">
-				<section id="navbar-links-section">
-					<img
-						id="navbar-logo"
-						src={logo}
-						alt="logo"
-					/>
-					<div id="navbar-links">
-						{menuTabs.map((tab) => (
-							<button
-								key={tab}
-								name={tab}
-								onMouseOver={(e) => {
-									if (menuAnchorEl !== null) {
-										handleMenuOpen(e);
-									}
-								}}
-								onClick={
-									tab === "File" || tab === "View"
-										? handleMenuOpen
-										: openSnackbar
-								}
-							>
-								{tab}
-							</button>
-						))}
-					</div>
-				</section>
+				<img
+					id="navbar-logo"
+					src={logo}
+					alt="logo"
+				/>
+
+				{menuTabs.map((tab) => (
+					<button
+						key={tab}
+						name={tab}
+						onMouseOver={(e) => {
+							if (menuAnchorEl !== null) {
+								handleMenuOpen(e);
+							}
+						}}
+						onClick={
+							tab === "File" || tab === "View" ? handleMenuOpen : openSnackbar
+						}
+					>
+						{tab}
+					</button>
+				))}
 			</nav>
 
 			<Snackbar

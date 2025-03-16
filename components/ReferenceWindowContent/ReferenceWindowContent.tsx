@@ -1,4 +1,5 @@
 // Types
+import clsx from "clsx";
 import type {
 	FC,
 	DragEvent,
@@ -11,8 +12,10 @@ type ReferenceWindowContentProps = {
 	imageURL: string | undefined;
 	flipped: boolean;
 	scale: number;
+	minimal: boolean;
 	rotationDegrees: number;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;
+	setMinimal: Dispatch<SetStateAction<boolean>>;
 };
 
 const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
@@ -20,7 +23,9 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	flipped,
 	scale,
 	rotationDegrees,
-	setImageURL
+	minimal,
+	setImageURL,
+	setMinimal
 }) => {
 	function onDragOver(e: DragEvent) {
 		e.preventDefault();
@@ -43,6 +48,10 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 		setImageURL(URL.createObjectURL(file));
 	}
 
+	const handleMinimalChange = () => {
+		setMinimal((minimal) => !minimal);
+	};
+
 	const onImageLoad = () => {
 		if (imageURL) {
 			URL.revokeObjectURL(imageURL);
@@ -52,10 +61,13 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	const imageStyles: CSSProperties = {
 		transform: `rotate(${rotationDegrees}deg) scaleX(${flipped ? -1 : 1}) scale(${scale / 50})`
 	};
+	const cn = clsx("reference-window-content", {
+		minimal
+	});
 
 	return (
 		<section
-			id="reference-window-content"
+			className={cn}
 			onDragOver={onDragOver}
 			onDrop={onDrop}
 		>
@@ -66,6 +78,7 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 					src={imageURL}
 					alt="Reference"
 					onLoad={onImageLoad}
+					onClick={handleMinimalChange}
 				/>
 			) : (
 				<p>Drop an image here to use as a reference.</p>

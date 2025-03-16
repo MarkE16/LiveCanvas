@@ -1,5 +1,5 @@
 :root {
-	--header-height: 45px;
+	--header-height: 35px;
 	--header-padding: 10px;
 	--controls-padding: 10px;
 	--controls-height: 70px;
@@ -46,16 +46,28 @@
 	color: white;
 	font-size: 1.5em;
 	cursor: pointer;
+	padding: 0;
+	margin: 0;
 }
 
-#reference-window > #reference-window-content {
-	margin: 10px;
-	height: calc(100% - var(--header-height) - var(--controls-height) - 20px);
+#reference-window > .reference-window-content {
+	margin: 5px;
+	height: calc(100% - var(--header-height) - var(--controls-height) - 15px);
 	border: 1px solid rgb(56, 55, 55);
 	border-radius: 5px;
 	overflow: hidden;
 	text-align: center;
 	font-size: small;
+}
+
+#reference-window > .reference-window-content > img {
+	max-width: 100%;
+	max-height: 100%;
+	cursor: pointer;
+}
+
+#reference-window > .reference-window-content.minimal {
+	height: calc(100% - var(--header-height) - 15px);
 }
 
 #reference-image {
@@ -70,7 +82,7 @@
 	border-top: 1px solid white;
 }
 
-#reference-window-controls > input[type="range"] {
+#reference-window-controls > * {
 	width: 100%;
 }
 

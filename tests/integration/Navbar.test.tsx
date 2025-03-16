@@ -6,7 +6,7 @@ import {
 	beforeEach,
 	afterEach,
 	afterAll,
-  MockInstance
+	MockInstance
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Navbar from "../../components/Navbar/Navbar";
@@ -100,7 +100,7 @@ describe("Navbar functionality", () => {
 		}
 	});
 
-	it("should call prepareForSave when clicking Save File from File dropdown", async () => {
+	it("should save the file when clicking Save File from File menu", async () => {
 		const alertSpy = vi.spyOn(window, "alert");
 		const fileTab = screen.getByText("File");
 
@@ -125,7 +125,7 @@ describe("Navbar functionality", () => {
 			setActiveIndex: vi.fn(),
 			getActiveLayer: vi.fn()
 		});
-		
+
 		const alertSpy = vi.spyOn(window, "alert");
 		const error = new Error(
 			"Cannot export canvas: no references found. This is a bug."
@@ -155,7 +155,7 @@ describe("Navbar functionality", () => {
 		});
 	});
 
-	it("should call prepareForExport when clicking Export File from File dropdown", async () => {
+	it("should export file when clicking Export File from File menu", async () => {
 		const fileTab = screen.getByText("File");
 		const exportLink = screen.getByTestId("export-link");
 		const clickSpy = vi.spyOn(exportLink, "click");
@@ -169,5 +169,21 @@ describe("Navbar functionality", () => {
 		await vi.waitFor(() => {
 			expect(clickSpy).toHaveBeenCalled();
 		});
+	});
+
+	it.todo("should toggle full screen from the View menu", () => {
+		const viewTab = screen.getByText("View");
+		fireEvent.click(viewTab);
+
+		let fullScreenOption = screen.getByText("Toggle Full Screen");
+		fireEvent.click(fullScreenOption);
+
+		// Toggle it.
+		expect(document.fullscreenElement).not.toBeNull();
+
+		fullScreenOption = screen.getByText("Toggle Full Screen");
+		fireEvent.click(fullScreenOption);
+
+		expect(document.fullscreenElement).toBeNull();
 	});
 });
