@@ -6,6 +6,9 @@ import { useShallow } from "zustand/shallow";
 
 // Icons
 import Fullscreen from "../icons/Fullscreen/Fullscreen";
+import Image from "../icons/Image/Image";
+import Export from "../icons/Export/Export";
+import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
 
 // Types
 import type { FC, MouseEvent, ReactElement } from "react";
@@ -20,7 +23,9 @@ import {
 	Popper,
 	Paper,
 	MenuList,
-	ClickAwayListener
+	ClickAwayListener,
+	ListItemIcon,
+	ListItemText
 } from "@mui/material";
 import useStore from "../../state/hooks/useStore";
 import useIndexed from "../../state/hooks/useIndexed";
@@ -127,17 +132,20 @@ const Navbar: FC = () => {
 		File: [
 			{
 				text: "Save File",
-				action: handleSaveFile
+				action: handleSaveFile,
+				icon: FloppyDisk
 			},
 			{
 				text: "Export File",
-				action: handleExportFile
+				action: handleExportFile,
+				icon: Export
 			}
 		],
 		View: [
 			{
 				text: "Reference Window",
-				action: toggleReferenceWindow
+				action: toggleReferenceWindow,
+				icon: Image
 			},
 			{
 				text: "Toggle Full Screen",
@@ -229,17 +237,30 @@ const Navbar: FC = () => {
 							// onKeyDown={handleListKeyDown}
 						>
 							{menuAnchorEl &&
-								menuOptions[menuAnchorEl.name].map((item, index) => (
-									<MenuItem
-										key={index}
-										onClick={() => {
-											item.action();
-											handleMenuClose();
-										}}
-									>
-										{item.text}
-									</MenuItem>
-								))}
+								menuOptions[menuAnchorEl.name].map((item, index) => {
+									const iconCount = menuOptions[menuAnchorEl.name].reduce(
+										(acc, curr) => (curr.icon ? acc + 1 : acc),
+										0
+									);
+									return (
+										<MenuItem
+											key={index}
+											onClick={() => {
+												item.action();
+												handleMenuClose();
+											}}
+										>
+											{item.icon && (
+												<ListItemIcon sx={{ color: "white" }}>
+													<item.icon />
+												</ListItemIcon>
+											)}
+											<ListItemText inset={!item.icon && iconCount > 0}>
+												{item.text}
+											</ListItemText>
+										</MenuItem>
+									);
+								})}
 						</MenuList>
 					</ClickAwayListener>
 				</Paper>

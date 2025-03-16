@@ -13,6 +13,8 @@ import ZoomOut from "../icons/ZoomOut/ZoomOut";
 import ZoomIn from "../icons/ZoomIn/ZoomIn";
 
 type ReferenceWindowControlsProps = {
+	scale: number;
+	setScale: Dispatch<SetStateAction<number>>;
 	imageAvailable: boolean;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;
 	setFlipped: Dispatch<SetStateAction<boolean>>;
@@ -20,6 +22,8 @@ type ReferenceWindowControlsProps = {
 };
 
 const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
+	scale,
+	setScale,
 	imageAvailable,
 	setImageURL,
 	setFlipped,
@@ -50,29 +54,42 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 		setRotationDegrees((degrees) => (degrees + 90) % 360);
 	};
 
+	const updateScale = (_for: "increase" | "decrease") => {
+		setScale((prev) => {
+			if (_for === "increase") {
+				return Math.min(prev + 10, 100);
+			}
+			return Math.max(prev - 10, 1);
+		});
+	};
+
 	return (
 		<div id="reference-window-controls">
 			<input
 				disabled={!imageAvailable}
 				type="range"
-				min="0"
+				min="1"
 				max="100"
 				step="1"
+				value={scale}
+				onChange={(e) => setScale(+e.target.value)}
 			/>
 			<section id="reference-window-controls-button-group">
 				<aside>
 					<Tooltip title="Zoom In">
 						<button
-							disabled={!imageAvailable}
+							disabled={!imageAvailable || scale === 100}
 							className="reference-window-controls-button"
+							onClick={() => updateScale("increase")}
 						>
 							<ZoomIn />
 						</button>
 					</Tooltip>
 					<Tooltip title="Zoom Out">
 						<button
-							disabled={!imageAvailable}
+							disabled={!imageAvailable || scale === 1}
 							className="reference-window-controls-button"
+							onClick={() => updateScale("decrease")}
 						>
 							<ZoomOut />
 						</button>

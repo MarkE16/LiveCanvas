@@ -1,5 +1,5 @@
 // Lib
-import { useState, memo } from "react";
+import { useState, memo, useRef } from "react";
 import { createPortal } from "react-dom";
 
 // Styles
@@ -22,10 +22,25 @@ const ReferenceWindow: FC = () => {
 	const [imageURL, setImageURL] = useState<string | undefined>(undefined);
 	const [flipped, setFlipped] = useState<boolean>(false);
 	const [rotationDegrees, setRotationDegrees] = useState<number>(0);
+	// 50 is considered 1x. In the controls, the scale is divided by 50 to get the actual scale.
+	// Therefore, 50 / 50 is 1.
+	const [scale, setScale] = useState<number>(50);
+	const windowRef = useRef<HTMLDivElement>(null);
 
 	const [position, setPosition] = useState<Coordinates>(() => {
 		if (typeof window !== "undefined") {
 			const { innerWidth, innerHeight } = window;
+
+			const windowRefCurrent = windowRef.current;
+
+			if (windowRefCurrent) {
+				const { offsetWidth, offsetHeight } = windowRefCurrent;
+
+				return {
+					x: (innerWidth - offsetWidth) / 2,
+					y: (innerHeight - offsetHeight) / 2
+				};
+			}
 
 			return {
 				x: innerWidth / 2,
@@ -47,6 +62,7 @@ const ReferenceWindow: FC = () => {
 	const jsx = (
 		<div
 			id="reference-window"
+			ref={windowRef}
 			style={styles}
 		>
 			<MemoizedReferenceWindowHeader setPosition={setPosition}>
@@ -55,10 +71,13 @@ const ReferenceWindow: FC = () => {
 			<MemoizedReferenceWindowContent
 				imageURL={imageURL}
 				flipped={flipped}
+				scale={scale}
 				rotationDegrees={rotationDegrees}
 				setImageURL={setImageURL}
 			/>
 			<MemoizedReferenceWindowControls
+				scale={scale}
+				setScale={setScale}
 				imageAvailable={Boolean(imageURL)}
 				setImageURL={setImageURL}
 				setFlipped={setFlipped}

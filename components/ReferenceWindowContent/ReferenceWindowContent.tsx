@@ -10,6 +10,7 @@ import type {
 type ReferenceWindowContentProps = {
 	imageURL: string | undefined;
 	flipped: boolean;
+	scale: number;
 	rotationDegrees: number;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;
 };
@@ -17,6 +18,7 @@ type ReferenceWindowContentProps = {
 const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	imageURL,
 	flipped,
+	scale,
 	rotationDegrees,
 	setImageURL
 }) => {
@@ -48,7 +50,7 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	};
 
 	const imageStyles: CSSProperties = {
-		transform: `rotate(${rotationDegrees}deg) scaleX(${flipped ? -1 : 1})`
+		transform: `rotate(${rotationDegrees}deg) scaleX(${flipped ? -1 : 1}) scale(${scale / 50})`
 	};
 
 	return (
