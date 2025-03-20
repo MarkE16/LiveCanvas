@@ -31,7 +31,7 @@ const ScaleIndicator: FC<ScaleIndicatorProps> = ({ scale }) => {
 				left: 10,
 				bottom: 10,
 				padding: "5px",
-				zIndex: 1000,
+				zIndex: 1,
 				backgroundColor: "black",
 				borderRadius: "5px",
 				opacity: visible ? 1 : 0.2,

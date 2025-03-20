@@ -1,6 +1,6 @@
 // Styles
 import "../icons.styles.css";
-const FloppyDisk = () => (
+const Export = () => (
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
 		viewBox="0 0 25 25"
@@ -11,32 +11,31 @@ const FloppyDisk = () => (
 		stroke="currentColor"
 		strokeWidth="2"
 	>
-		{/* Floppy disk outline */}
+		{/* Document outline */}
 		<path
-			d="M19 21H6C5.44772 21 5 20.5523 5 20V5C5 4.44772 5.44772 4 6 4H16L20 8V20C20 20.5523 19.5523 21 19 21Z"
+			d="M14 3H6C5.44772 3 5 3.44772 5 4V21C5 21.5523 5.44772 22 6 22H19C19.5523 22 20 21.5523 20 21V9L14 3Z"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
 
-		{/* Top rectangle (label area) */}
-		<rect
-			x="8"
-			y="4"
-			width="8"
-			height="6"
+		{/* Folded corner */}
+		<path
+			d="M14 3V9H20"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
 
-		{/* Bottom rectangle (disk area) */}
-		<rect
-			x="8"
-			y="14"
-			width="9"
-			height="7"
+		{/* Export arrow */}
+		<path
+			d="M12 16V12M12 12L10 14M12 12L14 14"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		/>
+		<path
+			d="M9 18H15"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
 	</svg>
 );
-export default FloppyDisk;
+export default Export;

@@ -13,6 +13,11 @@
 	padding: 0.5em 1.5em;
 	overflow: auto;
 	z-index: 100;
+	pointer-events: none;
+}
+
+#drawing-toolbar > * {
+	pointer-events: auto;
 }
 
 #colors,

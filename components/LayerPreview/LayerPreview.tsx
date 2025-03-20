@@ -14,7 +14,7 @@ type LayerPreviewProps = {
 };
 
 const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
-  const prepareForExport = useStore(state => state.prepareForExport);
+	const prepareForExport = useStore((state) => state.prepareForExport);
 	const [url, setUrl] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -25,7 +25,7 @@ const LayerPreview: FC<LayerPreviewProps> = ({ id }) => {
 			if (layer.id !== id) return;
 
 			// Use 0.2 quality for the preview to save space and make it faster on performance.
-      const blob = await prepareForExport([layer], 0.2);
+			const blob = await prepareForExport([layer], 0.2);
 
 			setUrl(URL.createObjectURL(blob));
 		}
