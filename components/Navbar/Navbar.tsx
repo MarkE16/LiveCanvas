@@ -33,9 +33,9 @@ import useIndexed from "../../state/hooks/useIndexed";
 const Navbar: FC = () => {
 	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
 		useShallow((state) => ({
-			toggleReferenceWindow: state.toggleReferenceWindow,
 			prepareForExport: state.prepareForExport,
-			prepareForSave: state.prepareForSave
+			prepareForSave: state.prepareForSave,
+			toggleReferenceWindow: state.toggleReferenceWindow
 		}))
 	);
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);

@@ -3,7 +3,7 @@ module.exports = {
 		"react-refresh/only-export-components": "warn"
 	},
 	reportUnusedDisableDirectives: true,
-	ignorePatterns: ["dist/*"],
+	ignorePatterns: ["dist/*", "renderer/*", "coverage/*", "*.config.js", "*.config.ts"],
 	env: { browser: true, es2020: true, node: true },
 	parserOptions: { ecmaVersion: "latest", sourceType: "module" },
 	settings: { react: { version: "detect" } },
