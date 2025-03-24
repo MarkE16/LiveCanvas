@@ -56,7 +56,7 @@ describe("Reference Window functionality", () => {
 		).toBeInTheDocument();
 	});
 
-	it("should render the controls with everything disabled except replacing an image", () => {
+	it("should render the controls with everything disabled except replacing an image and pin", () => {
 		const controls = [
 			"scale-slider",
 			"zoom-in",
@@ -67,7 +67,12 @@ describe("Reference Window functionality", () => {
 		];
 
 		controls.forEach((control) => {
-			expect(screen.getByTestId(control)).toBeDisabled();
+			const controlElement = screen.getByTestId(control);
+			if (control === "pin") {
+				expect(controlElement).not.toBeDisabled();
+			} else {
+				expect(controlElement).toBeDisabled();
+			}
 		});
 
 		const replaceImage = screen.getByText("Replace Image");
@@ -200,6 +205,15 @@ describe("Reference Window functionality", () => {
 		fireEvent.change(slider, { target: { value: "30" } });
 
 		expect(img).toHaveStyle("transform: rotate(0deg) scaleX(1) scale(0.6)");
+	});
+
+	it("should pin the window", () => {
+		const pin = screen.getByTestId("pin");
+
+		fireEvent.click(pin);
+
+		const window = screen.getByTestId("reference-window");
+		expect(window).toHaveClass("pinned");
 	});
 
 	it("should flip the image", () => {

@@ -11,7 +11,12 @@ import Export from "../icons/Export/Export";
 import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
 
 // Types
-import type { FC, ReactElement, ReactMouseEvent, FocusEvent } from "react";
+import type {
+	FC,
+	ReactElement,
+	MouseEvent as ReactMouseEvent,
+	FocusEvent
+} from "react";
 
 // Styles
 import "./Navbar.styles.css";
@@ -128,15 +133,16 @@ const Navbar: FC = () => {
 		}
 	};
 
-	const changeMenuOpenOnHover = (e: ReactMouseEvent<HTMLButtonElement>) => {
-		if (menuOpen) {
-			setMenuAnchorEl(e.currentTarget);
-		}
-	};
-
-	const changeMenuOpenOnFocus = (e: FocusEvent<HTMLButtonElement>) => {
-		if (menuOpen) {
-			setMenuAnchorEl(e.currentTarget);
+	const handleMenuChange = (
+		e: Pick<ReactMouseEvent & FocusEvent, "currentTarget">
+	) => {
+		const target = e.currentTarget as HTMLButtonElement;
+		if (
+			menuOpen &&
+			e.currentTarget !== menuAnchorEl &&
+			(target.name === "File" || target.name === "View")
+		) {
+			setMenuAnchorEl(target);
 		}
 	};
 
@@ -195,8 +201,8 @@ const Navbar: FC = () => {
 					<button
 						key={tab}
 						name={tab}
-						onMouseOver={changeMenuOpenOnHover}
-						onFocus={changeMenuOpenOnFocus}
+						onMouseOver={handleMenuChange}
+						onFocus={handleMenuChange}
 						onClick={
 							tab === "File" || tab === "View" ? handleMenuOpen : openSnackbar
 						}
@@ -222,7 +228,9 @@ const Navbar: FC = () => {
 				role={undefined}
 				sx={{
 					"& .MuiPaper-root": {
-						backgroundColor: "#3b3b3b",
+						backgroundColor: "#191919",
+						border: "1px solid #333",
+						marginTop: "5px",
 						color: "white"
 					},
 					"& .MuiMenuItem-root:hover": {

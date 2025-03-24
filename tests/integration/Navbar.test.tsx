@@ -20,7 +20,10 @@ vi.mock("../../renderer/usePageContext", () => ({
 describe("Navbar functionality", () => {
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+	let originalRequestFullscreen: typeof HTMLElement.prototype.requestFullscreen;
+	let originalExitFullscreen: typeof document.exitFullscreen;
 	let useLayerReferencesSpy: MockInstance;
+	const fullscreenElementMock = vi.fn().mockReturnValue(null);
 	const canvas = document.createElement("canvas");
 	canvas.setAttribute("data-dpi", "1");
 
@@ -42,6 +45,15 @@ describe("Navbar functionality", () => {
 		originalRevokeObjectURL = URL.revokeObjectURL;
 		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
 		URL.revokeObjectURL = vi.fn();
+
+		Object.defineProperty(document, "fullscreenElement", {
+			get: fullscreenElementMock,
+			configurable: true
+		});
+
+		originalRequestFullscreen = HTMLElement.prototype.requestFullscreen;
+		HTMLElement.prototype.requestFullscreen = vi.fn();
+		document.exitFullscreen = vi.fn();
 	});
 
 	afterEach(() => {
@@ -51,6 +63,9 @@ describe("Navbar functionality", () => {
 	afterAll(() => {
 		URL.createObjectURL = originalCreateObjectURL;
 		URL.revokeObjectURL = originalRevokeObjectURL;
+
+		HTMLElement.prototype.requestFullscreen = originalRequestFullscreen;
+		document.exitFullscreen = originalExitFullscreen;
 		vi.restoreAllMocks();
 	});
 
@@ -171,7 +186,12 @@ describe("Navbar functionality", () => {
 		});
 	});
 
-	it.todo("should toggle full screen from the View menu", () => {
+	it("should toggle full screen from the View menu", () => {
+		const requestFullscreenSpy = vi.spyOn(
+			HTMLElement.prototype,
+			"requestFullscreen"
+		);
+		const exitFullscreenSpy = vi.spyOn(document, "exitFullscreen");
 		const viewTab = screen.getByText("View");
 		fireEvent.click(viewTab);
 
@@ -179,11 +199,20 @@ describe("Navbar functionality", () => {
 		fireEvent.click(fullScreenOption);
 
 		// Toggle it.
-		expect(document.fullscreenElement).not.toBeNull();
+		expect(requestFullscreenSpy).toHaveBeenCalled();
 
+		// Toggle it back.
+		// Note: We need to pretend that the document is in full screen mode.
+		// So, we need to mock the getter of `document.fullscreenElement`.
+		Object.defineProperty(document, "fullscreenElement", {
+			get: fullscreenElementMock.mockReturnValue(true),
+			configurable: true
+		});
+
+		fireEvent.click(viewTab);
 		fullScreenOption = screen.getByText("Toggle Full Screen");
 		fireEvent.click(fullScreenOption);
 
-		expect(document.fullscreenElement).toBeNull();
+		expect(exitFullscreenSpy).toHaveBeenCalled();
 	});
 });

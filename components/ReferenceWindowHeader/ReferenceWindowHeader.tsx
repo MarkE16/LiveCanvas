@@ -16,11 +16,13 @@ import type { Coordinates } from "../../types";
 import Close from "../icons/Close/Close";
 
 type ReferenceWindowHeaderProps = {
+	isPinned: boolean;
 	setPosition: Dispatch<SetStateAction<Coordinates>>;
 	children: ReactNode;
 };
 
 const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
+	isPinned,
 	setPosition,
 	children
 }) => {
@@ -32,15 +34,18 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
 
 	function handleMouseDown(e: ReactMouseEvent) {
-		isDraggingWindow.current = true;
+		isDraggingWindow.current = !isPinned;
 		clientPosition.current = { x: e.clientX, y: e.clientY };
 	}
-	function handleMouseUp() {
-		isDraggingWindow.current = false;
-	}
+
 	useEffect(() => {
+		function handleMouseUp() {
+			isDraggingWindow.current = false;
+		}
+
 		function handleMouseMove(e: MouseEvent) {
-			if (!isDraggingWindow.current || !headerRef.current) return;
+			const header = headerRef.current;
+			if (!isDraggingWindow.current || !header) return;
 
 			const x = e.clientX;
 			const y = e.clientY;
@@ -50,17 +55,25 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 
 			setPosition((prev) => ({
 				...prev,
-				x: prev.x + dx,
-				y: prev.y + dy
+				x: Math.min(
+					Math.max(prev.x + dx, 0),
+					window.innerWidth - header.offsetWidth
+				),
+				y: Math.min(
+					Math.max(prev.y + dy, 0),
+					window.innerHeight - header.offsetHeight
+				)
 			}));
 
 			clientPosition.current = { x, y };
 		}
 
 		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
 
 		return () => {
 			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
 		};
 	}, [setPosition]);
 
@@ -73,7 +86,6 @@ const ReferenceWindowHeader: FC<ReferenceWindowHeaderProps> = ({
 		<header
 			ref={headerRef}
 			onMouseDown={handleMouseDown}
-			onMouseUp={handleMouseUp}
 		>
 			<h5 id="reference-window-header-title">{children}</h5>
 			<button

@@ -1,12 +1,13 @@
 // Types
 import clsx from "clsx";
-import type {
-	FC,
-	DragEvent,
-	Dispatch,
-	SetStateAction,
-	CSSProperties,
-	KeyboardEvent
+import {
+	type FC,
+	type DragEvent,
+	type Dispatch,
+	type SetStateAction,
+	type CSSProperties,
+	type KeyboardEvent,
+	useState
 } from "react";
 
 type ReferenceWindowContentProps = {
@@ -28,12 +29,20 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 	setImageURL,
 	setMinimal
 }) => {
+	const [isDraggingOver, setIsDraggingOver] = useState<boolean>(false);
 	function onDragOver(e: DragEvent) {
 		e.preventDefault();
+		setIsDraggingOver(true);
+	}
+
+	function onDragLeave(e: DragEvent) {
+		e.preventDefault();
+		setIsDraggingOver(false);
 	}
 
 	function onDrop(e: DragEvent) {
 		e.preventDefault();
+		setIsDraggingOver(false);
 
 		const files = e.dataTransfer.files;
 
@@ -69,13 +78,15 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 		transform: `rotate(${rotationDegrees}deg) scaleX(${flipped ? -1 : 1}) scale(${scale / 50})`
 	};
 	const cn = clsx("reference-window-content", {
-		minimal
+		minimal,
+		"dragging-over": isDraggingOver
 	});
 
 	return (
 		<section
 			className={cn}
 			onDragOver={onDragOver}
+			onDragLeave={onDragLeave}
 			onDrop={onDrop}
 			data-testid="reference-window-content"
 		>

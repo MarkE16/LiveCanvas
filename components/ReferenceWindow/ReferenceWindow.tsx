@@ -1,6 +1,6 @@
 // Lib
 import { useState, memo, useRef } from "react";
-import { createPortal } from "react-dom";
+import clsx from "clsx";
 
 // Styles
 import "./ReferenceWindow.styles.css";
@@ -22,6 +22,7 @@ const ReferenceWindow: FC = () => {
 	const [imageURL, setImageURL] = useState<string | undefined>(undefined);
 	const [flipped, setFlipped] = useState<boolean>(false);
 	const [minimal, setMinimal] = useState<boolean>(false);
+	const [pinned, setPinned] = useState<boolean>(false);
 	const [rotationDegrees, setRotationDegrees] = useState<number>(0);
 	// 50 is considered 1x. In the controls, the scale is divided by 50 to get the actual scale.
 	// Therefore, 50 / 50 is 1.
@@ -55,19 +56,28 @@ const ReferenceWindow: FC = () => {
 		};
 	});
 
-	const styles: CSSProperties = {
-		left: `${position.x}px`,
-		top: `${position.y}px`
-	};
+	const styles: CSSProperties = !pinned
+		? {
+				left: position.x,
+				top: position.y
+			}
+		: {
+				left: 0,
+				top: 0
+			};
 
-	const jsx = (
+	const cn = clsx("reference-window", {
+		pinned
+	});
+
+	return (
 		<div
-			id="reference-window"
+			className={cn}
 			data-testid="reference-window"
 			ref={windowRef}
 			style={styles}
 		>
-			<MemoizedReferenceWindowHeader setPosition={setPosition}>
+			<MemoizedReferenceWindowHeader setPosition={setPosition} isPinned={pinned}>
 				Reference Window
 			</MemoizedReferenceWindowHeader>
 			<MemoizedReferenceWindowContent
@@ -82,19 +92,17 @@ const ReferenceWindow: FC = () => {
 			{!minimal && (
 				<MemoizedReferenceWindowControls
 					scale={scale}
+					pinned={pinned}
 					setScale={setScale}
 					imageAvailable={Boolean(imageURL)}
 					setImageURL={setImageURL}
 					setFlipped={setFlipped}
+					setPinned={setPinned}
 					setRotationDegrees={setRotationDegrees}
 				/>
 			)}
 		</div>
 	);
-
-	if (typeof document === "undefined") return null;
-
-	return createPortal(jsx, document.body);
 };
 
 export default ReferenceWindow;

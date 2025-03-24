@@ -16,19 +16,23 @@ import type { Dispatch, FC, SetStateAction } from "react";
 
 type ReferenceWindowControlsProps = {
 	scale: number;
+	pinned: boolean;
 	setScale: Dispatch<SetStateAction<number>>;
 	imageAvailable: boolean;
 	setImageURL: Dispatch<SetStateAction<string | undefined>>;
 	setFlipped: Dispatch<SetStateAction<boolean>>;
+	setPinned: Dispatch<SetStateAction<boolean>>;
 	setRotationDegrees: Dispatch<SetStateAction<number>>;
 };
 
 const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 	scale,
+	pinned,
 	setScale,
 	imageAvailable,
 	setImageURL,
 	setFlipped,
+	setPinned,
 	setRotationDegrees
 }) => {
 	const fileInput = useRef<HTMLInputElement>(null);
@@ -62,6 +66,10 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 
 	const onRotate = () => {
 		setRotationDegrees((degrees) => (degrees + 90) % 360);
+	};
+
+	const onPin = () => {
+		setPinned((pinned) => !pinned);
 	};
 
 	const updateScale = (_for: "increase" | "decrease") => {
@@ -110,9 +118,9 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							<ZoomOut />
 						</button>
 					</Tooltip>
-					<Tooltip title="Pin">
+					<Tooltip title={pinned ? "Unpin" : "Pin"}>
 						<button
-							disabled={!imageAvailable}
+							onClick={onPin}
 							className="reference-window-controls-button"
 							data-testid="pin"
 						>
