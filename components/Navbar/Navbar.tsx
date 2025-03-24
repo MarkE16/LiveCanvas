@@ -11,7 +11,7 @@ import Export from "../icons/Export/Export";
 import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
 
 // Types
-import type { FC, MouseEvent, ReactElement } from "react";
+import type { FC, ReactElement, ReactMouseEvent, FocusEvent } from "react";
 
 // Styles
 import "./Navbar.styles.css";
@@ -47,7 +47,7 @@ const Navbar: FC = () => {
 	const { references } = useLayerReferences();
 	const menuOpen = Boolean(menuAnchorEl);
 
-	const handleMenuOpen = (e: MouseEvent) => {
+	const handleMenuOpen = (e: ReactMouseEvent) => {
 		const target = e.currentTarget as HTMLButtonElement;
 
 		if (target.name !== "File" && target.name !== "View") {
@@ -128,6 +128,18 @@ const Navbar: FC = () => {
 		}
 	};
 
+	const changeMenuOpenOnHover = (e: ReactMouseEvent<HTMLButtonElement>) => {
+		if (menuOpen) {
+			setMenuAnchorEl(e.currentTarget);
+		}
+	};
+
+	const changeMenuOpenOnFocus = (e: FocusEvent<HTMLButtonElement>) => {
+		if (menuOpen) {
+			setMenuAnchorEl(e.currentTarget);
+		}
+	};
+
 	const menuOptions: MenuOptions = {
 		File: [
 			{
@@ -183,11 +195,8 @@ const Navbar: FC = () => {
 					<button
 						key={tab}
 						name={tab}
-						onMouseOver={(e) => {
-							if (menuAnchorEl !== null) {
-								handleMenuOpen(e);
-							}
-						}}
+						onMouseOver={changeMenuOpenOnHover}
+						onFocus={changeMenuOpenOnFocus}
 						onClick={
 							tab === "File" || tab === "View" ? handleMenuOpen : openSnackbar
 						}

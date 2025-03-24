@@ -4,13 +4,15 @@ import { useRef } from "react";
 // Components
 import { Tooltip } from "@mui/material";
 
-// Types
-import type { Dispatch, FC, SetStateAction } from "react";
+// Icons
 import Pin from "../icons/Pin/Pin";
 import Flip from "../icons/Flip/Flip";
 import Rotate from "../icons/Rotate/Rotate";
 import ZoomOut from "../icons/ZoomOut/ZoomOut";
 import ZoomIn from "../icons/ZoomIn/ZoomIn";
+
+// Types
+import type { Dispatch, FC, SetStateAction } from "react";
 
 type ReferenceWindowControlsProps = {
 	scale: number;
@@ -40,6 +42,14 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 	const onFileChange = () => {
 		if (fileInput.current) {
 			const file = fileInput.current.files?.[0];
+
+			if (!file) return;
+
+			if (!file.type.match(/\*?.(png|jpg|jpeg)/)) {
+				alert("Invalid file type.");
+				return;
+			}
+
 			if (file) {
 				setImageURL(URL.createObjectURL(file));
 			}
@@ -64,7 +74,10 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 	};
 
 	return (
-		<div id="reference-window-controls">
+		<section
+			id="reference-window-controls"
+			data-testid="reference-window-controls"
+		>
 			<input
 				disabled={!imageAvailable}
 				type="range"
@@ -73,6 +86,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 				step="1"
 				value={scale}
 				onChange={(e) => setScale(+e.target.value)}
+				data-testid="scale-slider"
 			/>
 			<section id="reference-window-controls-button-group">
 				<aside>
@@ -81,6 +95,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							disabled={!imageAvailable || scale === 100}
 							className="reference-window-controls-button"
 							onClick={() => updateScale("increase")}
+							data-testid="zoom-in"
 						>
 							<ZoomIn />
 						</button>
@@ -90,6 +105,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							disabled={!imageAvailable || scale === 1}
 							className="reference-window-controls-button"
 							onClick={() => updateScale("decrease")}
+							data-testid="zoom-out"
 						>
 							<ZoomOut />
 						</button>
@@ -98,6 +114,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 						<button
 							disabled={!imageAvailable}
 							className="reference-window-controls-button"
+							data-testid="pin"
 						>
 							<Pin />
 						</button>
@@ -107,6 +124,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							disabled={!imageAvailable}
 							className="reference-window-controls-button"
 							onClick={onFlip}
+							data-testid="flip"
 						>
 							<Flip />
 						</button>
@@ -116,6 +134,7 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							disabled={!imageAvailable}
 							className="reference-window-controls-button"
 							onClick={onRotate}
+							data-testid="rotate"
 						>
 							<Rotate />
 						</button>
@@ -131,9 +150,10 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 				type="file"
 				accept="image/*"
 				onChange={onFileChange}
+				data-testid="ref-window-file-input"
 				style={{ display: "none" }}
 			/>
-		</div>
+		</section>
 	);
 };
 

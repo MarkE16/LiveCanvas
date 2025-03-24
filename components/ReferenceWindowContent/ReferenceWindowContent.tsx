@@ -5,7 +5,8 @@ import type {
 	DragEvent,
 	Dispatch,
 	SetStateAction,
-	CSSProperties
+	CSSProperties,
+	KeyboardEvent
 } from "react";
 
 type ReferenceWindowContentProps = {
@@ -48,8 +49,14 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 		setImageURL(URL.createObjectURL(file));
 	}
 
-	const handleMinimalChange = () => {
+	const handleMinimalChangeOnClick = () => {
 		setMinimal((minimal) => !minimal);
+	};
+
+	const handleMinimalChangeOnKeyDown = (e: KeyboardEvent) => {
+		if (e.key === "Enter") {
+			setMinimal((minimal) => !minimal);
+		}
 	};
 
 	const onImageLoad = () => {
@@ -70,15 +77,18 @@ const ReferenceWindowContent: FC<ReferenceWindowContentProps> = ({
 			className={cn}
 			onDragOver={onDragOver}
 			onDrop={onDrop}
+			data-testid="reference-window-content"
 		>
 			{imageURL ? (
 				<img
 					style={imageStyles}
 					id="reference-image"
+					tabIndex={0}
 					src={imageURL}
 					alt="Reference"
 					onLoad={onImageLoad}
-					onClick={handleMinimalChange}
+					onClick={handleMinimalChangeOnClick}
+					onKeyDown={handleMinimalChangeOnKeyDown}
 				/>
 			) : (
 				<p>Drop an image here to use as a reference.</p>
