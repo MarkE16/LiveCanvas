@@ -15,7 +15,7 @@ const ExportCanvasButton: FC = () => {
 
 		const elements = document.getElementsByClassName("element");
 		const blob = await UTILS.generateCanvasImage(
-			references.current,
+			references.current, 
 			elements,
 			1,
 			true

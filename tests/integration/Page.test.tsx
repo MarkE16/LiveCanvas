@@ -160,36 +160,4 @@ describe("Page", () => {
 			]);
 		});
 	});
-
-	it("should open the reference window from the View menu", () => {
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
-
-		const referenceWindowOption = screen.getByText("Reference Window");
-		fireEvent.click(referenceWindowOption);
-
-		const referenceWindow = screen.getByTestId("reference-window");
-		expect(referenceWindow).toBeInTheDocument();
-	});
-
-	it("should close the reference window from the close button", () => {
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
-
-		const referenceWindowOption = screen.getByText("Reference Window");
-		fireEvent.click(referenceWindowOption);
-
-		let referenceWindow = screen.queryByTestId("reference-window");
-		expect(referenceWindow).toBeInTheDocument();
-
-		expect(referenceWindowOption).not.toBeInTheDocument();
-
-		// Close it.
-		const closeRefWindow = screen.getByTestId("close-ref-window");
-		fireEvent.click(closeRefWindow);
-
-		referenceWindow = screen.queryByTestId("reference-window");
-
-		expect(referenceWindow).not.toBeInTheDocument();
-	});
 });

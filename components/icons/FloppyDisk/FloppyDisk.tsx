@@ -1,42 +1,52 @@
 // Styles
 import "../icons.styles.css";
-const FloppyDisk = () => (
+
+const SaveIcon = ({ checkmark = false }: { checkmark: boolean }) => (
 	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		viewBox="0 0 25 25"
 		width="1em"
 		height="1em"
+		viewBox="0 0 25 25"
 		fill="none"
 		className="icon"
+		xmlns="http://www.w3.org/2000/svg"
 		stroke="currentColor"
 		strokeWidth="2"
 	>
-		{/* Floppy disk outline */}
-		<path
-			d="M19 21H6C5.44772 21 5 20.5523 5 20V5C5 4.44772 5.44772 4 6 4H16L20 8V20C20 20.5523 19.5523 21 19 21Z"
+		<rect
+			x="3"
+			y="5"
+			width="18"
+			height="18"
+			rx="2"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
 
-		{/* Top rectangle (label area) */}
 		<rect
-			x="8"
-			y="4"
-			width="8"
-			height="6"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-		/>
-
-		{/* Bottom rectangle (disk area) */}
-		<rect
-			x="8"
-			y="14"
-			width="9"
+			x="7"
+			y="6"
+			width="10"
 			height="7"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
+
+		{checkmark ? (
+			<path
+				d="M8 16l3 5 7-7"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		) : (
+			<circle
+				cx="12"
+				cy="18"
+				r="3"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		)}
 	</svg>
 );
-export default FloppyDisk;
+
+export default SaveIcon;

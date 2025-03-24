@@ -54,7 +54,6 @@ export type CanvasStore = CanvasState & {
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
-	toggleReferenceWindow: () => void;
 	prepareForSave: (
 		layerRefs: HTMLCanvasElement[]
 	) => Promise<SavedCanvasProperties>;

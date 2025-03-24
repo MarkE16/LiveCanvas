@@ -12,7 +12,6 @@ export type CanvasState = {
 	scale: number;
 	dpi: number;
 	position: Coordinates;
-	referenceWindowEnabled: boolean;
 };
 
 export type Mode =

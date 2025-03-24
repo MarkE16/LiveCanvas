@@ -86,7 +86,7 @@ const DrawingToolbar: FC = () => {
 				key={name}
 				icon={icon}
 				name={name}
-				isActive={shape === name}
+			  isActive={shape === name}
 			/>
 		);
 	});
