@@ -27,7 +27,6 @@ const exampleStore: SliceStores = {
 	elementMoving: false,
 	undoStack: [],
 	redoStack: [],
-	referenceWindowEnabled: false,
 	changeMode: expect.any(Function),
 	changeColor: expect.any(Function),
 	setLayers: expect.any(Function),
@@ -62,7 +61,6 @@ const exampleStore: SliceStores = {
 	copyElement: expect.any(Function),
 	pasteElement: expect.any(Function),
 	push: expect.any(Function),
-	toggleReferenceWindow: expect.any(Function),
 	prepareForExport: expect.any(Function),
 	prepareForSave: expect.any(Function)
 };

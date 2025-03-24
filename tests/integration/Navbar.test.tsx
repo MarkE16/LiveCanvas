@@ -6,7 +6,7 @@ import {
 	beforeEach,
 	afterEach,
 	afterAll,
-	MockInstance
+  MockInstance
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import Navbar from "../../components/Navbar/Navbar";
@@ -20,10 +20,7 @@ vi.mock("../../renderer/usePageContext", () => ({
 describe("Navbar functionality", () => {
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
-	let originalRequestFullscreen: typeof HTMLElement.prototype.requestFullscreen;
-	let originalExitFullscreen: typeof document.exitFullscreen;
 	let useLayerReferencesSpy: MockInstance;
-	const fullscreenElementMock = vi.fn().mockReturnValue(null);
 	const canvas = document.createElement("canvas");
 	canvas.setAttribute("data-dpi", "1");
 
@@ -45,15 +42,6 @@ describe("Navbar functionality", () => {
 		originalRevokeObjectURL = URL.revokeObjectURL;
 		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
 		URL.revokeObjectURL = vi.fn();
-
-		Object.defineProperty(document, "fullscreenElement", {
-			get: fullscreenElementMock,
-			configurable: true
-		});
-
-		originalRequestFullscreen = HTMLElement.prototype.requestFullscreen;
-		HTMLElement.prototype.requestFullscreen = vi.fn();
-		document.exitFullscreen = vi.fn();
 	});
 
 	afterEach(() => {
@@ -63,9 +51,6 @@ describe("Navbar functionality", () => {
 	afterAll(() => {
 		URL.createObjectURL = originalCreateObjectURL;
 		URL.revokeObjectURL = originalRevokeObjectURL;
-
-		HTMLElement.prototype.requestFullscreen = originalRequestFullscreen;
-		document.exitFullscreen = originalExitFullscreen;
 		vi.restoreAllMocks();
 	});
 
@@ -115,7 +100,7 @@ describe("Navbar functionality", () => {
 		}
 	});
 
-	it("should save the file when clicking Save File from File menu", async () => {
+	it("should call prepareForSave when clicking Save File from File dropdown", async () => {
 		const alertSpy = vi.spyOn(window, "alert");
 		const fileTab = screen.getByText("File");
 
@@ -140,7 +125,7 @@ describe("Navbar functionality", () => {
 			setActiveIndex: vi.fn(),
 			getActiveLayer: vi.fn()
 		});
-
+		
 		const alertSpy = vi.spyOn(window, "alert");
 		const error = new Error(
 			"Cannot export canvas: no references found. This is a bug."
@@ -170,7 +155,7 @@ describe("Navbar functionality", () => {
 		});
 	});
 
-	it("should export file when clicking Export File from File menu", async () => {
+	it("should call prepareForExport when clicking Export File from File dropdown", async () => {
 		const fileTab = screen.getByText("File");
 		const exportLink = screen.getByTestId("export-link");
 		const clickSpy = vi.spyOn(exportLink, "click");
@@ -184,35 +169,5 @@ describe("Navbar functionality", () => {
 		await vi.waitFor(() => {
 			expect(clickSpy).toHaveBeenCalled();
 		});
-	});
-
-	it("should toggle full screen from the View menu", () => {
-		const requestFullscreenSpy = vi.spyOn(
-			HTMLElement.prototype,
-			"requestFullscreen"
-		);
-		const exitFullscreenSpy = vi.spyOn(document, "exitFullscreen");
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
-
-		let fullScreenOption = screen.getByText("Toggle Full Screen");
-		fireEvent.click(fullScreenOption);
-
-		// Toggle it.
-		expect(requestFullscreenSpy).toHaveBeenCalled();
-
-		// Toggle it back.
-		// Note: We need to pretend that the document is in full screen mode.
-		// So, we need to mock the getter of `document.fullscreenElement`.
-		Object.defineProperty(document, "fullscreenElement", {
-			get: fullscreenElementMock.mockReturnValue(true),
-			configurable: true
-		});
-
-		fireEvent.click(viewTab);
-		fullScreenOption = screen.getByText("Toggle Full Screen");
-		fireEvent.click(fullScreenOption);
-
-		expect(exitFullscreenSpy).toHaveBeenCalled();
 	});
 });

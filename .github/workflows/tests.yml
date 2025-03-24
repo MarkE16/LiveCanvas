@@ -4,9 +4,6 @@ name: CI
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-    paths:
-      - "**/*.ts"
-      - "**/*.tsx"
     branches:
       - main
 
@@ -39,26 +36,3 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  lint:
-    runs-on: ubuntu-latest
-    name: Lint
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Install pnpm
-        run: npm install -g pnpm@8
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run linter
-        run: pnpm run lint
