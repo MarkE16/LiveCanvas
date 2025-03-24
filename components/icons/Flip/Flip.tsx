@@ -11,9 +11,9 @@ const Flip = () => (
 		stroke="currentColor"
 		strokeWidth="2"
 	>
-		{/* Top down arrow */}
+		{/* Top down arrow - moved much higher */}
 		<path
-			d="M5 8L12.5 15.5L20 8"
+			d="M5 4L12.5 9L20 4"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
@@ -48,9 +48,9 @@ const Flip = () => (
 			strokeLinecap="round"
 		/>
 
-		{/* Bottom up arrow */}
+		{/* Bottom up arrow - moved much lower */}
 		<path
-			d="M5 17L12.5 9.5L20 17"
+			d="M5 21L12.5 16L20 21"
 			strokeLinecap="round"
 			strokeLinejoin="round"
 		/>
