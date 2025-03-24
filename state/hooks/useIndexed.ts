@@ -17,6 +17,6 @@ function useIndexed() {
 	}
 
 	return context;
-};
+}
 
 export default useIndexed;

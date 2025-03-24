@@ -14,10 +14,14 @@ import "./Main.styles.css";
 import CanvasPane from "../CanvasPane/CanvasPane";
 import LeftToolbar from "../LeftToolbar/LeftToolbar";
 import LayerPane from "../LayerPane/LayerPane";
+import ReferenceWindow from "../ReferenceWindow/ReferenceWindow";
 
 const Main: FC = () => {
 	const { get } = useIndexed();
 	const setElements = useStore((store) => store.setElements);
+	const refereceWindowEnabled = useStore(
+		(store) => store.referenceWindowEnabled
+	);
 
 	useEffect(() => {
 		async function getElements() {
@@ -45,6 +49,8 @@ const Main: FC = () => {
 
 			<CanvasPane />
 
+			{/* Reference window */}
+			{refereceWindowEnabled && <ReferenceWindow />}
 			{/* Right side pane */}
 			<LayerPane />
 		</main>
