@@ -462,6 +462,12 @@ export const createCanvasSlice: StateCreator<
 		});
 	}
 
+	function toggleReferenceWindow() {
+		set((state) => ({
+			referenceWindowEnabled: !state.referenceWindowEnabled
+		}));
+	}
+
 	return {
 		width: 400,
 		height: 400,
@@ -474,6 +480,7 @@ export const createCanvasSlice: StateCreator<
 		scale: 1,
 		dpi: 1,
 		position: { x: 0, y: 0 },
+		referenceWindowEnabled: false,
 		changeDimensions,
 		changeColor,
 		changeColorAlpha,
@@ -497,6 +504,7 @@ export const createCanvasSlice: StateCreator<
 		changeX,
 		changeY,
 		prepareForSave,
-		prepareForExport
+		prepareForExport,
+		toggleReferenceWindow
 	};
 };
