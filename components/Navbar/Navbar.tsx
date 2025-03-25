@@ -4,22 +4,43 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
 
+// Icons
+import Fullscreen from "../icons/Fullscreen/Fullscreen";
+import Image from "../icons/Image/Image";
+import Export from "../icons/Export/Export";
+import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
+
 // Types
-import type { FC, MouseEvent } from "react";
+import type {
+	FC,
+	ReactElement,
+	MouseEvent as ReactMouseEvent,
+	FocusEvent
+} from "react";
 
 // Styles
 import "./Navbar.styles.css";
 
 // Components
-import { Menu, MenuItem, Snackbar, Fade } from "@mui/material";
+import {
+	MenuItem,
+	Snackbar,
+	Popper,
+	Paper,
+	MenuList,
+	ClickAwayListener,
+	ListItemIcon,
+	ListItemText
+} from "@mui/material";
 import useStore from "../../state/hooks/useStore";
 import useIndexed from "../../state/hooks/useIndexed";
 
 const Navbar: FC = () => {
-	const { prepareForExport, prepareForSave } = useStore(
+	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
 		useShallow((state) => ({
 			prepareForExport: state.prepareForExport,
-			prepareForSave: state.prepareForSave
+			prepareForSave: state.prepareForSave,
+			toggleReferenceWindow: state.toggleReferenceWindow
 		}))
 	);
 	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
@@ -31,8 +52,13 @@ const Navbar: FC = () => {
 	const { references } = useLayerReferences();
 	const menuOpen = Boolean(menuAnchorEl);
 
-	const handleMenuOpen = (e: MouseEvent) => {
-		setMenuAnchorEl(e.currentTarget as HTMLButtonElement);
+	const handleMenuOpen = (e: ReactMouseEvent) => {
+		const target = e.currentTarget as HTMLButtonElement;
+
+		if (target.name !== "File" && target.name !== "View") {
+			return;
+		}
+		setMenuAnchorEl(target);
 	};
 
 	const handleMenuClose = () => {
@@ -53,6 +79,7 @@ const Navbar: FC = () => {
 		[key: string]: {
 			text: string;
 			action: (() => void) | (() => Promise<void>);
+			icon?: () => ReactElement;
 		}[];
 	};
 
@@ -95,15 +122,53 @@ const Navbar: FC = () => {
 		}
 	};
 
+	const toggleFullScreen = () => {
+		const doc = window.document;
+		const docEl = doc.documentElement;
+
+		if (doc.fullscreenElement) {
+			doc.exitFullscreen();
+		} else {
+			docEl.requestFullscreen();
+		}
+	};
+
+	const handleMenuChange = (
+		e: Pick<ReactMouseEvent & FocusEvent, "currentTarget">
+	) => {
+		const target = e.currentTarget as HTMLButtonElement;
+		if (
+			menuOpen &&
+			e.currentTarget !== menuAnchorEl &&
+			(target.name === "File" || target.name === "View")
+		) {
+			setMenuAnchorEl(target);
+		}
+	};
+
 	const menuOptions: MenuOptions = {
 		File: [
 			{
 				text: "Save File",
-				action: handleSaveFile
+				action: handleSaveFile,
+				icon: FloppyDisk
 			},
 			{
 				text: "Export File",
-				action: handleExportFile
+				action: handleExportFile,
+				icon: Export
+			}
+		],
+		View: [
+			{
+				text: "Reference Window",
+				action: toggleReferenceWindow,
+				icon: Image
+			},
+			{
+				text: "Toggle Full Screen",
+				action: toggleFullScreen,
+				icon: Fullscreen
 			}
 		]
 	};
@@ -126,56 +191,25 @@ const Navbar: FC = () => {
 	return (
 		<header data-testid="nav-bar">
 			<nav id="navbar-container">
-				<section id="navbar-links-section">
-					<img
-						id="navbar-logo"
-						src={logo}
-						alt="logo"
-					/>
-					<div id="navbar-links">
-						{menuTabs.map((tab) => (
-							<button
-								key={tab}
-								name={tab}
-								onClick={tab === "File" ? handleMenuOpen : openSnackbar}
-							>
-								{tab}
-							</button>
-						))}
+				<img
+					id="navbar-logo"
+					src={logo}
+					alt="logo"
+				/>
 
-						<Menu
-							data-testid="menu"
-							open={menuOpen}
-							anchorEl={menuAnchorEl}
-							onClose={handleMenuClose}
-							TransitionComponent={Fade}
-							transitionDuration={200}
-							variant="menu"
-							sx={{
-								"& .MuiPaper-root": {
-									backgroundColor: "#3b3b3b",
-									color: "white"
-								},
-								"& .MuiMenuItem-root:hover": {
-									backgroundColor: "#333" // Dark gray on hover
-								}
-							}}
-						>
-							{menuAnchorEl &&
-								menuOptions[menuAnchorEl.name].map((option) => (
-									<MenuItem
-										key={option.text}
-										onClick={() => {
-											option.action();
-											handleMenuClose();
-										}}
-									>
-										{option.text}
-									</MenuItem>
-								))}
-						</Menu>
-					</div>
-				</section>
+				{menuTabs.map((tab) => (
+					<button
+						key={tab}
+						name={tab}
+						onMouseOver={handleMenuChange}
+						onFocus={handleMenuChange}
+						onClick={
+							tab === "File" || tab === "View" ? handleMenuOpen : openSnackbar
+						}
+					>
+						{tab}
+					</button>
+				))}
 			</nav>
 
 			<Snackbar
@@ -186,6 +220,63 @@ const Navbar: FC = () => {
 				message="This feature is not yet implemented."
 				onClick={closeSnackbar}
 			/>
+
+			<Popper
+				open={menuOpen}
+				anchorEl={menuAnchorEl}
+				placement="bottom-start"
+				role={undefined}
+				sx={{
+					"& .MuiPaper-root": {
+						backgroundColor: "#191919",
+						border: "1px solid #333",
+						marginTop: "5px",
+						color: "white"
+					},
+					"& .MuiMenuItem-root:hover": {
+						backgroundColor: "#333" // Dark gray on hover
+					},
+					zIndex: 1000
+				}}
+			>
+				<Paper>
+					<ClickAwayListener onClickAway={handleMenuClose}>
+						<MenuList
+							autoFocusItem={menuOpen}
+							id="composition-menu"
+							aria-labelledby="composition-button"
+							dense
+							// onKeyDown={handleListKeyDown}
+						>
+							{menuAnchorEl &&
+								menuOptions[menuAnchorEl.name].map((item, index) => {
+									const iconCount = menuOptions[menuAnchorEl.name].reduce(
+										(acc, curr) => (curr.icon ? acc + 1 : acc),
+										0
+									);
+									return (
+										<MenuItem
+											key={index}
+											onClick={() => {
+												item.action();
+												handleMenuClose();
+											}}
+										>
+											{item.icon && (
+												<ListItemIcon sx={{ color: "white" }}>
+													<item.icon />
+												</ListItemIcon>
+											)}
+											<ListItemText inset={!item.icon && iconCount > 0}>
+												{item.text}
+											</ListItemText>
+										</MenuItem>
+									);
+								})}
+						</MenuList>
+					</ClickAwayListener>
+				</Paper>
+			</Popper>
 
 			<a
 				type="file"

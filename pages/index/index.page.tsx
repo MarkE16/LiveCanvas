@@ -6,6 +6,7 @@ import { useEffect } from "react";
 // Components
 import Navbar from "../../components/Navbar/Navbar";
 import Main from "../../components/Main/Main";
+import ErrorBoundary from "../../components/ErrorBoundary/ErrorBoundary";
 
 // The <head> tags
 // eslint-disable-next-line
@@ -39,11 +40,11 @@ function Page() {
 	}, []);
 
 	return (
-		<>
+		<ErrorBoundary>
 			<Navbar />
 
 			<Main />
-		</>
+		</ErrorBoundary>
 	);
 }
 

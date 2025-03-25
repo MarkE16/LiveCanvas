@@ -35,6 +35,6 @@ function useWindowDimensions() {
 	}, []);
 
 	return dimensions;
-};
+}
 
 export default useWindowDimensions;
