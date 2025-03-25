@@ -34,3 +34,7 @@
 #new-layer-button:hover {
 	background-color: #d1836a;
 }
+
+#new-layer-button:disabled {
+	background-color: #242424;
+}

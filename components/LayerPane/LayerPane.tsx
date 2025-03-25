@@ -12,9 +12,12 @@ import "./LayerPane.styles.css";
 // Components
 import LayerInfo from "../LayerInfo/LayerInfo";
 import ColorWheel from "../ColorWheel/ColorWheel";
+import { Tooltip } from "@mui/material";
 
 const MemoizedLayerInfo = memo(LayerInfo);
 const MemoizedColorWheel = memo(ColorWheel);
+
+const MAX_LAYERS = 65;
 
 const LayerPane: FC = () => {
 	const { layers, createLayer } = useStore(
@@ -27,17 +30,37 @@ const LayerPane: FC = () => {
 
 	const onNewLayer = () => createLayer();
 
-	return (
-		<aside id="layer-manager-container">
-			<MemoizedColorWheel />
-
+	const newLayerButton =
+		totalLayers >= MAX_LAYERS ? (
+			<Tooltip
+				title="Maximum number of layers reached"
+				placement="left"
+				arrow
+			>
+				<button
+					data-testid="new-layer-button"
+					id="new-layer-button"
+					disabled={true}
+				>
+					<i className="fa fa-plus"></i>
+				</button>
+			</Tooltip>
+		) : (
 			<button
 				data-testid="new-layer-button"
 				id="new-layer-button"
+				disabled={false}
 				onClick={onNewLayer}
 			>
 				<i className="fa fa-plus"></i>
 			</button>
+		);
+
+	return (
+		<aside id="layer-manager-container">
+			<MemoizedColorWheel />
+
+			{newLayerButton}
 			<div
 				id="layer-list"
 				data-testid="layer-list"

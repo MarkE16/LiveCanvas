@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import LayerPane from "../../components/LayerPane/LayerPane";
-import { CanvasState } from "../../types";
+import { SliceStores } from "../../types";
 import { renderWithProviders } from "../test-utils";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
@@ -19,7 +19,7 @@ vi.mock("../../renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
 }));
 
-const preloadedState: CanvasState = {
+const preloadedState: Partial<SliceStores> = {
 	width: 400,
 	height: 400,
 	mode: "select",
@@ -74,16 +74,16 @@ describe("LayerPane functionality", () => {
 	it("should render the LayerPane component with active layer", () => {
 		// Get the active layer by grabbing the label element
 
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 
 		expect(layer1).toHaveClass("active");
 		expect(layer2).not.toHaveClass("active");
 	});
 
 	it("should switch active layer on click", () => {
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 
 		expect(layer1).toHaveClass("active");
 		expect(layer2).not.toHaveClass("active");
@@ -112,6 +112,30 @@ describe("LayerPane functionality", () => {
 		expect(layerList.children).toHaveLength(3);
 	});
 
+	it("should prevent adding a new layer when there are 65 layers", () => {
+		let button = screen.getByTestId("new-layer-button");
+		const layerList = screen.getByTestId("layer-list");
+
+		expect(layerList.children).toHaveLength(2);
+
+		// Add 63 layers
+		for (let i = 0; i < 63; i++) {
+			expect(button).not.toBeDisabled();
+			fireEvent.click(button);
+		}
+
+		expect(layerList.children).toHaveLength(65);
+
+		button = screen.getByTestId("new-layer-button");
+		expect(button).toBeDisabled(); // The button should be disabled since we have 65 layers
+
+		// Try to add another layer
+		fireEvent.click(button);
+
+		// The layer list should still have 65 layers
+		expect(layerList.children).toHaveLength(65);
+	});
+
 	it("should delete a layer when available; should not delete if not available", () => {
 		const layer1 = screen.queryByText("Layer 1");
 		const layer2 = screen.queryByText("Layer 2");
@@ -122,7 +146,7 @@ describe("LayerPane functionality", () => {
 		expect(layer2).toBeInTheDocument();
 
 		const deleteButton = screen.getByTestId(
-			"del-" + preloadedState.layers[0].id
+			"del-" + preloadedState.layers![0].id
 		);
 
 		expect(deleteButton).not.toBeNull();
@@ -136,7 +160,7 @@ describe("LayerPane functionality", () => {
 		expect(layer2).toBeInTheDocument();
 
 		const deleteButton2 = screen.queryByTestId(
-			"del-" + preloadedState.layers[1].id
+			"del-" + preloadedState.layers![1].id
 		);
 
 		// Trying to delete the second layer. Since there is only one layer left, it should not be deleted, so the delete button should not be available.
@@ -145,13 +169,13 @@ describe("LayerPane functionality", () => {
 
 	it("should rename the layer", () => {
 		const layer1Name = screen.getByTestId(
-			"name-" + preloadedState.layers[0].id
+			"name-" + preloadedState.layers![0].id
 		);
 		const layer1RenameButton = screen.getByTestId(
-			"rename-" + preloadedState.layers[0].id
+			"rename-" + preloadedState.layers![0].id
 		);
 		const layer1Input = screen.queryByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1Name).not.toBeNull();
@@ -162,7 +186,7 @@ describe("LayerPane functionality", () => {
 		fireEvent.click(layer1RenameButton);
 
 		const layer1InputAfterClick = screen.getByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1InputAfterClick).not.toBeNull();
@@ -183,13 +207,13 @@ describe("LayerPane functionality", () => {
 
 	it("should not allow a rename if field is empty", () => {
 		const layer1Name = screen.getByTestId(
-			"name-" + preloadedState.layers[0].id
+			"name-" + preloadedState.layers![0].id
 		);
 		const layer1RenameButton = screen.getByTestId(
-			"rename-" + preloadedState.layers[0].id
+			"rename-" + preloadedState.layers![0].id
 		);
 		const layer1Input = screen.queryByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1Name).not.toBeNull();
@@ -200,7 +224,7 @@ describe("LayerPane functionality", () => {
 		fireEvent.click(layer1RenameButton);
 
 		const layer1InputAfterClick = screen.getByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1RenameButton).not.toBeDisabled(); // This button changes to a "confirm" button when renaming. Since we haven't changed the name yet, it should not be disabled.
@@ -217,10 +241,10 @@ describe("LayerPane functionality", () => {
 	it("should rename when pressing enter", () => {
 		const layer1Name = screen.queryByText("Layer 1");
 		const layer1RenameButton = screen.getByTestId(
-			"rename-" + preloadedState.layers[0].id
+			"rename-" + preloadedState.layers![0].id
 		);
 		const layer1Input = screen.queryByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1Name).toBeInTheDocument();
@@ -230,7 +254,7 @@ describe("LayerPane functionality", () => {
 		fireEvent.click(layer1RenameButton);
 
 		const layer1InputAfterClick = screen.getByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1InputAfterClick).not.toBeNull();
@@ -251,13 +275,13 @@ describe("LayerPane functionality", () => {
 
 	it("should exit renaming when pressing escape while not modifiying the name", () => {
 		const layer1Name = screen.getByTestId(
-			"name-" + preloadedState.layers[0].id
+			"name-" + preloadedState.layers![0].id
 		);
 		const layer1RenameButton = screen.getByTestId(
-			"rename-" + preloadedState.layers[0].id
+			"rename-" + preloadedState.layers![0].id
 		);
 		const layer1Input = screen.queryByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1Name).not.toBeNull();
@@ -268,7 +292,7 @@ describe("LayerPane functionality", () => {
 		fireEvent.click(layer1RenameButton);
 
 		const layer1InputAfterClick = screen.getByTestId(
-			"name-input-" + preloadedState.layers[0].id
+			"name-input-" + preloadedState.layers![0].id
 		);
 
 		expect(layer1InputAfterClick).not.toBeNull();
@@ -289,7 +313,7 @@ describe("LayerPane functionality", () => {
 
 	it("should toggle layer visibility", async () => {
 		const toggleButton = screen.getByTestId(
-			"toggle-" + preloadedState.layers[0].id
+			"toggle-" + preloadedState.layers![0].id
 		);
 
 		expect(toggleButton).not.toBeNull();
@@ -310,10 +334,10 @@ describe("LayerPane functionality", () => {
 
 	it("should move a layer down", () => {
 		const container = screen.getByTestId("layer-list");
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 		const downLayer1Button = screen.getByTestId(
-			"down-" + preloadedState.layers[0].id
+			"down-" + preloadedState.layers![0].id
 		);
 
 		expect(downLayer1Button).not.toBeNull();
@@ -328,10 +352,10 @@ describe("LayerPane functionality", () => {
 
 	it("should move a layer up", () => {
 		const container = screen.getByTestId("layer-list");
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 		const upLayer2Button = screen.getByTestId(
-			"up-" + preloadedState.layers[1].id
+			"up-" + preloadedState.layers![1].id
 		);
 
 		expect(upLayer2Button).not.toBeNull();
@@ -346,10 +370,10 @@ describe("LayerPane functionality", () => {
 
 	it("should not move a layer up if it's already at the top", () => {
 		const container = screen.getByTestId("layer-list");
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 		const upLayer1Button = screen.getByTestId(
-			"up-" + preloadedState.layers[0].id
+			"up-" + preloadedState.layers![0].id
 		);
 
 		expect(upLayer1Button).not.toBeNull();
@@ -364,10 +388,10 @@ describe("LayerPane functionality", () => {
 
 	it("should not move a layer down if it's already at the bottom", () => {
 		const container = screen.getByTestId("layer-list");
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
-		const layer2 = screen.getByTestId("layer-" + preloadedState.layers[1].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
+		const layer2 = screen.getByTestId("layer-" + preloadedState.layers![1].id);
 		const downLayer2Button = screen.getByTestId(
-			"down-" + preloadedState.layers[1].id
+			"down-" + preloadedState.layers![1].id
 		);
 
 		expect(downLayer2Button).not.toBeNull();
@@ -378,19 +402,19 @@ describe("LayerPane functionality", () => {
 
 	it("should not move the layer at all if there is one layer", () => {
 		const container = screen.getByTestId("layer-list");
-		const layer1 = screen.getByTestId("layer-" + preloadedState.layers[0].id);
+		const layer1 = screen.getByTestId("layer-" + preloadedState.layers![0].id);
 		const upLayer1Button = screen.getByTestId(
-			"up-" + preloadedState.layers[0].id
+			"up-" + preloadedState.layers![0].id
 		);
 		const downLayer1Button = screen.getByTestId(
-			"down-" + preloadedState.layers[0].id
+			"down-" + preloadedState.layers![0].id
 		);
 
 		expect(upLayer1Button).not.toBeNull();
 		expect(downLayer1Button).not.toBeNull();
 
 		// We have 2 layers by default, so let's remove one
-		fireEvent.click(screen.getByTestId("del-" + preloadedState.layers[1].id));
+		fireEvent.click(screen.getByTestId("del-" + preloadedState.layers![1].id));
 
 		expect([...container.children]).toEqual([layer1]);
 
