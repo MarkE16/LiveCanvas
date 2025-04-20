@@ -1,6 +1,8 @@
 // Lib
-import { useCallback, useState, memo } from "react";
+import { useState, memo } from "react";
+import clsx from "clsx";
 import useIndexed from "../../state/hooks/useIndexed";
+import useStore from "../../state/hooks/useStore";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import { useShallow } from "zustand/react/shallow";
 
@@ -18,10 +20,8 @@ import type { Layer } from "../../types";
 import "./LayerInfo.styles.css";
 
 // Components
-import { Tooltip } from "@mui/material";
 import LayerPreview from "../LayerPreview/LayerPreview";
-import useStore from "../../state/hooks/useStore";
-import clsx from "clsx";
+import Tooltip from "../Tooltip/Tooltip";
 
 type LayerInfoProps = Layer & {
 	canMoveUp: boolean;
@@ -106,14 +106,20 @@ const LayerInfo: FC<LayerInfoProps> = ({
 		}
 	};
 
-	const onRename = useCallback(() => {
+	const onRename = () => {
 		setIsEditing((prev) => !prev);
 
 		if (isEditing) {
+			if (!editedName.length) {
+				console.error("Layer name cannot be empty.");
+				setEditedName(name);
+				return;
+			}
+
 			renameLayer({ id, newName: editedName });
 			return;
 		}
-	}, [id, isEditing, editedName, renameLayer]);
+	};
 
 	const visibilityTooltipText = hidden ? "Show" : "Hide";
 
@@ -133,36 +139,28 @@ const LayerInfo: FC<LayerInfoProps> = ({
 			/>
 			<div className="layer-info-mover">
 				<Tooltip
-					title="Move Up"
-					arrow
-					placement="left"
+					text="Move Up"
+					position="left"
 				>
-					<span>
-						<button
-							className="layer-up"
-							data-testid={`up-${id}`}
-							disabled={!canMoveUp}
-							onClick={() => onMoveLayer("up")}
-						>
-							<i className="fas fa-angle-up"></i>
-						</button>
-					</span>
+					<button
+						className="layer-up"
+						data-testid={`up-${id}`}
+						onClick={() => onMoveLayer("up")}
+					>
+						<i className="fas fa-angle-up"></i>
+					</button>
 				</Tooltip>
 				<Tooltip
-					title="Move Down"
-					arrow
-					placement="left"
+					text="Move Down"
+					position="left"
 				>
-					<span>
-						<button
-							className="layer-down"
-							disabled={!canMoveDown}
-							onClick={() => onMoveLayer("down")}
-							data-testid={`down-${id}`}
-						>
-							<i className="fas fa-angle-down"></i>
-						</button>
-					</span>
+					<button
+						className="layer-down"
+						onClick={() => onMoveLayer("down")}
+						data-testid={`down-${id}`}
+					>
+						<i className="fas fa-angle-down"></i>
+					</button>
 				</Tooltip>
 			</div>
 
@@ -175,10 +173,10 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						placeholder={name}
 						value={editedName}
 						/**
-					We add this keydown event so that we prevent the keydown event attached on the
-					window object from firing (for listening to keyboard shortcuts related to tools)
-					when we are editing the layer name.
-				  */
+						We add this keydown event so that we prevent the keydown event attached on the
+						window object from firing (for listening to keyboard shortcuts related to tools)
+						when we are editing the layer name.
+					  */
 						onKeyDown={(e) => {
 							e.stopPropagation();
 
@@ -194,40 +192,32 @@ const LayerInfo: FC<LayerInfoProps> = ({
 						onBlur={onRename}
 					/>
 				) : (
-					<span
-						className="layer-info-name"
-						data-testid={`name-${id}`}
-						onDoubleClick={onRename}
-					>
-						{name}
-					</span>
+					<div className="layer-info-text">
+						<span
+							className="layer-info-name"
+							data-testid={`name-${id}`}
+							onDoubleClick={onRename}
+						>
+							{name}
+						</span>
+					</div>
 				)}
 				<div>
-					<Tooltip
-						title={editingTooltipText}
-						arrow
-						placement="top"
-					>
-						<span>
-							<button
-								className="layer-rename"
-								onClick={onRename}
-								data-testid={`rename-${id}`}
-								disabled={!editedName.length}
-							>
-								{isEditing ? <Checkmark /> : <Pen />}
-							</button>
-						</span>
+					<Tooltip text={editingTooltipText}>
+						<button
+							className="layer-rename"
+							onClick={onRename}
+							data-testid={`rename-${id}`}
+							disabled={!editedName.length}
+						>
+							{isEditing ? <Checkmark /> : <Pen />}
+						</button>
 					</Tooltip>
 					{!isEditing && (
 						<>
 							{/* if we cannot move up or down, then there should be only one layer; we don't want to be able to delete the layer in this case. */}
 							{(canMoveUp || canMoveDown) && (
-								<Tooltip
-									title="Delete"
-									arrow
-									placement="top"
-								>
+								<Tooltip text="Delete">
 									<button
 										className="layer-delete"
 										data-testid={`del-${id}`}
@@ -238,11 +228,7 @@ const LayerInfo: FC<LayerInfoProps> = ({
 								</Tooltip>
 							)}
 
-							<Tooltip
-								title={visibilityTooltipText}
-								arrow
-								placement="top"
-							>
+							<Tooltip text={visibilityTooltipText}>
 								<button
 									onClick={onToggleVisibility}
 									data-testid={`toggle-${id}`}

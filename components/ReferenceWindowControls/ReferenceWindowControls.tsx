@@ -2,7 +2,7 @@
 import { useRef } from "react";
 
 // Components
-import { Tooltip } from "@mui/material";
+import Tooltip from "../Tooltip/Tooltip";
 
 // Icons
 import Pin from "../icons/Pin/Pin";
@@ -98,7 +98,11 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 			/>
 			<section id="reference-window-controls-button-group">
 				<aside>
-					<Tooltip title="Zoom In">
+					<Tooltip
+						text="Zoom In"
+						position="bottom"
+						arrow={false}
+					>
 						<button
 							disabled={!imageAvailable || scale === 100}
 							className="reference-window-controls-button"
@@ -108,7 +112,11 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							<ZoomIn />
 						</button>
 					</Tooltip>
-					<Tooltip title="Zoom Out">
+					<Tooltip
+						text="Zoom Out"
+						position="bottom"
+						arrow={false}
+					>
 						<button
 							disabled={!imageAvailable || scale === 1}
 							className="reference-window-controls-button"
@@ -118,7 +126,11 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							<ZoomOut />
 						</button>
 					</Tooltip>
-					<Tooltip title={pinned ? "Unpin" : "Pin"}>
+					<Tooltip
+						text={pinned ? "Unpin" : "Pin"}
+						position="bottom"
+						arrow={false}
+					>
 						<button
 							onClick={onPin}
 							className="reference-window-controls-button"
@@ -127,7 +139,11 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							<Pin />
 						</button>
 					</Tooltip>
-					<Tooltip title="Flip Horizontally">
+					<Tooltip
+						text="Flip Horizontally"
+						position="bottom"
+						arrow={false}
+					>
 						<button
 							disabled={!imageAvailable}
 							className="reference-window-controls-button"
@@ -137,7 +153,11 @@ const ReferenceWindowControls: FC<ReferenceWindowControlsProps> = ({
 							<Flip />
 						</button>
 					</Tooltip>
-					<Tooltip title="Rotate 90 Degrees">
+					<Tooltip
+						text="Rotate 90 Degrees"
+						position="bottom"
+						arrow={false}
+					>
 						<button
 							disabled={!imageAvailable}
 							className="reference-window-controls-button"

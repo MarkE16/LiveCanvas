@@ -3,13 +3,13 @@ import { useCallback, useEffect } from "react";
 import useStore from "../../state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 import * as UTILS from "../../lib/utils";
+import clsx from "clsx";
 
 // Types
 import type { Mode, ToolbarMode } from "../../types";
 import type { FC, ReactElement } from "react";
 
 // Components
-import { Tooltip } from "@mui/material";
 import Select from "../icons/Select/Select";
 import Pen from "../icons/Pen/Pen";
 import Eraser from "../icons/Eraser/Eraser";
@@ -21,7 +21,7 @@ import Move from "../icons/Move/Move";
 import Undo from "../icons/Undo/Undo";
 import Redo from "../icons/Redo/Redo";
 import Text from "../icons/Text/Text";
-import clsx from "clsx";
+import Tooltip from "../Tooltip/Tooltip";
 
 type ToolbarButtonProps = ToolbarMode & {
 	active: boolean;
@@ -97,28 +97,25 @@ const ToolbarButton: FC<ToolbarButtonProps> = ({ name, shortcut, active }) => {
 
 	return (
 		<Tooltip
-			title={tooltip}
-			arrow
-			placement="right"
+			text={tooltip}
+			position="right"
 		>
-			<span>
-				<button
-					className={cn}
-					data-modename={name}
-					data-shortcut={shortcut}
-					data-testid={`tool-${name}`}
-					onClick={performAction}
-					disabled={
-						name === "undo"
-							? !undoStack.length
-							: name === "redo"
-								? !redoStack.length
-								: false
-					}
-				>
-					{ICONS[name]}
-				</button>
-			</span>
+			<button
+				className={cn}
+				data-modename={name}
+				data-shortcut={shortcut}
+				data-testid={`tool-${name}`}
+				onClick={performAction}
+				disabled={
+					name === "undo"
+						? !undoStack.length
+						: name === "redo"
+							? !redoStack.length
+							: false
+				}
+			>
+				{ICONS[name]}
+			</button>
 		</Tooltip>
 	);
 };

@@ -1,8 +1,10 @@
 // Lib
 import logo from "../../assets/icons/IdeaDrawnNewLogo_transparent.png";
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import useLayerReferences from "../../state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
+import useStore from "../../state/hooks/useStore";
+import useIndexed from "../../state/hooks/useIndexed";
 
 // Icons
 import Fullscreen from "../icons/Fullscreen/Fullscreen";
@@ -11,29 +13,13 @@ import Export from "../icons/Export/Export";
 import FloppyDisk from "../icons/FloppyDisk/FloppyDisk";
 
 // Types
-import type {
-	FC,
-	ReactElement,
-	MouseEvent as ReactMouseEvent,
-	FocusEvent
-} from "react";
+import type { FC, ReactElement } from "react";
 
 // Styles
 import "./Navbar.styles.css";
 
 // Components
-import {
-	MenuItem,
-	Snackbar,
-	Popper,
-	Paper,
-	MenuList,
-	ClickAwayListener,
-	ListItemIcon,
-	ListItemText
-} from "@mui/material";
-import useStore from "../../state/hooks/useStore";
-import useIndexed from "../../state/hooks/useIndexed";
+import * as Menubar from "@radix-ui/react-menubar";
 
 const Navbar: FC = () => {
 	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
@@ -43,35 +29,9 @@ const Navbar: FC = () => {
 			toggleReferenceWindow: state.toggleReferenceWindow
 		}))
 	);
-	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-	const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLButtonElement>(
-		null
-	);
 	const { set } = useIndexed();
 	const downloadRef = useRef<HTMLAnchorElement>(null);
 	const { references } = useLayerReferences();
-	const menuOpen = Boolean(menuAnchorEl);
-
-	const handleMenuOpen = (e: ReactMouseEvent) => {
-		const target = e.currentTarget as HTMLButtonElement;
-
-		if (target.name !== "File" && target.name !== "View") {
-			return;
-		}
-		setMenuAnchorEl(target);
-	};
-
-	const handleMenuClose = () => {
-		setMenuAnchorEl(null);
-	};
-
-	const openSnackbar = () => {
-		setSnackbarOpen(true);
-	};
-
-	const closeSnackbar = () => {
-		setSnackbarOpen(false);
-	};
 
 	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
 
@@ -133,19 +93,6 @@ const Navbar: FC = () => {
 		}
 	};
 
-	const handleMenuChange = (
-		e: Pick<ReactMouseEvent & FocusEvent, "currentTarget">
-	) => {
-		const target = e.currentTarget as HTMLButtonElement;
-		if (
-			menuOpen &&
-			e.currentTarget !== menuAnchorEl &&
-			(target.name === "File" || target.name === "View")
-		) {
-			setMenuAnchorEl(target);
-		}
-	};
-
 	const menuOptions: MenuOptions = {
 		File: [
 			{
@@ -197,86 +144,44 @@ const Navbar: FC = () => {
 					alt="logo"
 				/>
 
-				{menuTabs.map((tab) => (
-					<button
-						key={tab}
-						name={tab}
-						onMouseOver={handleMenuChange}
-						onFocus={handleMenuChange}
-						onClick={
-							tab === "File" || tab === "View" ? handleMenuOpen : openSnackbar
-						}
-					>
-						{tab}
-					</button>
-				))}
+				<Menubar.Root className="MenubarRoot">
+					{menuTabs.map((tab) => {
+						return (
+							<Menubar.Menu key={tab}>
+								<Menubar.Trigger className="MenubarTrigger">
+									{tab}
+								</Menubar.Trigger>
+								<Menubar.Portal>
+									<Menubar.Content
+										className="MenubarContent"
+										align="start"
+									>
+										{(menuOptions[tab] ?? []).map((option) => (
+											<Menubar.Item
+												key={option.text}
+												className="MenubarItem"
+												onClick={option.action}
+											>
+												{option.icon && <option.icon />}
+												{option.text}
+											</Menubar.Item>
+										))}
+									</Menubar.Content>
+								</Menubar.Portal>
+							</Menubar.Menu>
+						);
+					})}
+				</Menubar.Root>
 			</nav>
 
-			<Snackbar
+			{/* <Snackbar
 				open={snackbarOpen}
 				autoHideDuration={6000}
 				onClose={closeSnackbar}
 				anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
 				message="This feature is not yet implemented."
 				onClick={closeSnackbar}
-			/>
-
-			<Popper
-				open={menuOpen}
-				anchorEl={menuAnchorEl}
-				placement="bottom-start"
-				role={undefined}
-				sx={{
-					"& .MuiPaper-root": {
-						backgroundColor: "#191919",
-						border: "1px solid #333",
-						marginTop: "5px",
-						color: "white"
-					},
-					"& .MuiMenuItem-root:hover": {
-						backgroundColor: "#333" // Dark gray on hover
-					},
-					zIndex: 1000
-				}}
-			>
-				<Paper>
-					<ClickAwayListener onClickAway={handleMenuClose}>
-						<MenuList
-							autoFocusItem={menuOpen}
-							id="composition-menu"
-							aria-labelledby="composition-button"
-							dense
-							// onKeyDown={handleListKeyDown}
-						>
-							{menuAnchorEl &&
-								menuOptions[menuAnchorEl.name].map((item, index) => {
-									const iconCount = menuOptions[menuAnchorEl.name].reduce(
-										(acc, curr) => (curr.icon ? acc + 1 : acc),
-										0
-									);
-									return (
-										<MenuItem
-											key={index}
-											onClick={() => {
-												item.action();
-												handleMenuClose();
-											}}
-										>
-											{item.icon && (
-												<ListItemIcon sx={{ color: "white" }}>
-													<item.icon />
-												</ListItemIcon>
-											)}
-											<ListItemText inset={!item.icon && iconCount > 0}>
-												{item.text}
-											</ListItemText>
-										</MenuItem>
-									);
-								})}
-						</MenuList>
-					</ClickAwayListener>
-				</Paper>
-			</Popper>
+			/> */}
 
 			<a
 				type="file"

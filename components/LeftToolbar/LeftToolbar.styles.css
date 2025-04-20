@@ -10,7 +10,6 @@
 }
 
 .toolbar-option {
-	width: 100%;
 	min-height: 3.5vh;
 	border: 1px solid rgb(36, 36, 36);
 	padding: 0.1em;
@@ -31,6 +30,7 @@
 
 .toolbar-option:disabled {
 	/* background-color: #3b3b3b; */
+	color: #3b3b3b;
 	cursor: not-allowed;
 }
 

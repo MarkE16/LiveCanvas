@@ -12,7 +12,7 @@ import "./LayerPane.styles.css";
 // Components
 import LayerInfo from "../LayerInfo/LayerInfo";
 import ColorWheel from "../ColorWheel/ColorWheel";
-import { Tooltip } from "@mui/material";
+import Tooltip from "../Tooltip/Tooltip";
 
 const MemoizedLayerInfo = memo(LayerInfo);
 const MemoizedColorWheel = memo(ColorWheel);
@@ -28,13 +28,17 @@ const LayerPane: FC = () => {
 	);
 	const totalLayers = layers.length;
 
-	const onNewLayer = () => createLayer();
+	const onNewLayer = () => {
+		if (totalLayers < MAX_LAYERS) {
+			createLayer();
+		}
+	};
 
 	const newLayerButton =
 		totalLayers >= MAX_LAYERS ? (
 			<Tooltip
-				title="Maximum number of layers reached"
-				placement="left"
+				text="Maximum number of layers reached"
+				position="left"
 				arrow
 			>
 				<button
