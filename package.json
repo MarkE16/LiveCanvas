@@ -6,7 +6,7 @@
 		"serve": "vite preview",
 		"test": "vitest --run --reporter=verbose",
 		"coverage": "vitest --run --silent --coverage",
-		"server": "node --loader ts-node/esm ./server/index.ts",
+		"server": "node --loader ts-node/esm ./src/server/index.ts",
 		"server:dev": "npm run server",
 		"server:prod": "cross-env NODE_ENV=production npm run server",
 		"lint": "eslint . --max-warnings 0",
