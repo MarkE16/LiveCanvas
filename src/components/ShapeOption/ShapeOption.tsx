@@ -15,11 +15,7 @@ type ShapeOptionProps = Readonly<{
 	isActive: boolean;
 }>;
 
-function ShapeOption({
-	icon,
-	name,
-	isActive
-}: ShapeOptionProps) {
+function ShapeOption({ icon, name, isActive }: ShapeOptionProps) {
 	const changeShape = useStore((state) => state.changeShape);
 	const cn = clsx("shape-option", { active: isActive });
 
@@ -41,6 +37,6 @@ function ShapeOption({
 			</button>
 		</Tooltip>
 	);
-};
+}
 
 export default ShapeOption;

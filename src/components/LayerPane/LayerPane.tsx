@@ -81,6 +81,6 @@ function LayerPane(): ReactNode {
 			</div>
 		</aside>
 	);
-};
+}
 
 export default LayerPane;

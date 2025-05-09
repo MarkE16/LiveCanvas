@@ -16,11 +16,11 @@ async function render(pageContext: PageContextServer) {
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
-  const store = initializeStore();
+	const store = initializeStore();
 	const html = await renderToStream(
 		<PageShell pageContext={pageContext}>
 			<StoreProvider store={store}>
-        <Page {...pageProps} />
+				<Page {...pageProps} />
 			</StoreProvider>
 		</PageShell>
 	);
@@ -62,6 +62,6 @@ async function render(pageContext: PageContextServer) {
 		documentHtml,
 		pageContext: {
 			// We can add some `pageContext` here, which is useful if we want to do page redirection https://vite-plugin-ssr.com/page-redirection
-		},
+		}
 	};
 }

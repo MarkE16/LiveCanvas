@@ -15,7 +15,10 @@ type CanvasPointerSelectionProps = {
 	isSelecting: RefObject<boolean>;
 };
 
-function CanvasPointerSelection({ canvasSpaceReference, isSelecting }: CanvasPointerSelectionProps): ReactNode {
+function CanvasPointerSelection({
+	canvasSpaceReference,
+	isSelecting
+}: CanvasPointerSelectionProps): ReactNode {
 	const { references } = useLayerReferences();
 	const { focusElement, unfocusElement } = useStore(
 		useShallow((state) => ({
@@ -200,6 +203,6 @@ function CanvasPointerSelection({ canvasSpaceReference, isSelecting }: CanvasPoi
 			}}
 		></div>
 	);
-};
+}
 
 export default CanvasPointerSelection;

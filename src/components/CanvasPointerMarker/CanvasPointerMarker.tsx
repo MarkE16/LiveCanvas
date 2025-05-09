@@ -14,7 +14,10 @@ type CanvasPointerMarker = {
 	shiftKey: boolean;
 };
 
-function CanvasPointerMarker({ canvasSpaceReference, shiftKey }: CanvasPointerMarker): ReactNode {
+function CanvasPointerMarker({
+	canvasSpaceReference,
+	shiftKey
+}: CanvasPointerMarker): ReactNode {
 	const { mode, scale, drawStrength, eraserStrength, deleteElement } = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -137,6 +140,6 @@ function CanvasPointerMarker({ canvasSpaceReference, shiftKey }: CanvasPointerMa
 			}}
 		/>
 	);
-};
+}
 
 export default CanvasPointerMarker;

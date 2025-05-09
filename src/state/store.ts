@@ -17,9 +17,11 @@ export function initializeStore(preloadedState: Partial<SliceStores> = {}) {
 	// `structuredClone` throws an error if the object contains functions as
 	// functions are not serializable. We need to remove the functions from the
 	// preloaded state before passing it to `structuredClone`.
-  const stateWithoutFunctions: Partial<SliceStores> = Object.fromEntries(
-    Object.entries(preloadedState).filter(([, value]) => typeof value !== "function")
-  );
+	const stateWithoutFunctions: Partial<SliceStores> = Object.fromEntries(
+		Object.entries(preloadedState).filter(
+			([, value]) => typeof value !== "function"
+		)
+	);
 
 	return createStore<SliceStores>()(
 		subscribeWithSelector((...a) => ({

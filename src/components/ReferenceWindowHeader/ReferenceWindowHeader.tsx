@@ -95,6 +95,6 @@ function ReferenceWindowHeader({
 			</button>
 		</header>
 	);
-};
+}
 
 export default ReferenceWindowHeader;

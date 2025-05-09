@@ -2,6 +2,8 @@
 
 // Lib
 import { useEffect } from "react";
+import LayersStore from "src/state/stores/LayersStore";
+import ElementsStore from "src/state/stores/ElementsStore";
 
 // Components
 // import Navbar from "../../components/Navbar/Navbar";
@@ -38,6 +40,9 @@ function Page() {
 
 		// Check if the database persists.
 		checkStoragePersistency();
+		
+		LayersStore.openStore();
+		ElementsStore.openStore();
 	}, []);
 
 	return (

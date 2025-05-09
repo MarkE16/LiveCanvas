@@ -154,6 +154,6 @@ function ElementTextField({
 			{...props}
 		/>
 	);
-};
+}
 
 export default ElementTextField;

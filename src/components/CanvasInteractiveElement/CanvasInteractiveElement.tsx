@@ -497,6 +497,6 @@ function CanvasInteractiveElement({
 			</svg>
 		</ResizeGrid>
 	);
-};
+}
 
 export default CanvasInteractiveElement;

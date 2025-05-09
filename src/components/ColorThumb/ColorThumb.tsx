@@ -9,6 +9,6 @@ import type { ReactNode } from "react";
 
 function ColorThumb(): ReactNode {
 	return <AriaColorThumb className="react-aria-ColorThumb" />;
-};
+}
 
 export default ColorThumb;

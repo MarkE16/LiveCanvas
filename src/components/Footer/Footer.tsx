@@ -60,6 +60,6 @@ function Footer(): ReactNode {
 			</div>
 		</footer>
 	);
-};
+}
 
 export default Footer;

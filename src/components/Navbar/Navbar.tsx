@@ -4,8 +4,8 @@ import { useRef, useCallback, useEffect } from "react";
 import useLayerReferences from "@state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
 import useStore from "@state/hooks/useStore";
-import useIndexed from "@state/hooks/useIndexed";
 import LayersStore from "@state/stores/LayersStore";
+import ElementsStore from "src/state/stores/ElementsStore";
 
 // Icons
 import Fullscreen from "@components/icons/Fullscreen/Fullscreen";
@@ -30,7 +30,6 @@ function Navbar(): ReactNode {
 			toggleReferenceWindow: state.toggleReferenceWindow
 		}))
 	);
-	const { set } = useIndexed();
 	const downloadRef = useRef<HTMLAnchorElement>(null);
 	const { references } = useLayerReferences();
 
@@ -50,12 +49,10 @@ function Navbar(): ReactNode {
 
 			const promises = [];
 
-			// Save the layers
-			// layers.forEach((layer) => {
-			// 	promises.push(set("layers", layer.id, layer));
-			// });
-      LayersStore.add(layers);
-			promises.push(set("elements", "items", elements));
+			promises.push(
+				LayersStore.addLayers(layers),
+				ElementsStore.addElements(elements)
+			);
 
 			await Promise.all(promises);
 
@@ -63,7 +60,7 @@ function Navbar(): ReactNode {
 		} catch (e) {
 			alert("Error saving file. Reason: " + (e as Error).message);
 		}
-	}, [references, set, prepareForSave]);
+	}, [references, prepareForSave]);
 
 	const handleExportFile = async () => {
 		if (!downloadRef.current) throw new Error("Download ref not found");
@@ -193,6 +190,6 @@ function Navbar(): ReactNode {
 			/>
 		</header>
 	);
-};
+}
 
 export default Navbar;

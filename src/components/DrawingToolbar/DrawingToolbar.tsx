@@ -194,6 +194,6 @@ function DrawingToolbar(): ReactNode {
 			)}
 		</div>
 	);
-};
+}
 
 export default DrawingToolbar;

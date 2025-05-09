@@ -80,6 +80,6 @@ function ColorWheel(props: ColorWheelProps): ReactNode {
 			</AriaColorArea>
 		</div>
 	);
-};
+}
 
 export default ColorWheel;

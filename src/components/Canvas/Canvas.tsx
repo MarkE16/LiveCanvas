@@ -2,12 +2,12 @@
 import { useEffect, useRef } from "react";
 import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
-import useIndexed from "@state/hooks/useIndexed";
 import useStoreSubscription from "@state/hooks/useStoreSubscription";
 import useLayerReferences from "@state/hooks/useLayerReferences";
 import useStore from "@state/hooks/useStore";
 import * as Utils from "src/lib/utils";
 import clsx from "clsx";
+import LayersStore from "src/state/stores/LayersStore";
 
 // Types
 import type { ReactNode, MouseEvent } from "react";
@@ -27,9 +27,7 @@ type DBLayer = {
 	id: string;
 };
 
-function Canvas({
-	isGrabbing
-}: CanvasProps): ReactNode {
+function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	const {
 		mode,
 		width,
@@ -60,7 +58,6 @@ function Canvas({
 	const eraserStrength = useStoreSubscription((state) => state.eraserStrength);
 
 	const { references, add } = useLayerReferences();
-	const { get } = useIndexed();
 
 	const isDrawing = useRef<boolean>(false);
 	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
@@ -238,7 +235,7 @@ function Canvas({
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
 		async function updateLayers() {
-			const entries = await get<[string, DBLayer][]>("layers");
+			const entries = await LayersStore.getLayers();
 
 			if (!entries) {
 				return;
@@ -305,7 +302,7 @@ function Canvas({
 		}
 
 		updateLayers();
-	}, [setLayers, get, references]);
+	}, [setLayers, references]);
 
 	useEffect(() => {
 		const refs = references.current;
@@ -370,6 +367,6 @@ function Canvas({
 			})}
 		</>
 	);
-};
+}
 
 export default Canvas;

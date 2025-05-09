@@ -141,6 +141,6 @@ function ResizeHandle({
 			/>
 		</svg>
 	);
-};
+}
 
 export default ResizeHandle;

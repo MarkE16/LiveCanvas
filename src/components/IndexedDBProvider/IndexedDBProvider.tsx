@@ -41,7 +41,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 	const dbOpenPromise = useRef<Promise<IDBDatabase> | null>(null);
 
 	const openDatabase = useCallback(() => {
-		if (dbOpenPromise.current) {
+		if (!dbOpenPromise.current) {
 			return dbOpenPromise.current;
 		}
 
@@ -153,7 +153,7 @@ export const IndexedDBProvider: FC<PropsWithChildren> = ({ children }) => {
 				"Your browser doesn't support a stable version of IndexedDB. You will not be able to save your work."
 			);
 		}
-		openDatabase();
+		// openDatabase();
 	}, [openDatabase]);
 
 	const value = useMemo(() => ({ get, set, remove }), [get, set, remove]);

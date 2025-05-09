@@ -26,6 +26,6 @@ function StoreProvider({ store, children }: StoreProviderProps): ReactNode {
 			{children}
 		</StoreContext.Provider>
 	);
-};
+}
 
 export { StoreContext, StoreProvider };

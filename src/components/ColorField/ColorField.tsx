@@ -9,7 +9,12 @@ import {
 import "./ColorField.styles.css";
 
 // Types
-import type { ChangeEvent, ReactNode, KeyboardEvent, PropsWithChildren } from "react";
+import type {
+	ChangeEvent,
+	ReactNode,
+	KeyboardEvent,
+	PropsWithChildren
+} from "react";
 
 type ColorFieldProps = PropsWithChildren & {
 	label: string;
@@ -17,7 +22,12 @@ type ColorFieldProps = PropsWithChildren & {
 	onChange?: (value: ChangeEvent<HTMLInputElement>) => void;
 };
 
-function ColorField({ label, value, onChange, ...props }: ColorFieldProps): ReactNode {
+function ColorField({
+	label,
+	value,
+	onChange,
+	...props
+}: ColorFieldProps): ReactNode {
 	const stopPropagation = (e: KeyboardEvent) => e.stopPropagation();
 	return (
 		<AriaColorField
@@ -34,6 +44,6 @@ function ColorField({ label, value, onChange, ...props }: ColorFieldProps): Reac
 			/>
 		</AriaColorField>
 	);
-};
+}
 
 export default ColorField;

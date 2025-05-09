@@ -77,7 +77,10 @@ function ReferenceWindow(): ReactNode {
 			ref={windowRef}
 			style={styles}
 		>
-			<MemoizedReferenceWindowHeader setPosition={setPosition} isPinned={pinned}>
+			<MemoizedReferenceWindowHeader
+				setPosition={setPosition}
+				isPinned={pinned}
+			>
 				Reference Window
 			</MemoizedReferenceWindowHeader>
 			<MemoizedReferenceWindowContent
@@ -103,6 +106,6 @@ function ReferenceWindow(): ReactNode {
 			)}
 		</div>
 	);
-};
+}
 
 export default ReferenceWindow;

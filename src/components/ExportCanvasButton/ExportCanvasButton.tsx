@@ -50,6 +50,6 @@ function ExportCanvasButton(): ReactNode {
 			</a>
 		</>
 	);
-};
+}
 
 export default ExportCanvasButton;

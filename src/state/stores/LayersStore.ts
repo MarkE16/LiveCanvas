@@ -2,79 +2,62 @@ import { Layer } from "src/types";
 import BaseStore from "./BaseStore";
 
 type LayerProperties = Pick<Layer, "name" | "id"> & {
-  image: Blob;
-  position: number;
-}
+	image: Blob;
+	position: number;
+};
 
-type LayerStoreEntries = [string, LayerProperties][];
-
+/**
+ * A class for interacting with the Layers store of IndexedDB.
+ */
 export default class LayersStore extends BaseStore {
 	protected static override storeName: string = "layers";
-	protected static override version: number = 1;
 
-	protected static override onUpgrade(db: IDBDatabase): void {
-		if (!db.objectStoreNames.contains("layers")) {
-			db.createObjectStore("layers", { keyPath: "id" });
-		}
+	/**
+	 * Add layers to the store. Note that layers with existing ids
+	 * will be overridden.
+	 * @param layers Layers to add to the store.
+	 * @returns Promise of void
+	 */
+	public static addLayers(layers: LayerProperties[]) {
+		return this.add(layers);
 	}
 
 	/**
-	* Add layers to the store. Note that layers with existing ids
-	* will be overridden.
-	* @param layers Layers to add to the store.
-	* @returns Promise of void
-	*/
-	public static async add(layers: LayerProperties[]) {
-		const store = await this.getStore("readwrite");
-
-		return new Promise<void>((resolve, reject) => {
-			for (const [idx, layer] of layers.entries()) {
-				const req = store.put(layer);
-
-				req.onsuccess = () => {
-					if (idx === layers.length - 1) {
-						resolve();
-					}
-				};
-				req.onerror = () => reject(req.error);
-			}
-		});
+	 * Get a layer.
+	 * @param id The associated id.
+	 * @returns A singular layer or undefined if not found
+	 */
+	public static getLayer(id: string) {
+		return this.get<LayerProperties>(id);
 	}
 
 	/**
-	* Get a layer or all entries in the store.
-	* @param id Optionally get a specific layer with the associated id.
-	* @returns A singular layer if an id is given or undefined if not found,
-	* or all entries in the store if an id is not provided
-	*/
-	public static async get(id?: string) {
-		const store = await this.getStore();
+	 * Get all entries in this store.
+	 * @returns The entries
+	 */
+	public static getLayers() {
+		return this.get<LayerProperties>();
+	}
+	
+	/**
+	 * Remove layers from the store.
+	 * @param ids An array of ids of layers to delete.
+	 */
+	public static removeLayer(ids: string[]) {
+		return this.remove(ids);
+	}
 
-		return new Promise<LayerProperties | undefined | LayerStoreEntries>((resolve, reject) => {
-			if (id) {
-				const req = store.get(id);
+	/**
+	 * Clear the store.
+	 */
+	public static clearStore() {
+		return this.remove();
+	}
 
-				req.onsuccess = () => resolve(req.result as LayerProperties | undefined);
-				req.onerror = () => reject(req.error);
-			} else {
-				const entries: LayerStoreEntries = [];
-				const cur = store.openCursor();
-
-				cur.onsuccess = () => {
-					const cursor = cur.result;
-
-					if (cursor) {
-						entries.push([
-							cursor.key,
-							cursor.value
-						] as LayerStoreEntries[number]);
-					} else {
-						resolve(entries);
-					}
-				};
-
-				cur.onerror = () => reject(cur.result);
-			}
-		});
+	/**
+	 * Open a connection to the Layers Store.
+	 */
+	public static openStore() {
+		this.open();
 	}
 }

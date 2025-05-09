@@ -399,6 +399,6 @@ function CanvasPane(): ReactNode {
 			<MemoizedScaleIndicator scale={scale} />
 		</div>
 	);
-};
+}
 
 export default CanvasPane;

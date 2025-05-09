@@ -1,11 +1,9 @@
 // Lib
 import { useEffect } from "react";
-import useIndexed from "@state/hooks/useIndexed";
 import useStore from "@state/hooks/useStore";
 
 // Types
 import type { ReactNode } from "react";
-import type { CanvasElement } from "src/types";
 
 // Styles
 import "./Main.styles.css";
@@ -15,9 +13,9 @@ import CanvasPane from "@components/CanvasPane/CanvasPane";
 import LeftToolbar from "@components/LeftToolbar/LeftToolbar";
 import LayerPane from "@components/LayerPane/LayerPane";
 import ReferenceWindow from "@components/ReferenceWindow/ReferenceWindow";
+import ElementsStore from "src/state/stores/ElementsStore";
 
 function Main(): ReactNode {
-	const { get } = useIndexed();
 	const setElements = useStore((store) => store.setElements);
 	const refereceWindowEnabled = useStore(
 		(store) => store.referenceWindowEnabled
@@ -25,20 +23,17 @@ function Main(): ReactNode {
 
 	useEffect(() => {
 		async function getElements() {
-			const elements = await get<Omit<CanvasElement, "focused">[]>(
-				"elements",
-				"items"
-			);
+			const elements = await ElementsStore.getElements();
 			setElements(
-				(elements ?? []).map((e) => ({
-					...e,
+				elements.map(([, element]) => ({
+					...element,
 					focused: false
 				}))
 			);
 		}
 
 		getElements();
-	}, [get, setElements]);
+	}, [setElements]);
 
 	return (
 		<main

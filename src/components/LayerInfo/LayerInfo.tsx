@@ -1,10 +1,10 @@
 // Lib
 import { useState, memo } from "react";
 import clsx from "clsx";
-import useIndexed from "@state/hooks/useIndexed";
 import useStore from "@state/hooks/useStore";
 import useLayerReferences from "@state/hooks/useLayerReferences";
 import { useShallow } from "zustand/react/shallow";
+import LayersStore from "src/state/stores/LayersStore";
 
 // Icons
 import Eye from "@components/icons/Eye/Eye";
@@ -23,11 +23,13 @@ import "./LayerInfo.styles.css";
 import LayerPreview from "@components/LayerPreview/LayerPreview";
 import Tooltip from "@components/Tooltip/Tooltip";
 
-type LayerInfoProps = Readonly<Layer & {
-	canMoveUp: boolean;
-	canMoveDown: boolean;
-	idx: number;
-}>;
+type LayerInfoProps = Readonly<
+	Layer & {
+		canMoveUp: boolean;
+		canMoveDown: boolean;
+		idx: number;
+	}
+>;
 
 const MemoizedLayerPreview = memo(LayerPreview);
 
@@ -59,7 +61,6 @@ function LayerInfo({
 			deleteElement: state.deleteElement
 		}))
 	);
-	const { remove } = useIndexed();
 	const { setActiveIndex } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
@@ -87,7 +88,8 @@ function LayerInfo({
 			return;
 
 		removeLayer(id);
-		remove("layers", id);
+		
+    LayersStore.removeLayer([id]);
 
 		const elementsWithLayer = Array.from(
 			document.getElementsByClassName("element")
@@ -242,6 +244,6 @@ function LayerInfo({
 			</div>
 		</label>
 	);
-};
+}
 
 export default LayerInfo;

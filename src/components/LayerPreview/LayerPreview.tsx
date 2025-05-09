@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import type { ImageUpdateEvent } from "src/types";
 
 type LayerPreviewProps = Readonly<{
-  id: string;
+	id: string;
 }>;
 
 function LayerPreview({ id }: LayerPreviewProps): ReactNode {
@@ -61,6 +61,6 @@ function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 			alt="Layer Preview"
 		/>
 	);
-};
+}
 
 export default LayerPreview;

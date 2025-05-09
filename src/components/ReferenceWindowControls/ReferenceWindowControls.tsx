@@ -183,6 +183,6 @@ function ReferenceWindowControls({
 			/>
 		</section>
 	);
-};
+}
 
 export default ReferenceWindowControls;

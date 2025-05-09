@@ -165,6 +165,6 @@ function ColorPicker({ label, __for, value }: ColorPickerProps): ReactNode {
 			</AriaColorPicker>
 		</div>
 	);
-};
+}
 
 export default ColorPicker;

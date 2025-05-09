@@ -18,9 +18,7 @@ function PageShell({
 		<React.StrictMode>
 			<PageContextProvider pageContext={pageContext}>
 				<IndexedDBProvider>
-					<LayerReferencesProvider>
-				    {children}
-					</LayerReferencesProvider>
+					<LayerReferencesProvider>{children}</LayerReferencesProvider>
 				</IndexedDBProvider>
 			</PageContextProvider>
 		</React.StrictMode>

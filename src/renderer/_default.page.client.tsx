@@ -8,9 +8,9 @@ import { initializeStore } from "../state/store";
 import { SliceStores } from "../types";
 
 declare global {
-  interface Window {
-    __PRELOADED_STATE__: Partial<SliceStores>;
-  }
+	interface Window {
+		__PRELOADED_STATE__: Partial<SliceStores>;
+	}
 }
 
 // This render() hook only supports SSR, see https://vite-plugin-ssr.com/render-modes for how to modify render() to support SPA
@@ -45,7 +45,7 @@ async function render(pageContext: PageContextClient) {
 		root,
 		<PageShell pageContext={pageContext}>
 			<StoreProvider store={store}>
-        <Page {...pageProps} />
+				<Page {...pageProps} />
 			</StoreProvider>
 		</PageShell>
 	);

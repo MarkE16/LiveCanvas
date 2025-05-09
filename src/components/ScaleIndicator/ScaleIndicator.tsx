@@ -44,6 +44,6 @@ function ScaleIndicator({ scale }: ScaleIndicatorProps): ReactNode {
 			{scale.toFixed(1)}x
 		</div>
 	);
-};
+}
 
 export default ScaleIndicator;
