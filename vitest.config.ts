@@ -8,9 +8,9 @@ export default defineConfig({
 			"**/node_modules/**",
 			"**/dist/**",
 			"**/build/**",
-			"server/**",
-			"renderer/**",
-			"types/**"
+			"src/server/**",
+			"src/renderer/**",
+			"src/types/**"
 		],
 		globals: true,
 		setupFiles: [
