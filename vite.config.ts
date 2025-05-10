@@ -1,15 +1,21 @@
 import react from "@vitejs/plugin-react";
 import ssr from "vite-plugin-ssr/plugin";
-import { UserConfig } from "vite";
+import { defineConfig } from "vite";
+import { resolve } from "path";
 
-const config: UserConfig = {
+const root = resolve(__dirname, "./src");
+
+export default defineConfig({
 	plugins: [react(), ssr()],
 	build: {
 		outDir: "dist"
 	},
 	server: {
-	  cors: true,
-	}
-};
-
-export default config;
+		cors: true
+	},
+	resolve: {
+		alias: {
+			"@": root
+		}
+	},
+});

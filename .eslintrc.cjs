@@ -3,7 +3,13 @@ module.exports = {
 		"react-refresh/only-export-components": "warn"
 	},
 	reportUnusedDisableDirectives: true,
-	ignorePatterns: ["dist/*", "renderer/*", "coverage/*", "*.config.js", "*.config.ts"],
+	ignorePatterns: [
+		"dist/*",
+		"renderer/*",
+		"coverage/*",
+		"*.config.js",
+		"*.config.ts"
+	],
 	env: { browser: true, es2020: true, node: true },
 	parserOptions: { ecmaVersion: "latest", sourceType: "module" },
 	settings: { react: { version: "detect" } },
@@ -15,5 +21,5 @@ module.exports = {
 		"plugin:react-hooks/recommended",
 		"plugin:@typescript-eslint/recommended"
 	],
-	parser: "@typescript-eslint/parser"
+	parser: "@typescript-eslint/parser",
 };
