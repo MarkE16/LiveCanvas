@@ -88,10 +88,10 @@ function LayerInfo({
 			return;
 
 		removeLayer(id);
-		
-    LayersStore.removeLayer([id]);
 
-		deleteElement(element => element.layerId === id);
+		LayersStore.removeLayer([id]);
+
+		deleteElement((element) => element.layerId === id);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {

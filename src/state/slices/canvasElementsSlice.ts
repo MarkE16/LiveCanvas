@@ -14,7 +14,7 @@ export const createCanvasElementsSlice: StateCreator<
 	[],
 	CanvasElementsStore
 > = (set, get) => {
-  function focusElement(predicate: (el: CanvasElement) => boolean) {
+	function focusElement(predicate: (el: CanvasElement) => boolean) {
 		const elements = get().elements;
 		const newElements = elements.map((element) => {
 			if (predicate(element)) {

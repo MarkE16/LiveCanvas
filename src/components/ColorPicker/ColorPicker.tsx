@@ -50,7 +50,7 @@ function ColorPicker({ label, __for, value }: ColorPickerProps): ReactNode {
 				...state,
 				[__for]: hex
 			}),
-			element => element.focused
+			(element) => element.focused
 		);
 
 		setHex(hex);

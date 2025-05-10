@@ -97,29 +97,29 @@ export default abstract class BaseStore {
 			}
 		});
 	}
-	
-  protected static async remove(): Promise<void>;
-  protected static async remove(keys: string[]): Promise<void>;
-  protected static async remove(keys?: string[]): Promise<void> {
-    const store = await this.getStore("readwrite");
-    
-    return new Promise<void>((resolve, reject) => {
-      if (!keys) {
-        store.clear();
-        resolve();
-      } else {
-        for (const [idx, key] of keys.entries()) {
-          const req = store.delete(key);
-          
-          req.onsuccess = () => {
-            if (idx === keys.length - 1) {
-              resolve();
-            }
-          }
-          
-          req.onerror = () => reject(req.error);
-        }
-      }
-    })
-  }
+
+	protected static async remove(): Promise<void>;
+	protected static async remove(keys: string[]): Promise<void>;
+	protected static async remove(keys?: string[]): Promise<void> {
+		const store = await this.getStore("readwrite");
+
+		return new Promise<void>((resolve, reject) => {
+			if (!keys) {
+				store.clear();
+				resolve();
+			} else {
+				for (const [idx, key] of keys.entries()) {
+					const req = store.delete(key);
+
+					req.onsuccess = () => {
+						if (idx === keys.length - 1) {
+							resolve();
+						}
+					};
+
+					req.onerror = () => reject(req.error);
+				}
+			}
+		});
+	}
 }

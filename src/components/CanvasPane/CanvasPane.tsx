@@ -186,24 +186,27 @@ function CanvasPane(): ReactNode {
 				const pointerX = e.clientX;
 				const pointerY = e.clientY;
 
-				changeElementProperties((state) => {
-					let newWidth = Math.max(MIN_SIZE, state.width + dx);
-					let newHeight = Math.max(MIN_SIZE, state.height + dy);
+				changeElementProperties(
+					(state) => {
+						let newWidth = Math.max(MIN_SIZE, state.width + dx);
+						let newHeight = Math.max(MIN_SIZE, state.height + dy);
 
-					if (pointerX - MIN_SIZE < state.x) {
-						newWidth = MIN_SIZE;
-					}
+						if (pointerX - MIN_SIZE < state.x) {
+							newWidth = MIN_SIZE;
+						}
 
-					if (pointerY - MIN_SIZE < state.y) {
-						newHeight = MIN_SIZE;
-					}
+						if (pointerY - MIN_SIZE < state.y) {
+							newHeight = MIN_SIZE;
+						}
 
-					return {
-						...state,
-						width: newWidth,
-						height: newHeight
-					};
-				}, element => element.id === createdShapeId.current!);
+						return {
+							...state,
+							width: newWidth,
+							height: newHeight
+						};
+					},
+					(element) => element.id === createdShapeId.current!
+				);
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -243,7 +246,7 @@ function CanvasPane(): ReactNode {
 
 			if (e.key === "c" && e.ctrlKey && !e.repeat) {
 				// We're copying elements here
-				copyElement(element => element.focused);
+				copyElement((element) => element.focused);
 			} else if (e.key === "v" && e.ctrlKey && !e.repeat) {
 				// We're pasting elements here
 				pasteElement();

@@ -40,7 +40,7 @@ function Page() {
 
 		// Check if the database persists.
 		checkStoragePersistency();
-		
+
 		LayersStore.openStore();
 		ElementsStore.openStore();
 	}, []);

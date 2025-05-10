@@ -38,7 +38,7 @@ export default class LayersStore extends BaseStore {
 	public static getLayers() {
 		return this.get<LayerProperties>();
 	}
-	
+
 	/**
 	 * Remove layers from the store.
 	 * @param ids An array of ids of layers to delete.
