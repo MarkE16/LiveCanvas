@@ -110,7 +110,7 @@ function CanvasPointerMarker({
 					mode === "erase" &&
 					e.buttons === 1
 				) {
-					deleteElement(node.id);
+					deleteElement(element => element.id === node.id);
 				}
 			}
 		};

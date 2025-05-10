@@ -91,13 +91,7 @@ function LayerInfo({
 		
     LayersStore.removeLayer([id]);
 
-		const elementsWithLayer = Array.from(
-			document.getElementsByClassName("element")
-		)
-			.filter((element) => element.id === id)
-			.map((element) => element.id);
-
-		deleteElement(...elementsWithLayer);
+		deleteElement(element => element.layerId === id);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {

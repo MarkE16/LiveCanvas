@@ -139,14 +139,6 @@ function CanvasPane(): ReactNode {
 			let dx = e.clientX - clientPosition.current.x;
 			let dy = e.clientY - clientPosition.current.y;
 
-			// We grab the elements using the class name "element"
-			// rather than the state variable so that this effect
-			// doesn't depend on the state variable.
-			const elementIds = Array.prototype.map.call(
-				document.getElementsByClassName("element"),
-				(element: Element) => element.id
-			) as string[];
-
 			const {
 				left: sLeft,
 				width: sWidth,
@@ -183,7 +175,7 @@ function CanvasPane(): ReactNode {
 						x: state.x + dx,
 						y: state.y + dy
 					}),
-					...elementIds
+					() => true // Update on each element
 				);
 			} else if (mode === "shapes") {
 				// Required for shapes to have a minimum size.
@@ -211,7 +203,7 @@ function CanvasPane(): ReactNode {
 						width: newWidth,
 						height: newHeight
 					};
-				}, createdShapeId.current!);
+				}, element => element.id === createdShapeId.current!);
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -251,16 +243,7 @@ function CanvasPane(): ReactNode {
 
 			if (e.key === "c" && e.ctrlKey && !e.repeat) {
 				// We're copying elements here
-
-				const focusedElements = Array.prototype.filter.call(
-					document.getElementsByClassName("element"),
-					(element: HTMLElement) =>
-						element.getAttribute("data-focused") === "true"
-				) as Element[];
-
-				const focusedIds = focusedElements.map((element) => element.id);
-
-				copyElement(...focusedIds);
+				copyElement(element => element.focused);
 			} else if (e.key === "v" && e.ctrlKey && !e.repeat) {
 				// We're pasting elements here
 				pasteElement();
@@ -299,18 +282,13 @@ function CanvasPane(): ReactNode {
 		function onWindowResize() {
 			const { changeInWidth, changeInHeight } = dimensions.current;
 
-			const elementIds = Array.prototype.map.call(
-				document.getElementsByClassName("element"),
-				(element: Element) => element.id
-			) as string[];
-
 			changeElementProperties(
 				(state) => ({
 					...state,
 					x: state.x + changeInWidth,
 					y: state.y + changeInHeight
 				}),
-				...elementIds
+				() => true // Update on all elements
 			);
 		}
 

@@ -52,9 +52,9 @@ function CanvasPointerSelection({
 					UTILS.isRectIntersecting(selectionRect, node)
 					// && activeLayer.id === node.getAttribute("data-layerid")
 				) {
-					focusElement(node.id);
+					focusElement(element => element.id === node.id);
 				} else {
-					unfocusElement(node.id);
+					unfocusElement(element => element.id === node.id);
 				}
 			}
 		};

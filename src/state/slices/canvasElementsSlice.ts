@@ -14,11 +14,10 @@ export const createCanvasElementsSlice: StateCreator<
 	[],
 	CanvasElementsStore
 > = (set, get) => {
-	function focusElement(...ids: string[]) {
+  function focusElement(predicate: (el: CanvasElement) => boolean) {
 		const elements = get().elements;
-		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (idsSet.has(element.id)) {
+			if (predicate(element)) {
 				return { ...element, focused: true };
 			}
 			return element;
@@ -26,11 +25,10 @@ export const createCanvasElementsSlice: StateCreator<
 		set({ elements: newElements });
 	}
 
-	function unfocusElement(...ids: string[]) {
+	function unfocusElement(predicate: (el: CanvasElement) => boolean) {
 		const elements = get().elements;
-		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (idsSet.has(element.id)) {
+			if (predicate(element)) {
 				return { ...element, focused: false };
 			}
 			return element;
@@ -77,12 +75,11 @@ export const createCanvasElementsSlice: StateCreator<
 
 	function changeElementProperties(
 		callback: (el: CanvasElement) => CanvasElement,
-		...ids: string[]
+		predicate: (el: CanvasElement) => boolean
 	) {
 		const elements = get().elements;
-		const idsSet = new Set(ids);
 		const newElements = elements.map((element) => {
-			if (idsSet.has(element.id)) {
+			if (predicate(element)) {
 				const { width, height, ...rest } = callback(element);
 
 				if (width < 1 || height < 1) {
@@ -102,9 +99,9 @@ export const createCanvasElementsSlice: StateCreator<
 		});
 	}
 
-	function deleteElement(...ids: string[]) {
+	function deleteElement(predicate: (el: CanvasElement) => boolean) {
 		set((state) => ({
-			elements: state.elements.filter((element) => !ids.includes(element.id))
+			elements: state.elements.filter((element) => !predicate(element))
 		}));
 	}
 
@@ -116,10 +113,9 @@ export const createCanvasElementsSlice: StateCreator<
 		set({ elements });
 	}
 
-	function copyElement(...ids: string[]) {
+	function copyElement(predicate: (el: CanvasElement) => boolean) {
 		const elements = get().elements;
-		const idsSet = new Set(ids);
-		const copiedElements = elements.filter((element) => idsSet.has(element.id));
+		const copiedElements = elements.filter((element) => predicate(element));
 		set({ copiedElements });
 	}
 

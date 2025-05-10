@@ -14,20 +14,20 @@ export type CanvasElementsStore = {
 	elements: CanvasElement[];
 	copiedElements: CanvasElement[];
 	elementMoving: boolean;
-	focusElement: (...ids: string[]) => void;
-	unfocusElement: (...ids: string[]) => void;
+	focusElement: (predicate: (el: CanvasElement) => boolean) => void;
+	unfocusElement: (predicate: (el: CanvasElement) => boolean) => void;
 	createElement: (
 		type: Shape | "text",
 		properties?: Omit<Partial<CanvasElement>, "id">
 	) => string;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
-		...ids: string[]
+		predicate: (el: CanvasElement) => boolean
 	) => void;
-	deleteElement: (...ids: string[]) => void;
+	deleteElement: (predicate: (el: CanvasElement) => boolean) => void;
 	updateMovingState: (state: boolean) => void;
 	setElements: (elements: CanvasElement[]) => void;
-	copyElement: (...ids: string[]) => void;
+	copyElement: (predicate: (el: CanvasElement) => boolean) => void;
 	pasteElement: () => void;
 };
 

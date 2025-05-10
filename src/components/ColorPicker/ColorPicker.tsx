@@ -1,6 +1,5 @@
 // Lib
 import { useState, useRef } from "react";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
 import useStore from "@state/hooks/useStore";
 import useLayerReferences from "@state/hooks/useLayerReferences";
 import { parseColor } from "react-aria-components";
@@ -41,21 +40,17 @@ function ColorPicker({ label, __for, value }: ColorPickerProps): ReactNode {
 		(state) => state.changeElementProperties
 	);
 	const startColor = useRef<string>(value);
-	const elements = useStoreSubscription((state) => state.elements);
 	const { getActiveLayer } = useLayerReferences();
 
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");
-		const focusedIds = elements.current
-			.filter((element) => element.focused)
-			.map((element) => element.id);
 
 		changeElementProperties(
 			(state) => ({
 				...state,
 				[__for]: hex
 			}),
-			...focusedIds
+			element => element.focused
 		);
 
 		setHex(hex);

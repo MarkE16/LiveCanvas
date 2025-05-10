@@ -63,7 +63,7 @@ function ElementTextField({
 						content: text
 					}
 				}),
-				elementId
+				element => element.id === elementId
 			);
 		} else {
 			setText(content);
@@ -71,7 +71,7 @@ function ElementTextField({
 	};
 
 	const onFocus = () => {
-		focusElement(elementId);
+		focusElement(element => element.id === elementId);
 	};
 
 	const onKeyDown = (e: KeyboardEvent) => {

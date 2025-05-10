@@ -84,16 +84,16 @@ function CanvasInteractiveElement({
 		function handleKeyDown(e: KeyboardEvent) {
 			// Handle Focus
 			if (e.key === "Escape") {
-				unfocusElement(id);
+				unfocusElement(element => element.id === id);
 			}
 
 			// Handle Delete
-			if ((e.key === "Delete" || e.key === "Backspace") && focused) {
-				deleteElement(id);
+			if (e.key === "Delete" || e.key === "Backspace") {
+				deleteElement(element => element.id === id && element.focused);
 			}
 
 			if (e.key === "a" && e.ctrlKey) {
-				focusElement(id);
+				focusElement(element => element.id === id);
 			}
 		}
 
@@ -105,7 +105,7 @@ function CanvasInteractiveElement({
 				!element.contains(e.target as Node) &&
 				!e.ctrlKey
 			) {
-				unfocusElement(id);
+				unfocusElement(element => element.id === id);
 			}
 		}
 
@@ -132,13 +132,6 @@ function CanvasInteractiveElement({
 			const resizePos = element.getAttribute(
 				"data-resizing"
 			) as ResizePosition | null;
-
-			const focusedIds = Array.prototype.filter
-				.call(
-					document.getElementsByClassName("element"),
-					(el: Element) => el.getAttribute("data-focused") === "true"
-				)
-				.map((element: Element) => element.id);
 
 			if (resizePos !== null) {
 				const pointerX = e.clientX;
@@ -330,7 +323,7 @@ function CanvasInteractiveElement({
 
 						return newState;
 					},
-					...focusedIds
+					element => element.focused
 				);
 			} else {
 				const element = document.getElementById(id);
@@ -343,7 +336,7 @@ function CanvasInteractiveElement({
 				}
 
 				if (isCreatingElement) {
-					unfocusElement(id);
+					unfocusElement(element => element.id === id);
 					return;
 				}
 
@@ -353,7 +346,7 @@ function CanvasInteractiveElement({
 						x: state.x + deltaX,
 						y: state.y + deltaY
 					}),
-					...focusedIds
+					element => element.focused
 				);
 			}
 
@@ -380,7 +373,7 @@ function CanvasInteractiveElement({
 		}
 
 		function onFocusedElement() {
-			focusElement(id);
+			focusElement(element => element.id === id);
 		}
 
 		// We add the mousedown event to the element to accurately

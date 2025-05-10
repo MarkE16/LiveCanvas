@@ -106,7 +106,7 @@ function ResizeHandle({
 				...state,
 				focused: false
 			}),
-			elementId
+			element => element.id === elementId
 		);
 	};
 

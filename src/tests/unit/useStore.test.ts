@@ -834,10 +834,12 @@ describe("useStore functionality", () => {
 				});
 			});
 			expect(result.result.current.elements).toHaveLength(1);
+			
+      const [element] = result.result.current.elements;
 
 			act(() => {
 				result.result.current.deleteElement(
-					result.result.current.elements[0].id
+					el => el.id === element.id
 				);
 			});
 
@@ -853,7 +855,7 @@ describe("useStore functionality", () => {
 			expect(result.result.current.elements).toHaveLength(1);
 
 			act(() => {
-				result.result.current.deleteElement("1");
+				result.result.current.deleteElement(el => el.id === '1');
 			});
 
 			expect(result.result.current.elements).toHaveLength(1);
@@ -869,7 +871,7 @@ describe("useStore functionality", () => {
 			expect(element.focused).toBe(false);
 
 			act(() => {
-				result.result.current.focusElement(element.id);
+				result.result.current.focusElement(el => el.id === element.id);
 			});
 
 			element = result.result.current.elements[0];
@@ -887,7 +889,7 @@ describe("useStore functionality", () => {
 			expect(element.focused).toBe(false);
 
 			act(() => {
-				result.result.current.focusElement("1");
+				result.result.current.focusElement(el => el.id === "1");
 			});
 
 			element = result.result.current.elements[0];
@@ -904,14 +906,14 @@ describe("useStore functionality", () => {
 			let element = result.result.current.elements[0];
 
 			act(() => {
-				result.result.current.focusElement(element.id);
+				result.result.current.focusElement(el => el.id === element.id);
 			});
 
 			element = result.result.current.elements[0];
 			expect(element.focused).toBe(true);
 
 			act(() => {
-				result.result.current.unfocusElement(element.id);
+				result.result.current.unfocusElement(el => el.id === element.id);
 			});
 
 			element = result.result.current.elements[0];
@@ -928,14 +930,14 @@ describe("useStore functionality", () => {
 			let element = result.result.current.elements[0];
 
 			act(() => {
-				result.result.current.focusElement(element.id);
+				result.result.current.focusElement(el => el.id === element.id);
 			});
 
 			element = result.result.current.elements[0];
 			expect(element.focused).toBe(true);
 
 			act(() => {
-				result.result.current.unfocusElement("1");
+				result.result.current.unfocusElement(el => el.id === '1');
 			});
 
 			element = result.result.current.elements[0];
@@ -958,7 +960,7 @@ describe("useStore functionality", () => {
 						...state,
 						stroke: "#ffffff"
 					}),
-					element.id
+					el => el.id === element.id
 				);
 			});
 
@@ -982,7 +984,7 @@ describe("useStore functionality", () => {
 						...state,
 						stroke: "#ffffff"
 					}),
-					"1"
+					el => el.id === '1'
 				);
 			});
 
@@ -1001,7 +1003,7 @@ describe("useStore functionality", () => {
 			expect(result.result.current.copiedElements).toEqual([]);
 
 			act(() => {
-				result.result.current.copyElement(element.id);
+				result.result.current.copyElement(el => el.id === element.id);
 			});
 
 			expect(result.result.current.copiedElements).toEqual([element]);
@@ -1032,8 +1034,8 @@ describe("useStore functionality", () => {
 			expect(result.result.current.copiedElements).toEqual([]);
 
 			act(() => {
-				result.result.current.focusElement(element.id);
-				result.result.current.copyElement(element.id);
+				result.result.current.focusElement(el => el.id === element.id);
+				result.result.current.copyElement(el => el.id === element.id);
 			});
 
 			element = result.result.current.elements[0];
