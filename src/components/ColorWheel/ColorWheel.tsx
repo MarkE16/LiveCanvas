@@ -4,8 +4,8 @@ import {
 	ColorWheelTrack as AriaColorWheelTrack,
 	ColorArea as AriaColorArea
 } from "react-aria-components";
-import ColorThumb from "@components/ColorThumb/ColorThumb";
-import useStore from "@state/hooks/useStore";
+import ColorThumb from "@/components/ColorThumb/ColorThumb";
+import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
 // Types

@@ -11,8 +11,8 @@ import type {
 	CanvasElementsStore,
 	SavedCanvasProperties,
 	Shape
-} from "../../types";
-import * as Utils from "../../lib/utils";
+} from "@/types";
+import * as Utils from "@/lib/utils";
 
 export const createCanvasSlice: StateCreator<
 	CanvasStore & HistoryStore & CanvasElementsStore,

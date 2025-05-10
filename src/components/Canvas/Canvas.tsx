@@ -2,16 +2,16 @@
 import { useEffect, useRef } from "react";
 import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
-import useLayerReferences from "@state/hooks/useLayerReferences";
-import useStore from "@state/hooks/useStore";
-import * as Utils from "src/lib/utils";
+import useStoreSubscription from "@/state/hooks/useStoreSubscription";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import useStore from "@/state/hooks/useStore";
+import * as Utils from "@/lib/utils";
 import clsx from "clsx";
-import LayersStore from "src/state/stores/LayersStore";
+import LayersStore from "@/state/stores/LayersStore";
 
 // Types
 import type { ReactNode, MouseEvent } from "react";
-import type { Layer, Coordinates } from "src/types";
+import type { Layer, Coordinates } from "@/types";
 
 // Styles
 import "./Canvas.styles.css";

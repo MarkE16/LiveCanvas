@@ -6,7 +6,7 @@ import type {
 	CanvasElementsStore,
 	CanvasStore,
 	HistoryStore
-} from "../../types";
+} from "@/types";
 
 export const createCanvasElementsSlice: StateCreator<
 	CanvasElementsStore & CanvasStore & HistoryStore,

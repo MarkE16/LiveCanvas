@@ -1,4 +1,7 @@
 import { defineConfig } from "vitest/config";
+import { resolve } from "path";
+
+const root = resolve(__dirname, "./src");
 
 export default defineConfig({
 	test: {
@@ -24,6 +27,11 @@ export default defineConfig({
 			provider: "v8",
 			reporter: ["text", "lcov", "html"],
 			reportsDirectory: "coverage"
+		}
+	},
+	resolve: {
+		alias: {
+			"@": root
 		}
 	}
 });

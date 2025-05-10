@@ -1,22 +1,22 @@
 // Lib
 import { useRef, useEffect, useState, memo } from "react";
-import useLayerReferences from "@state/hooks/useLayerReferences";
-import useWindowDimensions from "@state/hooks/useWindowDimesions";
-import useStore from "@state/hooks/useStore";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import useWindowDimensions from "@/state/hooks/useWindowDimesions";
+import useStore from "@/state/hooks/useStore";
+import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
 
 // Components
-import DrawingToolbar from "@components/DrawingToolbar/DrawingToolbar";
-import Canvas from "@components/Canvas/Canvas";
-import CanvasPointerMarker from "@components/CanvasPointerMarker/CanvasPointerMarker";
-import CanvasPointerSelection from "@components/CanvasPointerSelection/CanvasPointerSelection";
-import CanvasInteractiveElement from "@components/CanvasInteractiveElement/CanvasInteractiveElement";
-import ScaleIndicator from "@components/ScaleIndicator/ScaleIndicator";
+import DrawingToolbar from "@/components/DrawingToolbar/DrawingToolbar";
+import Canvas from "@/components/Canvas/Canvas";
+import CanvasPointerMarker from "@/components/CanvasPointerMarker/CanvasPointerMarker";
+import CanvasPointerSelection from "@/components/CanvasPointerSelection/CanvasPointerSelection";
+import CanvasInteractiveElement from "@/components/CanvasInteractiveElement/CanvasInteractiveElement";
+import ScaleIndicator from "@/components/ScaleIndicator/ScaleIndicator";
 
 // Types
 import type { ReactNode } from "react";
-import type { Coordinates } from "src/types";
+import type { Coordinates } from "@/types";
 
 // Styles
 import "./CanvasPane.styles.css";

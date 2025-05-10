@@ -1,7 +1,7 @@
 // Lib
 import { useRef } from "react";
-import useLayerReferences from "@state/hooks/useLayerReferences";
-import * as UTILS from "src/lib/utils";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import * as UTILS from "@/lib/utils";
 
 // Types
 import type { ReactNode } from "react";

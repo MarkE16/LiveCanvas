@@ -1,15 +1,15 @@
 // Lib
-import { SHAPES } from "@state/store";
+import { SHAPES } from "@/state/store";
 import { memo, Fragment } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
 // Type
 import type { ReactNode, ChangeEvent, MouseEvent } from "react";
 
 // Components
-import ColorPicker from "@components/ColorPicker/ColorPicker";
-import ShapeOption from "@components/ShapeOption/ShapeOption";
+import ColorPicker from "@/components/ColorPicker/ColorPicker";
+import ShapeOption from "@/components/ShapeOption/ShapeOption";
 
 // Styles
 import "./DrawingToolbar.styles.css";

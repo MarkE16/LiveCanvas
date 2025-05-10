@@ -1,4 +1,4 @@
-import { Layer } from "src/types";
+import { Layer } from "@/types";
 import BaseStore from "./BaseStore";
 
 type LayerProperties = Pick<Layer, "name" | "id"> & {

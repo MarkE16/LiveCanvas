@@ -1,17 +1,17 @@
 // Lib
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import useLayerReferences from "@state/hooks/useLayerReferences";
-import useStore from "@state/hooks/useStore";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import useStore from "@/state/hooks/useStore";
+import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 
 // Types
-import type { Coordinates, ResizePosition, CanvasElement } from "src/types";
+import type { Coordinates, ResizePosition, CanvasElement } from "@/types";
 import type { ReactNode, RefObject } from "react";
 
 // Components
-import ResizeGrid from "@components/ResizeGrid/ResizeGrid";
-import ElementTextField from "@components/ElementTextField/ElementTextField";
+import ResizeGrid from "@/components/ResizeGrid/ResizeGrid";
+import ElementTextField from "@/components/ElementTextField/ElementTextField";
 
 type CanvasInteractiveElementProps = CanvasElement & {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;

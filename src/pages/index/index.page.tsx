@@ -2,14 +2,13 @@
 
 // Lib
 import { useEffect } from "react";
-import LayersStore from "src/state/stores/LayersStore";
-import ElementsStore from "src/state/stores/ElementsStore";
+import LayersStore from "@/state/stores/LayersStore";
+import ElementsStore from "@/state/stores/ElementsStore";
 
 // Components
-// import Navbar from "../../components/Navbar/Navbar";
-import Navbar from "@components/Navbar/Navbar";
-import Main from "../../components/Main/Main";
-import ErrorBoundary from "../../components/ErrorBoundary/ErrorBoundary";
+import Navbar from "@/components/Navbar/Navbar";
+import Main from "@/components/Main/Main";
+import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 
 // The <head> tags
 // eslint-disable-next-line

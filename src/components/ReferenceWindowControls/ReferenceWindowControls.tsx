@@ -2,14 +2,14 @@
 import { useRef } from "react";
 
 // Components
-import Tooltip from "@components/Tooltip/Tooltip";
+import Tooltip from "@/components/Tooltip/Tooltip";
 
 // Icons
-import Pin from "@components/icons/Pin/Pin";
-import Flip from "@components/icons/Flip/Flip";
-import Rotate from "@components/icons/Rotate/Rotate";
-import ZoomOut from "@components/icons/ZoomOut/ZoomOut";
-import ZoomIn from "@components/icons/ZoomIn/ZoomIn";
+import Pin from "@/components/icons/Pin/Pin";
+import Flip from "@/components/icons/Flip/Flip";
+import Rotate from "@/components/icons/Rotate/Rotate";
+import ZoomOut from "@/components/icons/ZoomOut/ZoomOut";
+import ZoomIn from "@/components/icons/ZoomIn/ZoomIn";
 
 // Types
 import type { Dispatch, SetStateAction, ReactNode } from "react";

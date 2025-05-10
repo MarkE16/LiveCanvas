@@ -1,10 +1,10 @@
 // Lib
 import { useEffect } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Types
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
-import type { ResizePosition } from "src/types";
+import type { ResizePosition } from "@/types";
 
 // Styles
 import "./ResizeHandle.styles.css";

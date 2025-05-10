@@ -11,11 +11,7 @@
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"paths": {
-			"src/*": ["./src/*"],
-			"@assets/*": ["./src/assets/*"],
-			"@components/*": ["./src/components/*"],
-			"@types/*": ["./src/types/*"],
-			"@state/*": ["./src/state/*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"ts-node": {

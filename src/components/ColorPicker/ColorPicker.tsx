@@ -1,7 +1,7 @@
 // Lib
 import { useState, useRef } from "react";
-import useStore from "@state/hooks/useStore";
-import useLayerReferences from "@state/hooks/useLayerReferences";
+import useStore from "@/state/hooks/useStore";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { parseColor } from "react-aria-components";
 
 // Components
@@ -26,7 +26,7 @@ import "./ColorPicker.styles.css";
 // Types
 import type { ReactNode, MouseEvent, ChangeEvent } from "react";
 import type { Color } from "react-aria-components";
-import type { CanvasElement } from "src/types";
+import type { CanvasElement } from "@/types";
 
 type ColorPickerProps = {
 	label: string;

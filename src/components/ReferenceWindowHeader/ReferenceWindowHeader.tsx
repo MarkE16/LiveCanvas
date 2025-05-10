@@ -1,6 +1,6 @@
 // Lib
 import { useEffect, useRef } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Types
 import type {
@@ -9,10 +9,10 @@ import type {
 	ReactNode,
 	MouseEvent as ReactMouseEvent
 } from "react";
-import type { Coordinates } from "src/types";
+import type { Coordinates } from "@/types";
 
 // Icons
-import Close from "@components/icons/Close/Close";
+import Close from "@/components/icons/Close/Close";
 
 type ReferenceWindowHeaderProps = Readonly<{
 	isPinned: boolean;

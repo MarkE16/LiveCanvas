@@ -1,14 +1,14 @@
 // Lib
 import { useRef, useEffect, useState } from "react";
-import * as UTILS from "src/lib/utils";
-import useLayerReferences from "@state/hooks/useLayerReferences";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
-import useStore from "@state/hooks/useStore";
+import * as UTILS from "@/lib/utils";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import useStoreSubscription from "@/state/hooks/useStoreSubscription";
+import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { ReactNode, RefObject } from "react";
-import type { Coordinates } from "src/types";
+import type { Coordinates } from "@/types";
 
 type CanvasPointerSelectionProps = {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;

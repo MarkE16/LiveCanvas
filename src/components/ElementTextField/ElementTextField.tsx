@@ -1,6 +1,6 @@
 // Lib
 import { useState, useRef, useEffect } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Styles
 import "./ElementTextField.styles.css";
@@ -15,7 +15,7 @@ import type {
 	KeyboardEvent,
 	MouseEvent
 } from "react";
-import type { FontProperties } from "src/types";
+import type { FontProperties } from "@/types";
 
 type ElementTextFieldProps = Readonly<
 	TextareaHTMLAttributes<HTMLTextAreaElement> & {

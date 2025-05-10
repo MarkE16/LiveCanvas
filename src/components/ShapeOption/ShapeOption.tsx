@@ -1,13 +1,13 @@
 // Lib
-import * as Utils from "src/lib/utils";
+import * as Utils from "@/lib/utils";
 import clsx from "clsx";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Types
-import type { Shape } from "src/types";
+import type { Shape } from "@/types";
 
 // Components
-import Tooltip from "@components/Tooltip/Tooltip";
+import Tooltip from "@/components/Tooltip/Tooltip";
 
 type ShapeOptionProps = Readonly<{
 	icon: string;

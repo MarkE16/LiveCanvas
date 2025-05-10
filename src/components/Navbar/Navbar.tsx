@@ -1,17 +1,17 @@
 // Lib
-import logo from "@assets/icons/IdeaDrawnNewLogo_transparent.png";
+import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
 import { useRef, useCallback, useEffect } from "react";
-import useLayerReferences from "@state/hooks/useLayerReferences";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
-import useStore from "@state/hooks/useStore";
-import LayersStore from "@state/stores/LayersStore";
-import ElementsStore from "src/state/stores/ElementsStore";
+import useStore from "@/state/hooks/useStore";
+import LayersStore from "@/state/stores/LayersStore";
+import ElementsStore from "@/state/stores/ElementsStore";
 
 // Icons
-import Fullscreen from "@components/icons/Fullscreen/Fullscreen";
-import Image from "@components/icons/Image/Image";
-import Export from "@components/icons/Export/Export";
-import FloppyDisk from "@components/icons/FloppyDisk/FloppyDisk";
+import Fullscreen from "@/components/icons/Fullscreen/Fullscreen";
+import Image from "@/components/icons/Image/Image";
+import Export from "@/components/icons/Export/Export";
+import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
 
 // Types
 import type { ReactElement, ReactNode } from "react";

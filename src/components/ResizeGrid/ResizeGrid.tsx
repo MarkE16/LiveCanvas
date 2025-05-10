@@ -4,10 +4,10 @@ import clsx from "clsx";
 
 // Types
 import type { CSSProperties, ReactNode } from "react";
-import type { ResizePosition } from "src/types";
+import type { ResizePosition } from "@/types";
 
 // Components
-import ResizeHandle from "@components/ResizeHandle/ResizeHandle";
+import ResizeHandle from "@/components/ResizeHandle/ResizeHandle";
 
 // Styles
 import "./ResizeGrid.styles.css";

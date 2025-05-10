@@ -1,27 +1,27 @@
 // Lib
 import { useCallback, useEffect } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
-import * as UTILS from "src/lib/utils";
+import * as UTILS from "@/lib/utils";
 import clsx from "clsx";
 
 // Types
-import type { Mode, ToolbarMode } from "src/types";
+import type { Mode, ToolbarMode } from "@/types";
 import type { ReactNode } from "react";
 
 // Components
-import Select from "@components/icons/Select/Select";
-import Pen from "@components/icons/Pen/Pen";
-import Eraser from "@components/icons/Eraser/Eraser";
-import Shapes from "@components/icons/Shapes/Shapes";
-import EyeDropper from "@components/icons/EyeDropper/EyeDropper";
-import ZoomIn from "@components/icons/ZoomIn/ZoomIn";
-import ZoomOut from "@components/icons/ZoomOut/ZoomOut";
-import Move from "@components/icons/Move/Move";
-import Undo from "@components/icons/Undo/Undo";
-import Redo from "@components/icons/Redo/Redo";
-import Text from "@components/icons/Text/Text";
-import Tooltip from "@components/Tooltip/Tooltip";
+import Select from "@/components/icons/Select/Select";
+import Pen from "@/components/icons/Pen/Pen";
+import Eraser from "@/components/icons/Eraser/Eraser";
+import Shapes from "@/components/icons/Shapes/Shapes";
+import EyeDropper from "@/components/icons/EyeDropper/EyeDropper";
+import ZoomIn from "@/components/icons/ZoomIn/ZoomIn";
+import ZoomOut from "@/components/icons/ZoomOut/ZoomOut";
+import Move from "@/components/icons/Move/Move";
+import Undo from "@/components/icons/Undo/Undo";
+import Redo from "@/components/icons/Redo/Redo";
+import Text from "@/components/icons/Text/Text";
+import Tooltip from "@/components/Tooltip/Tooltip";
 
 type ToolbarButtonProps = Readonly<
 	ToolbarMode & {

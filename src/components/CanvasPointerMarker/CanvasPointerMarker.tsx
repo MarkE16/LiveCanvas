@@ -1,13 +1,13 @@
 // Lib
 import { useState, useEffect, useRef } from "react";
-import useStore from "@state/hooks/useStore";
-import useStoreSubscription from "@state/hooks/useStoreSubscription";
+import useStore from "@/state/hooks/useStore";
+import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
-import * as Utils from "src/lib/utils";
+import * as Utils from "@/lib/utils";
 
 // Types
 import type { ReactNode, RefObject } from "react";
-import type { Coordinates } from "src/types";
+import type { Coordinates } from "@/types";
 
 type CanvasPointerMarker = {
 	canvasSpaceReference: RefObject<HTMLDivElement | null>;

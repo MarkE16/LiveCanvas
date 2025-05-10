@@ -4,7 +4,7 @@ import type {
 	CanvasStore,
 	HistoryAction,
 	HistoryStore
-} from "../../types";
+} from "@/types";
 
 export const createHistorySlice: StateCreator<
 	HistoryStore & CanvasStore & CanvasElementsStore,

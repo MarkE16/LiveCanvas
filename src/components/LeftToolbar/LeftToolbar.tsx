@@ -1,7 +1,7 @@
 // Lib
-import { MODES } from "@state/store";
+import { MODES } from "@/state/store";
 import { memo } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Types
 import type { ReactNode } from "react";
@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import "./LeftToolbar.styles.css";
 
 // Components
-import ToolbarButton from "@components/ToolbarButton/ToolbarButton";
+import ToolbarButton from "@/components/ToolbarButton/ToolbarButton";
 
 const MemoizedToolbarButton = memo(ToolbarButton);
 

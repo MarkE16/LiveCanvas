@@ -6,13 +6,13 @@ import clsx from "clsx";
 import "./ReferenceWindow.styles.css";
 
 // Components
-import ReferenceWindowHeader from "@components/ReferenceWindowHeader/ReferenceWindowHeader";
-import ReferenceWindowContent from "@components/ReferenceWindowContent/ReferenceWindowContent";
-import ReferenceWindowControls from "@components/ReferenceWindowControls/ReferenceWindowControls";
+import ReferenceWindowHeader from "@/components/ReferenceWindowHeader/ReferenceWindowHeader";
+import ReferenceWindowContent from "@/components/ReferenceWindowContent/ReferenceWindowContent";
+import ReferenceWindowControls from "@/components/ReferenceWindowControls/ReferenceWindowControls";
 
 // Types
 import type { CSSProperties, ReactNode } from "react";
-import { Coordinates } from "src/types";
+import { Coordinates } from "@/types";
 
 const MemoizedReferenceWindowHeader = memo(ReferenceWindowHeader);
 const MemoizedReferenceWindowContent = memo(ReferenceWindowContent);

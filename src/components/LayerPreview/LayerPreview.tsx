@@ -1,13 +1,13 @@
 // Lib
 import { useState, useEffect } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 
 // Styles
 import "./LayerPreview.styles.css";
 
 // Types
 import type { ReactNode } from "react";
-import type { ImageUpdateEvent } from "src/types";
+import type { ImageUpdateEvent } from "@/types";
 
 type LayerPreviewProps = Readonly<{
 	id: string;

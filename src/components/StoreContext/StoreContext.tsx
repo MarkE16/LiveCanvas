@@ -1,6 +1,6 @@
 // Lib
 import { createContext, useRef } from "react";
-import { initializeStore } from "@state/store";
+import { initializeStore } from "@/state/store";
 
 // Types
 import type { ReactNode } from "react";

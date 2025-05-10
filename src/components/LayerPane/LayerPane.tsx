@@ -1,6 +1,6 @@
 // Lib
 import { memo } from "react";
-import useStore from "@state/hooks/useStore";
+import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
 // Types
@@ -10,9 +10,9 @@ import type { ReactNode } from "react";
 import "./LayerPane.styles.css";
 
 // Components
-import LayerInfo from "@components/LayerInfo/LayerInfo";
-import ColorWheel from "@components/ColorWheel/ColorWheel";
-import Tooltip from "@components/Tooltip/Tooltip";
+import LayerInfo from "@/components/LayerInfo/LayerInfo";
+import ColorWheel from "@/components/ColorWheel/ColorWheel";
+import Tooltip from "@/components/Tooltip/Tooltip";
 
 const MemoizedLayerInfo = memo(LayerInfo);
 const MemoizedColorWheel = memo(ColorWheel);

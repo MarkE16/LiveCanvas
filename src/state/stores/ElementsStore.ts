@@ -1,5 +1,5 @@
 import BaseStore from "./BaseStore";
-import { CanvasElement } from "src/types";
+import { CanvasElement } from "@/types";
 
 type Element = Omit<CanvasElement, "focused">;
 

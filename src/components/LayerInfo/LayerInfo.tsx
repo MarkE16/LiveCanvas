@@ -1,27 +1,27 @@
 // Lib
 import { useState, memo } from "react";
 import clsx from "clsx";
-import useStore from "@state/hooks/useStore";
-import useLayerReferences from "@state/hooks/useLayerReferences";
+import useStore from "@/state/hooks/useStore";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/react/shallow";
-import LayersStore from "src/state/stores/LayersStore";
+import LayersStore from "@/state/stores/LayersStore";
 
 // Icons
-import Eye from "@components/icons/Eye/Eye";
-import Pen from "@components/icons/Pen/Pen";
-import Trashcan from "@components/icons/Trashcan/Trashcan";
-import Checkmark from "@components/icons/Checkmark/Checkmark";
+import Eye from "@/components/icons/Eye/Eye";
+import Pen from "@/components/icons/Pen/Pen";
+import Trashcan from "@/components/icons/Trashcan/Trashcan";
+import Checkmark from "@/components/icons/Checkmark/Checkmark";
 
 // Types
 import type { ReactNode } from "react";
-import type { Layer } from "src/types";
+import type { Layer } from "@/types";
 
 // Styles
 import "./LayerInfo.styles.css";
 
 // Components
-import LayerPreview from "@components/LayerPreview/LayerPreview";
-import Tooltip from "@components/Tooltip/Tooltip";
+import LayerPreview from "@/components/LayerPreview/LayerPreview";
+import Tooltip from "@/components/Tooltip/Tooltip";
 
 type LayerInfoProps = Readonly<
 	Layer & {
