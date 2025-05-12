@@ -31,6 +31,16 @@ export default abstract class BaseStore {
 		return this.db;
 	}
 
+	protected static async close() {
+	  if (!this.db) {
+      throw new Error("No DB to close.");
+		}
+
+    const db = await this.db;
+
+    db.close();
+	}
+
 	private static onUpgrade(db: IDBDatabase) {
 		for (const store of STORES) {
 			if (!db.objectStoreNames.contains(store)) {

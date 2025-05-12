@@ -57,4 +57,11 @@ export default class ElementsStore extends BaseStore {
 	public static openStore() {
 		this.open();
 	}
+
+	/**
+	 * Close the connection to the Elements store.
+	 */
+	public static closeStore() {
+		this.close();
+	}
 }

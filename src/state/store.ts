@@ -55,7 +55,7 @@ export const MODES: Modes = [
 ];
 
 export const SHAPES: Shapes = [
-	{ name: "rectangle", icon: "fa-square" },
-	{ name: "circle", icon: "fa-circle" },
-	{ name: "triangle", icon: "fa-play" }
-];
+  "circle",
+  "rectangle",
+  "triangle"
+]

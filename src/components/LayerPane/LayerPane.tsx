@@ -3,6 +3,9 @@ import { memo } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
+// Icons
+import Plus from "@/components/icons/Plus/Plus";
+
 // Types
 import type { ReactNode } from "react";
 
@@ -46,7 +49,7 @@ function LayerPane(): ReactNode {
 					id="new-layer-button"
 					disabled={true}
 				>
-					<i className="fa fa-plus"></i>
+					<Plus />
 				</button>
 			</Tooltip>
 		) : (
@@ -56,7 +59,7 @@ function LayerPane(): ReactNode {
 				disabled={false}
 				onClick={onNewLayer}
 			>
-				<i className="fa fa-plus"></i>
+				<Plus />
 			</button>
 		);
 

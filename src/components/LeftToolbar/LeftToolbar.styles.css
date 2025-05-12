@@ -10,11 +10,11 @@
 }
 
 .toolbar-option {
-	min-height: 3.5vh;
 	border: 1px solid rgb(36, 36, 36);
 	padding: 0.1em;
-	font-size: 1.6em;
+	font-size: x-large;
 	background-color: transparent;
+	text-align: center;
 	cursor: pointer;
 	transition: background-color 100ms;
 }

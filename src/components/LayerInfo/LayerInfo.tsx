@@ -7,6 +7,8 @@ import { useShallow } from "zustand/react/shallow";
 import LayersStore from "@/state/stores/LayersStore";
 
 // Icons
+import ArrowUp from "@/components/icons/ArrowUp/ArrowUp";
+import ArrowDown from "@/components/icons/ArrowDown/ArrowDown";
 import Eye from "@/components/icons/Eye/Eye";
 import Pen from "@/components/icons/Pen/Pen";
 import Trashcan from "@/components/icons/Trashcan/Trashcan";
@@ -143,7 +145,7 @@ function LayerInfo({
 						data-testid={`up-${id}`}
 						onClick={() => onMoveLayer("up")}
 					>
-						<i className="fas fa-angle-up"></i>
+						<ArrowUp />
 					</button>
 				</Tooltip>
 				<Tooltip
@@ -155,7 +157,7 @@ function LayerInfo({
 						onClick={() => onMoveLayer("down")}
 						data-testid={`down-${id}`}
 					>
-						<i className="fas fa-angle-down"></i>
+						<ArrowDown />
 					</button>
 				</Tooltip>
 			</div>

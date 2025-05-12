@@ -5,17 +5,29 @@ import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
 // Type
-import type { ReactNode, ChangeEvent, MouseEvent } from "react";
+import type { ReactNode, ChangeEvent, MouseEvent, ReactElement } from "react";
+import type { Shape } from "@/types";
 
 // Components
 import ColorPicker from "@/components/ColorPicker/ColorPicker";
 import ShapeOption from "@/components/ShapeOption/ShapeOption";
+
+// Icons
+import Square from "@/components/icons/Square/Square";
+import Circle from "@/components/icons/Circle/Circle";
+import Triangle from "../icons/Triangle/Triangle";
 
 // Styles
 import "./DrawingToolbar.styles.css";
 
 const MemoizedColorPicker = memo(ColorPicker);
 const MemoizedShapeOption = memo(ShapeOption);
+
+const SHAPE_ICONS: Record<Shape, ReactElement> = {
+  rectangle: <Square />,
+  circle: <Circle />,
+  triangle: <Triangle />
+};
 
 function DrawingToolbar(): ReactNode {
 	const {
@@ -79,14 +91,13 @@ function DrawingToolbar(): ReactNode {
 	};
 
 	const renderedShapes = SHAPES.map((s) => {
-		const { icon, name } = s;
 
 		return (
 			<MemoizedShapeOption
-				key={name}
-				icon={icon}
-				name={name}
-				isActive={shape === name}
+				key={s}
+				icon={SHAPE_ICONS[s]}
+				name={s}
+				isActive={shape === s}
 			/>
 		);
 	});

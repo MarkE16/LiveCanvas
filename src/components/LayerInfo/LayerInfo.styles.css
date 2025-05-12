@@ -85,7 +85,7 @@
 	display: none;
 	background-color: transparent;
 	font-size: large;
-	padding: 0.2em;
+	padding: 0 0.2em;
 	border: none;
 	border-radius: 50%;
 	transition: opacity 100ms;

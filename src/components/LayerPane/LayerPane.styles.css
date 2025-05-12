@@ -23,7 +23,7 @@
 
 #new-layer-button {
 	/* height: 100%; */
-	padding: 0.1rem 0.5rem;
+	font-size: large;
 	background-color: rgb(36, 36, 36);
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;

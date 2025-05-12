@@ -1,10 +1,10 @@
 // Lib
 import { useContext } from "react";
-import { StoreContext } from "../../components/StoreContext/StoreContext";
+import { StoreContext } from "@/components/StoreContext/StoreContext";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
 // Types
-import type { SliceStores } from "../../types";
+import type { SliceStores } from "@/types";
 
 /**
  * A custom hook that retrieves a property of the Zustand store.

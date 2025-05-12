@@ -5,12 +5,13 @@ import useStore from "@/state/hooks/useStore";
 
 // Types
 import type { Shape } from "@/types";
+import type { ReactElement } from "react";
 
 // Components
 import Tooltip from "@/components/Tooltip/Tooltip";
 
 type ShapeOptionProps = Readonly<{
-	icon: string;
+	icon: ReactElement;
 	name: Shape;
 	isActive: boolean;
 }>;
@@ -33,7 +34,7 @@ function ShapeOption({ icon, name, isActive }: ShapeOptionProps) {
 				onClick={handleShapeChange}
 				data-testid={`shape-${name}`}
 			>
-				<i className={`fa ${icon}`} />
+				{icon}
 			</button>
 		</Tooltip>
 	);

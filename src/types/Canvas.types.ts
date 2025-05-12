@@ -42,7 +42,7 @@ export type ShapeMode = {
 	name: Shape;
 	icon: string;
 };
-export type Shapes = ShapeMode[];
+export type Shapes = Shape[];
 export type ToolbarMode = {
 	name: Mode;
 	shortcut: string;

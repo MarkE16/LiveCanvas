@@ -55,9 +55,16 @@ export default class LayersStore extends BaseStore {
 	}
 
 	/**
-	 * Open a connection to the Layers Store.
+	 * Open a connection to the Layers store.
 	 */
 	public static openStore() {
 		this.open();
+	}
+
+	/**
+	 * Close the connection to the Layers store.
+	 */
+	public static closeStore() {
+		this.close();
 	}
 }
