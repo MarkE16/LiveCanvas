@@ -43,9 +43,6 @@ async function render(pageContext: PageContextServer) {
       <head>
         <meta charset="UTF-8" />
         <link rel="icon" href="${logo}" />
-        <link href=
-"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-              rel="stylesheet"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="${desc}" />
         <title>${title}</title>

@@ -32,13 +32,13 @@ export default abstract class BaseStore {
 	}
 
 	protected static async close() {
-	  if (!this.db) {
-      throw new Error("No DB to close.");
+		if (!this.db) {
+			throw new Error("No DB to close.");
 		}
 
-    const db = await this.db;
+		const db = await this.db;
 
-    db.close();
+		db.close();
 	}
 
 	private static onUpgrade(db: IDBDatabase) {
@@ -115,8 +115,10 @@ export default abstract class BaseStore {
 
 		return new Promise<void>((resolve, reject) => {
 			if (!keys) {
-				store.clear();
-				resolve();
+				const req = store.clear();
+
+				req.onsuccess = () => resolve();
+				req.onerror = () => reject(req.error);
 			} else {
 				for (const [idx, key] of keys.entries()) {
 					const req = store.delete(key);

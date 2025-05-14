@@ -2,14 +2,15 @@
 import { useRef, useEffect } from "react";
 
 // Types
-import type { Dimensions } from "../../types";
+import type { Dimensions } from "@/types";
+import type { RefObject } from "react";
 
 type DimensionProperties = Dimensions & {
 	changeInWidth: number;
 	changeInHeight: number;
 };
 
-function useWindowDimensions() {
+function useWindowDimensions(): RefObject<DimensionProperties> {
 	const dimensions = useRef<DimensionProperties>({
 		width: 0,
 		height: 0,

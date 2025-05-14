@@ -9,6 +9,7 @@ import {
 	MockInstance
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import Navbar from "../../components/Navbar/Navbar";
 import { renderWithProviders } from "../test-utils";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
@@ -41,11 +42,6 @@ describe("Navbar functionality", () => {
 			});
 		renderWithProviders(<Navbar />);
 
-		originalCreateObjectURL = URL.createObjectURL;
-		originalRevokeObjectURL = URL.revokeObjectURL;
-		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
-		URL.revokeObjectURL = vi.fn();
-
 		Object.defineProperty(document, "fullscreenElement", {
 			get: fullscreenElementMock,
 			configurable: true
@@ -61,9 +57,6 @@ describe("Navbar functionality", () => {
 	});
 
 	afterAll(() => {
-		URL.createObjectURL = originalCreateObjectURL;
-		URL.revokeObjectURL = originalRevokeObjectURL;
-
 		HTMLElement.prototype.requestFullscreen = originalRequestFullscreen;
 		document.exitFullscreen = originalExitFullscreen;
 		vi.restoreAllMocks();
@@ -81,17 +74,19 @@ describe("Navbar functionality", () => {
 		expect(exportLink).not.toBeVisible();
 	});
 
-	it("should open a dropdown for the File option", () => {
-		const fileTab = screen.getByText("File");
+	it("should open a dropdown for the File option", async () => {
+		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
-		fireEvent.pointerDown(fileTab);
+		await userEvent.click(fileTab);
 
 		const dropdown = screen.getByRole("menu");
 
 		expect(dropdown).toBeInTheDocument();
 		expect(dropdown).toBeVisible();
 
-		const options = screen.getAllByRole("menuitem");
+		const options = screen.getAllByRole("menuitem", {
+			name: /Save File|Export File/i
+		});
 
 		expect(options).toHaveLength(2);
 		expect(options[0]).toHaveTextContent("Save File");
@@ -117,13 +112,13 @@ describe("Navbar functionality", () => {
 
 	it("should save the file when clicking Save File from File menu", async () => {
 		const alertSpy = vi.spyOn(window, "alert");
-		const fileTab = screen.getByText("File");
+		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
-		fireEvent.click(fileTab);
+		await userEvent.click(fileTab);
 
 		const saveFileOption = screen.getByText("Save File");
 
-		fireEvent.click(saveFileOption);
+		await userEvent.click(saveFileOption);
 
 		await vi.waitFor(() => {
 			expect(alertSpy).toHaveBeenCalledWith("Saved!");
@@ -146,13 +141,13 @@ describe("Navbar functionality", () => {
 			"Cannot export canvas: no references found. This is a bug."
 		);
 
-		const fileTab = screen.getByText("File");
+		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
-		fireEvent.click(fileTab);
+		await userEvent.click(fileTab);
 
 		const saveFileOption = screen.getByText("Save File");
 
-		fireEvent.click(saveFileOption);
+		await userEvent.click(saveFileOption);
 
 		await vi.waitFor(() => {
 			expect(alertSpy).toHaveBeenCalledWith(
@@ -171,32 +166,34 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should export file when clicking Export File from File menu", async () => {
-		const fileTab = screen.getByText("File");
 		const exportLink = screen.getByTestId("export-link");
 		const clickSpy = vi.spyOn(exportLink, "click");
+		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
-		fireEvent.click(fileTab);
+		await userEvent.click(fileTab);
 
 		const exportFileOption = screen.getByText("Export File");
 
-		fireEvent.click(exportFileOption);
+		await userEvent.click(exportFileOption);
 
 		await vi.waitFor(() => {
 			expect(clickSpy).toHaveBeenCalled();
 		});
 	});
 
-	it("should toggle full screen from the View menu", () => {
+	it("should toggle full screen from the View menu", async () => {
 		const requestFullscreenSpy = vi.spyOn(
 			HTMLElement.prototype,
 			"requestFullscreen"
 		);
 		const exitFullscreenSpy = vi.spyOn(document, "exitFullscreen");
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
+		const viewTab = screen.getByRole("menuitem", { name: "View" });
+
+		await userEvent.click(viewTab);
 
 		let fullScreenOption = screen.getByText("Toggle Full Screen");
-		fireEvent.click(fullScreenOption);
+
+		await userEvent.click(fullScreenOption);
 
 		// Toggle it.
 		expect(requestFullscreenSpy).toHaveBeenCalled();
@@ -209,9 +206,10 @@ describe("Navbar functionality", () => {
 			configurable: true
 		});
 
-		fireEvent.click(viewTab);
+		await userEvent.click(viewTab);
+
 		fullScreenOption = screen.getByText("Toggle Full Screen");
-		fireEvent.click(fullScreenOption);
+		await userEvent.click(fullScreenOption);
 
 		expect(exitFullscreenSpy).toHaveBeenCalled();
 	});

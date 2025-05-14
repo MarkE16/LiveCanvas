@@ -8,11 +8,13 @@ import {
 	afterAll
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
-import { renderWithProviders } from "../test-utils";
+import userEvent from "@testing-library/user-event";
+import { renderWithProviders } from "@/tests/test-utils";
 
-import { Page } from "../../pages/index/index.page";
-import { SliceStores } from "../../types";
-import * as useIndexed from "../../state/hooks/useIndexed";
+import { Page } from "@/pages/index/index.page";
+import { SliceStores } from "@/types";
+import LayersStore from "@/state/stores/LayersStore";
+import ElementsStore from "@/state/stores/ElementsStore";
 
 describe("Page", () => {
 	const mockState: Partial<SliceStores> = {
@@ -25,19 +27,11 @@ describe("Page", () => {
 			}
 		]
 	};
-	const indexedGetMock = vi.fn();
-	const indexedSetMock = vi.fn();
-	const indexedDeleteMock = vi.fn();
 	let originalCreateObjectURL: typeof URL.createObjectURL;
 	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 
 	beforeEach(() => {
 		renderWithProviders(<Page />, { preloadedState: mockState });
-		vi.spyOn(useIndexed, "default").mockReturnValue({
-			get: indexedGetMock,
-			set: indexedSetMock,
-			remove: indexedDeleteMock
-		});
 
 		originalCreateObjectURL = URL.createObjectURL;
 		originalRevokeObjectURL = URL.revokeObjectURL;
@@ -62,19 +56,20 @@ describe("Page", () => {
 	});
 
 	it("should get the layers and elements from IndexedDB", () => {
-		const [call1, call2] = indexedGetMock.mock.calls;
+		const layersStoreGetSpy = vi.spyOn(LayersStore, "getLayers");
+		const elementsStoreGetSpy = vi.spyOn(ElementsStore, "getElements");
 
-		expect(call1).toEqual(["layers"]);
-		expect(call2).toEqual(["elements", "items"]);
+		expect(layersStoreGetSpy).toHaveBeenCalled();
+		expect(elementsStoreGetSpy).toHaveBeenCalled();
 	});
 
 	it("should update the canvas with existing layers from IndexedDB", () => {
-		indexedGetMock.mockReturnValueOnce([
+		vi.spyOn(LayersStore, "getLayers").mockResolvedValue([
 			[
-				"123",
+				"456",
 				{
-					id: "123",
-					name: "Layer 1",
+					id: "456",
+					name: "A new layer",
 					image: new Blob(),
 					position: 0
 				}
@@ -85,11 +80,13 @@ describe("Page", () => {
 
 		const layer = screen.getByTestId("canvas-layer");
 		expect(layer).toBeInTheDocument();
-		expect(layer).toHaveAttribute("id", "123");
-		expect(layer).toHaveAttribute("data-name", "Layer 1");
+		expect(layer).toHaveAttribute("id", "456");
+		expect(layer).toHaveAttribute("data-name", "A new layer");
 	});
 
 	it("should set the layers in IndexedDB when saving", async () => {
+		const layersStoreAddSpy = vi.spyOn(LayersStore, "addLayers");
+		const elementsStoreAddSpy = vi.spyOn(ElementsStore, "addElements");
 		// Setting elements in the preloaded state actually doesn't work, as
 		// the elements are not being set in the IndexedDB. When
 		// the elements are being set on first render, the elements are empty,
@@ -128,11 +125,7 @@ describe("Page", () => {
 		const [layer] = mockState.layers!;
 
 		await vi.waitFor(() => {
-			const [call1, call2] = indexedSetMock.mock.calls;
-
-			expect(call1).toEqual([
-				"layers",
-				layer.id,
+			expect(layersStoreAddSpy).toHaveBeenCalledWith([
 				{
 					id: layer.id,
 					name: layer.name,
@@ -141,9 +134,7 @@ describe("Page", () => {
 				}
 			]);
 
-			expect(call2).toEqual([
-				"elements",
-				"items",
+			expect(elementsStoreAddSpy).toHaveBeenCalledWith([
 				[
 					{
 						id: expect.any(String),
@@ -161,23 +152,23 @@ describe("Page", () => {
 		});
 	});
 
-	it("should open the reference window from the View menu", () => {
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
+	it("should open the reference window from the View menu", async () => {
+		const viewTab = screen.getByRole("menuitem", { name: "View" });
+		await userEvent.click(viewTab);
 
 		const referenceWindowOption = screen.getByText("Reference Window");
-		fireEvent.click(referenceWindowOption);
+		await userEvent.click(referenceWindowOption);
 
 		const referenceWindow = screen.getByTestId("reference-window");
 		expect(referenceWindow).toBeInTheDocument();
 	});
 
-	it("should close the reference window from the close button", () => {
-		const viewTab = screen.getByText("View");
-		fireEvent.click(viewTab);
+	it("should close the reference window from the close button", async () => {
+    const viewTab = screen.getByRole("menuitem", { name: "View" });
+		await userEvent.click(viewTab);
 
 		const referenceWindowOption = screen.getByText("Reference Window");
-		fireEvent.click(referenceWindowOption);
+		await userEvent.click(referenceWindowOption);
 
 		let referenceWindow = screen.queryByTestId("reference-window");
 		expect(referenceWindow).toBeInTheDocument();
@@ -186,10 +177,9 @@ describe("Page", () => {
 
 		// Close it.
 		const closeRefWindow = screen.getByTestId("close-ref-window");
-		fireEvent.click(closeRefWindow);
-
-		referenceWindow = screen.queryByTestId("reference-window");
-
+		await userEvent.click(closeRefWindow);
+		
+    referenceWindow = screen.queryByTestId("reference-window");
 		expect(referenceWindow).not.toBeInTheDocument();
 	});
 });

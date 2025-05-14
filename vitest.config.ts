@@ -17,7 +17,7 @@ export default defineConfig({
 		],
 		globals: true,
 		setupFiles: [
-			"vitest.setup.ts",
+			"./vitest.setup.ts",
 			// This is so that we can use the IndexedDB API in our tests
 			"fake-indexeddb/auto",
 			// This is so that we can mock the canvas API in our tests

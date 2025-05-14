@@ -1,6 +1,5 @@
 import React from "react";
 import { PageContextProvider } from "./usePageContext";
-import { IndexedDBProvider } from "../components/IndexedDBProvider/IndexedDBProvider";
 import type { PageContext } from "./types";
 import "./PageShell.css";
 import { LayerReferencesProvider } from "../components/LayerReferencesProvider/LayerReferencesProvider";
@@ -17,9 +16,7 @@ function PageShell({
 	return (
 		<React.StrictMode>
 			<PageContextProvider pageContext={pageContext}>
-				<IndexedDBProvider>
-					<LayerReferencesProvider>{children}</LayerReferencesProvider>
-				</IndexedDBProvider>
+				<LayerReferencesProvider>{children}</LayerReferencesProvider>
 			</PageContextProvider>
 		</React.StrictMode>
 	);
