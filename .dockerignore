@@ -8,5 +8,3 @@ vitest.config.js
 
 # Catch all files starting with '.'
 .*
-
-!.env
