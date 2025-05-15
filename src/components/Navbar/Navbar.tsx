@@ -1,0 +1,201 @@
+// Lib
+import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
+import { useRef, useCallback, useEffect } from "react";
+import useLayerReferences from "@/state/hooks/useLayerReferences";
+import { useShallow } from "zustand/shallow";
+import useStore from "@/state/hooks/useStore";
+import LayersStore from "@/state/stores/LayersStore";
+import ElementsStore from "@/state/stores/ElementsStore";
+
+// Icons
+import Fullscreen from "@/components/icons/Fullscreen/Fullscreen";
+import Image from "@/components/icons/Image/Image";
+import Export from "@/components/icons/Export/Export";
+import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
+
+// Types
+import type { ReactElement, ReactNode } from "react";
+
+// Styles
+import "./Navbar.styles.css";
+
+// Components
+import * as Menubar from "@radix-ui/react-menubar";
+import Tooltip from "../Tooltip/Tooltip";
+
+function Navbar(): ReactNode {
+	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
+		useShallow((state) => ({
+			prepareForExport: state.prepareForExport,
+			prepareForSave: state.prepareForSave,
+			toggleReferenceWindow: state.toggleReferenceWindow
+		}))
+	);
+	const downloadRef = useRef<HTMLAnchorElement>(null);
+	const { references } = useLayerReferences();
+
+	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
+
+	type MenuOptions = {
+		[key: string]: {
+			text: string;
+			action: (() => void) | (() => Promise<void>);
+			icon?: () => ReactElement;
+		}[];
+	};
+
+	const handleSaveFile = useCallback(async () => {
+		try {
+			console.log(references.current);
+			const { layers, elements } = await prepareForSave(references.current);
+
+			const promises = [];
+
+			promises.push(
+				LayersStore.addLayers(layers),
+				ElementsStore.addElements(elements)
+			);
+
+			await Promise.all(promises);
+
+			alert("Saved!");
+		} catch (e) {
+			alert("Error saving file. Reason: " + (e as Error).message);
+		}
+	}, [references, prepareForSave]);
+
+	const handleExportFile = async () => {
+		if (!downloadRef.current) throw new Error("Download ref not found");
+
+		try {
+			const blob = await prepareForExport(references.current);
+
+			const url = URL.createObjectURL(blob);
+
+			const a = downloadRef.current;
+			a.href = url;
+			a.download = "canvas.png";
+			a.click();
+
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			alert("Error exporting file. Reason: " + (e as Error).message);
+		}
+	};
+
+	const toggleFullScreen = () => {
+		const doc = window.document;
+		const docEl = doc.documentElement;
+
+		if (doc.fullscreenElement) {
+			doc.exitFullscreen();
+		} else {
+			docEl.requestFullscreen();
+		}
+	};
+
+	const menuOptions: MenuOptions = {
+		File: [
+			{
+				text: "Save File",
+				action: handleSaveFile,
+				icon: FloppyDisk
+			},
+			{
+				text: "Export File",
+				action: handleExportFile,
+				icon: Export
+			}
+		],
+		View: [
+			{
+				text: "Reference Window",
+				action: toggleReferenceWindow,
+				icon: Image
+			},
+			{
+				text: "Toggle Full Screen",
+				action: toggleFullScreen,
+				icon: Fullscreen
+			}
+		]
+	};
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "s" && e.ctrlKey) {
+				e.preventDefault();
+				handleSaveFile();
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [handleSaveFile]);
+
+	return (
+		<header data-testid="nav-bar">
+			<nav id="navbar-container">
+				<img
+					id="navbar-logo"
+					src={logo}
+					alt="logo"
+				/>
+
+				<Menubar.Root className="MenubarRoot">
+					{menuTabs.map((tab) => {
+						if (!menuOptions[tab]) {
+							return (
+								<Tooltip text="Not available" key={tab}>
+									<span
+										className="emptyDropdown"
+										key={tab}
+									>
+										{tab}
+									</span>
+								</Tooltip>
+							);
+						}
+
+						return (
+							<Menubar.Menu key={tab}>
+								<Menubar.Trigger className="MenubarTrigger">
+									{tab}
+								</Menubar.Trigger>
+								<Menubar.Portal>
+									<Menubar.Content
+										className="MenubarContent"
+										align="start"
+									>
+										{menuOptions[tab].map((option) => (
+											<Menubar.Item
+												key={option.text}
+												className="MenubarItem"
+												onClick={option.action}
+											>
+												{option.icon && <option.icon />}
+												{option.text}
+											</Menubar.Item>
+										))}
+									</Menubar.Content>
+								</Menubar.Portal>
+							</Menubar.Menu>
+						);
+					})}
+				</Menubar.Root>
+			</nav>
+
+			<a
+				type="file"
+				ref={downloadRef}
+				style={{ display: "none" }}
+				data-testid="export-link"
+			/>
+		</header>
+	);
+}
+
+export default Navbar;

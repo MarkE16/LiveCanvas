@@ -9,7 +9,10 @@
 		"types": ["vite/client"],
 		"jsx": "react-jsx",
 		"skipLibCheck": true,
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"paths": {
+			"@/*": ["./src/*"]
+		}
 	},
 	"ts-node": {
 		"transpileOnly": true,
