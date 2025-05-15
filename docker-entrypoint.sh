@@ -2,8 +2,8 @@
 
 # Array of available environments
 Environments=(
-	"dev"
-	"prod"
+	"development"
+	"production"
 )
 
 # Display available environments
@@ -14,8 +14,11 @@ usage() {
 	done
 }
 
+# First check if there is already an environement passed
+if [ -n "$NODE_ENV" ]; then
+    env=$NODE_ENV
 # $# represents the number of arguments passed to the script
-if [ ! $# -eq 1 ]; then
+elif [ ! $# -eq 1 ]; then
 	usage
 	exit 1
 else
@@ -34,11 +37,11 @@ if [[ ! " ${Environments[*]} " =~ " ${env} " ]]; then
 fi
 
 case $env in
-dev)
+development)
 	echo "Running in development environment"
 	exec pnpm run dev
 	;;
-prod)
+production)
 	echo "Running in production environment"
 	pnpm run build
 	exec pnpm run server:prod
