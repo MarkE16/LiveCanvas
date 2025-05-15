@@ -35,7 +35,7 @@ COPY docker-entrypoint.sh /usr/local/bin/
 # Allow the script to be executable and
 # use dos2unix to clear the Windows CRLF
 # that can screw up with how Linux can run the script
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
     dos2unix /usr/local/bin/docker-entrypoint.sh
 
 # Expose port to access the app
