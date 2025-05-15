@@ -32,12 +32,11 @@ RUN apk add --no-cache bash && if [ "$NODE_ENV" = "production" ]; then pnpm run 
 # to be executed
 COPY docker-entrypoint.sh /usr/local/bin/
 
-# Allow the script to be executable
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Use dos2unix to clear the Windows CRLF
+# Allow the script to be executable and
+# use dos2unix to clear the Windows CRLF
 # that can screw up with how Linux can run the script
-RUN dos2unix /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    dos2unix /usr/local/bin/docker-entrypoint.sh
 
 # Expose port to access the app
 EXPOSE 3000

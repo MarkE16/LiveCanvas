@@ -164,7 +164,7 @@ function LayerInfo({
 			</div>
 
 			<MemoizedLayerPreview id={id} />
-			
+
 			<div className="layer-info-actions">
 				{isEditing ? (
 					<input

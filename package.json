@@ -11,6 +11,7 @@
 		"server:prod": "cross-env NODE_ENV=production npm run server",
 		"lint": "eslint . --max-warnings 0",
 		"format": "prettier --write .",
+		"format:check": "prettier --check .",
 		"types:check": "tsc --noEmit",
 		"prepare": "if [ \"$HUSKY\" != 0 ] ; then husky install ; fi"
 	},

@@ -149,7 +149,10 @@ function Navbar(): ReactNode {
 					{menuTabs.map((tab) => {
 						if (!menuOptions[tab]) {
 							return (
-								<Tooltip text="Not available" key={tab}>
+								<Tooltip
+									text="Not available"
+									key={tab}
+								>
 									<span
 										className="emptyDropdown"
 										key={tab}

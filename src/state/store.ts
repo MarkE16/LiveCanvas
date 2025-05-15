@@ -54,8 +54,4 @@ export const MODES: Modes = [
 	{ name: "redo", shortcut: "ctrl + shift + z" }
 ];
 
-export const SHAPES: Shapes = [
-  "circle",
-  "rectangle",
-  "triangle"
-]
+export const SHAPES: Shapes = ["circle", "rectangle", "triangle"];

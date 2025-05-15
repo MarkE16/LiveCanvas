@@ -18,7 +18,7 @@ export const documentProps = {
 function Page() {
 	useEffect(() => {
 		async function checkStoragePersistency() {
-			if (!navigator.storage || !navigator.storage.persist) return;
+			if (!navigator.storage?.persist) return;
 
 			const isPersisted = await navigator.storage.persisted();
 

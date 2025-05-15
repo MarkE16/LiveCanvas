@@ -36,9 +36,9 @@ jobs:
         uses: sonarsource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  lint:
+  lint-format-check:
     runs-on: ubuntu-latest
-    name: Lint
+    name: Lint and Format Checks
 
     steps:
       - name: Checkout repository

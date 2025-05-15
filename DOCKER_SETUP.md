@@ -21,7 +21,7 @@ docker run -p 3000:3000 livecanvas
 Open your web browser and navigate to `http://localhost:3000` to see the application running.
 
 ### Running in Development
-The example above runs the application in production mode. You can also run it by configurating the NODE_ENV variable to development. You can achieve this by passing
+By default, the application runs in production mode. You can also run it by configurating the NODE_ENV variable to development. You can achieve this by passing
 the `--build-arg` flag when building the image, and then passing the `NODE_ENV` variable:
 ```bash
 docker build --build-arg NODE_ENV=development -t livecanvas .
