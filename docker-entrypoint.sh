@@ -37,11 +37,11 @@ if [[ ! " ${Environments[*]} " =~ " ${env} " ]]; then
 fi
 
 case $env in
-dev)
+development)
 	echo "Running in development environment"
 	exec pnpm run dev
 	;;
-prod)
+production)
 	echo "Running in production environment"
 	pnpm run build
 	exec pnpm run server:prod
