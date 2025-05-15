@@ -107,3 +107,9 @@
 .layer-info-container > .layer-info-actions > div > button:hover {
 	background-color: rgba(255, 255, 255, 0.1);
 }
+
+.layer-down:disabled,
+.layer-up:disabled,
+.layer-info-container > .layer-info-actions > div > button:disabled {
+	opacity: 0.5 !important;
+}

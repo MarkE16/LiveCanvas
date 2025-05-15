@@ -15,7 +15,12 @@
 	margin-right: 0.5rem;
 }
 
-#navbar-container button {
+.emptyDropdown {
+	cursor: default !important;
+}
+
+#navbar-container button,
+#navbar-container .emptyDropdown {
 	margin-right: 0.8rem;
 	font-size: 1.1em;
 	font-weight: 500;

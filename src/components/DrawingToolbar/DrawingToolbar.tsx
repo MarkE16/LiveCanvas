@@ -19,14 +19,15 @@ import Triangle from "../icons/Triangle/Triangle";
 
 // Styles
 import "./DrawingToolbar.styles.css";
+import Brush from "../icons/Brush/Brush";
 
 const MemoizedColorPicker = memo(ColorPicker);
 const MemoizedShapeOption = memo(ShapeOption);
 
 const SHAPE_ICONS: Record<Shape, ReactElement> = {
-  rectangle: <Square />,
-  circle: <Circle />,
-  triangle: <Triangle />
+	rectangle: <Square />,
+	circle: <Circle />,
+	triangle: <Triangle />
 };
 
 function DrawingToolbar(): ReactNode {
@@ -90,17 +91,14 @@ function DrawingToolbar(): ReactNode {
 		changeColorAlpha(value);
 	};
 
-	const renderedShapes = SHAPES.map((s) => {
-
-		return (
-			<MemoizedShapeOption
-				key={s}
-				icon={SHAPE_ICONS[s]}
-				name={s}
-				isActive={shape === s}
-			/>
-		);
-	});
+	const renderedShapes = SHAPES.map((s) => (
+		<MemoizedShapeOption
+			key={s}
+			icon={SHAPE_ICONS[s]}
+			name={s}
+			isActive={shape === s}
+		/>
+	));
 
 	const renderedStrength = (
 		<Fragment key="settings_Strength">
@@ -121,7 +119,7 @@ function DrawingToolbar(): ReactNode {
 
 	const renderedBrush = (
 		<Fragment key="settings_Brush">
-			<i className="fa fa-paint-brush"></i>
+			<Brush />
 			<input
 				type="range"
 				id="brush-size"

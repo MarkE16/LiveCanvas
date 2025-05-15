@@ -124,9 +124,8 @@ function LayerInfo({
 	return (
 		<label
 			htmlFor={"layer-" + id}
-			data-testid={"layer-" + id}
 			className={cn}
-			aria-label={"Layer " + id}
+			aria-label="Layer Info"
 		>
 			<input
 				type="radio"
@@ -142,8 +141,9 @@ function LayerInfo({
 				>
 					<button
 						className="layer-up"
-						data-testid={`up-${id}`}
+						aria-label="Move Layer Up"
 						onClick={() => onMoveLayer("up")}
+						disabled={!canMoveUp}
 					>
 						<ArrowUp />
 					</button>
@@ -155,7 +155,8 @@ function LayerInfo({
 					<button
 						className="layer-down"
 						onClick={() => onMoveLayer("down")}
-						data-testid={`down-${id}`}
+						aria-label="Move Layer Down"
+						disabled={!canMoveDown}
 					>
 						<ArrowDown />
 					</button>
@@ -163,11 +164,12 @@ function LayerInfo({
 			</div>
 
 			<MemoizedLayerPreview id={id} />
+			
 			<div className="layer-info-actions">
 				{isEditing ? (
 					<input
 						type="text"
-						data-testid={`name-input-${id}`}
+						aria-label="Edit Layer Name"
 						placeholder={name}
 						value={editedName}
 						/**
@@ -193,7 +195,7 @@ function LayerInfo({
 					<div className="layer-info-text">
 						<span
 							className="layer-info-name"
-							data-testid={`name-${id}`}
+							aria-label="Layer Name"
 							onDoubleClick={onRename}
 						>
 							{name}
@@ -205,8 +207,8 @@ function LayerInfo({
 						<button
 							className="layer-rename"
 							onClick={onRename}
-							data-testid={`rename-${id}`}
 							disabled={!editedName.length}
+							aria-label="Rename Layer"
 						>
 							{isEditing ? <Checkmark /> : <Pen />}
 						</button>
@@ -218,8 +220,8 @@ function LayerInfo({
 								<Tooltip text="Delete">
 									<button
 										className="layer-delete"
-										data-testid={`del-${id}`}
 										onClick={onDelete}
+										aria-label="Delete Layer"
 									>
 										<Trashcan />
 									</button>
@@ -230,6 +232,9 @@ function LayerInfo({
 								<button
 									onClick={onToggleVisibility}
 									data-testid={`toggle-${id}`}
+									role="switch"
+									aria-checked={hidden}
+									aria-label="Toggle Layer Visibility"
 								>
 									<Eye lineCross={hidden} />
 								</button>

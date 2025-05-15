@@ -21,6 +21,7 @@ import "./Navbar.styles.css";
 
 // Components
 import * as Menubar from "@radix-ui/react-menubar";
+import Tooltip from "../Tooltip/Tooltip";
 
 function Navbar(): ReactNode {
 	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
@@ -45,6 +46,7 @@ function Navbar(): ReactNode {
 
 	const handleSaveFile = useCallback(async () => {
 		try {
+			console.log(references.current);
 			const { layers, elements } = await prepareForSave(references.current);
 
 			const promises = [];
@@ -145,6 +147,19 @@ function Navbar(): ReactNode {
 
 				<Menubar.Root className="MenubarRoot">
 					{menuTabs.map((tab) => {
+						if (!menuOptions[tab]) {
+							return (
+								<Tooltip text="Not available" key={tab}>
+									<span
+										className="emptyDropdown"
+										key={tab}
+									>
+										{tab}
+									</span>
+								</Tooltip>
+							);
+						}
+
 						return (
 							<Menubar.Menu key={tab}>
 								<Menubar.Trigger className="MenubarTrigger">
@@ -155,7 +170,7 @@ function Navbar(): ReactNode {
 										className="MenubarContent"
 										align="start"
 									>
-										{(menuOptions[tab] ?? []).map((option) => (
+										{menuOptions[tab].map((option) => (
 											<Menubar.Item
 												key={option.text}
 												className="MenubarItem"
@@ -172,15 +187,6 @@ function Navbar(): ReactNode {
 					})}
 				</Menubar.Root>
 			</nav>
-
-			{/* <Snackbar
-				open={snackbarOpen}
-				autoHideDuration={6000}
-				onClose={closeSnackbar}
-				anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-				message="This feature is not yet implemented."
-				onClick={closeSnackbar}
-			/> */}
 
 			<a
 				type="file"

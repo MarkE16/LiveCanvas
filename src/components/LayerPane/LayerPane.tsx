@@ -45,7 +45,7 @@ function LayerPane(): ReactNode {
 				arrow
 			>
 				<button
-					data-testid="new-layer-button"
+					aria-label="Create Layer"
 					id="new-layer-button"
 					disabled={true}
 				>
@@ -54,7 +54,7 @@ function LayerPane(): ReactNode {
 			</Tooltip>
 		) : (
 			<button
-				data-testid="new-layer-button"
+				aria-label="Create Layer"
 				id="new-layer-button"
 				disabled={false}
 				onClick={onNewLayer}
@@ -70,7 +70,7 @@ function LayerPane(): ReactNode {
 			{newLayerButton}
 			<div
 				id="layer-list"
-				data-testid="layer-list"
+				aria-label="Layer List"
 			>
 				{layers.map((layer, i) => (
 					<MemoizedLayerInfo

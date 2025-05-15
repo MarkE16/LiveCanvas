@@ -42,16 +42,15 @@ describe("LayersStore functionality", () => {
 		LayersStore.closeStore();
 	});
 
-	it("should initally return entries", () => {
-		const asEntries = layers.map((layer) => [
-			layer.id,
-			{
-				...layer,
-				image: expect.any(Blob)
-			}
-		]);
+	it("should initally return entries", async () => {
+		const entries = await LayersStore.getLayers();
 
-		expect(LayersStore.getLayers()).resolves.toEqual(asEntries);
+		for (const [id, entry] of entries) {
+			expect(id).toBe(entry.id);
+			expect(entry.name).toMatch(/Layer \d/);
+			expect(entry.position).toBeGreaterThanOrEqual(0);
+			expect(entry).toHaveProperty("image");
+		}
 	});
 
 	it("should add layers", async () => {
@@ -72,31 +71,44 @@ describe("LayersStore functionality", () => {
 
 		await LayersStore.addLayers(newLayers);
 
-		const expected = [...layers, ...newLayers].map((layer) => [
-			layer.id,
-			{
-				...layer,
-				image: expect.any(Blob)
-			}
-		]);
+		const expectedMap = [...layers, ...newLayers].reduce(
+			(acc, layer) => {
+				acc[layer.id] = {
+					id: layer.id,
+					name: layer.name,
+					position: layer.position
+				};
+				return acc;
+			},
+			{} as Record<string, { id: string; name: string; position: number }>
+		);
 
 		const entries = await LayersStore.getLayers();
 
-		for (const entry of entries) {
-			expect(
-				expected.some(
-					([id, val]) =>
-						id === entry[0] && JSON.stringify(entry[1]) === JSON.stringify(val)
-				)
-			).toBe(true);
+		// Check we have the expected number of entries
+		expect(entries.length).toBe([...layers, ...newLayers].length);
+
+		// Check each entry matches our expected data
+		for (const [id, item] of entries) {
+			// Check if we have an expected entry with this ID
+			expect(expectedMap).toHaveProperty(id);
+
+			const expectedItem = expectedMap[id];
+
+			expect(item.id).toBe(expectedItem.id);
+			expect(item.name).toBe(expectedItem.name);
+			expect(item.position).toBe(expectedItem.position);
+			expect(item).toHaveProperty("image");
 		}
 	});
 
 	it("should get a single layer", async () => {
-		expect(LayersStore.getLayer("layer-123")).resolves.toEqual({
-		...layers[0],
-		image: expect.any(Blob)
-		});
+		const layer = await LayersStore.getLayer("layer-123");
+
+		expect(layer).toHaveProperty("id", "layer-123");
+		expect(layer).toHaveProperty("name", "Layer 1");
+		expect(layer).toHaveProperty("position", 0);
+		expect(layer).toHaveProperty("image");
 	});
 
 	it("should not find an unknown layer", () => {

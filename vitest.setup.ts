@@ -6,6 +6,5 @@ vi.mock("./src/renderer/usePageContext", () => ({
 	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
 }));
 
-
 eventSetup();
 mockURLInterface();

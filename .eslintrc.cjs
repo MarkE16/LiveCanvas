@@ -8,7 +8,8 @@ module.exports = {
 		"renderer/*",
 		"coverage/*",
 		"*.config.js",
-		"*.config.ts"
+		"*.config.ts",
+		"src/tests/test-utils.tsx"
 	],
 	env: { browser: true, es2020: true, node: true },
 	parserOptions: { ecmaVersion: "latest", sourceType: "module" },
@@ -21,5 +22,5 @@ module.exports = {
 		"plugin:react-hooks/recommended",
 		"plugin:@typescript-eslint/recommended"
 	],
-	parser: "@typescript-eslint/parser",
+	parser: "@typescript-eslint/parser"
 };

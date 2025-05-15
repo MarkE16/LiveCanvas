@@ -3,10 +3,9 @@ import {
 	describe,
 	it,
 	vi,
-	beforeEach,
+	beforeAll,
 	afterEach,
-	afterAll,
-	MockInstance
+	afterAll
 } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -14,33 +13,23 @@ import Navbar from "../../components/Navbar/Navbar";
 import { renderWithProviders } from "../test-utils";
 import * as useLayerReferences from "../../state/hooks/useLayerReferences";
 
-vi.mock("../../renderer/usePageContext", () => ({
-	usePageContext: () => ({ urlPathname: "/" }) // Mock the hook
-}));
-
 describe("Navbar functionality", () => {
-	let originalCreateObjectURL: typeof URL.createObjectURL;
-	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 	let originalRequestFullscreen: typeof HTMLElement.prototype.requestFullscreen;
 	let originalExitFullscreen: typeof document.exitFullscreen;
-	let useLayerReferencesSpy: MockInstance;
 	const fullscreenElementMock = vi.fn().mockReturnValue(null);
 	const canvas = document.createElement("canvas");
 	canvas.setAttribute("data-dpi", "1");
 
-	beforeEach(() => {
-		useLayerReferencesSpy = vi
-			.spyOn(useLayerReferences, "default")
-			.mockReturnValue({
-				references: {
-					current: [canvas]
-				},
-				add: vi.fn(),
-				remove: vi.fn(),
-				setActiveIndex: vi.fn(),
-				getActiveLayer: vi.fn()
-			});
-		renderWithProviders(<Navbar />);
+	beforeAll(() => {
+		vi.spyOn(useLayerReferences, "default").mockReturnValue({
+			references: {
+				current: [canvas]
+			},
+			add: vi.fn(),
+			remove: vi.fn(),
+			setActiveIndex: vi.fn(),
+			getActiveLayer: vi.fn()
+		});
 
 		Object.defineProperty(document, "fullscreenElement", {
 			get: fullscreenElementMock,
@@ -63,6 +52,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should render the Navbar component", () => {
+		renderWithProviders(<Navbar />);
 		const TABS = ["File", "Edit", "View", "Filter", "Admin"];
 		const exportLink = screen.getByTestId("export-link");
 
@@ -75,6 +65,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should open a dropdown for the File option", async () => {
+		renderWithProviders(<Navbar />);
 		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
 		await userEvent.click(fileTab);
@@ -93,24 +84,8 @@ describe("Navbar functionality", () => {
 		expect(options[1]).toHaveTextContent("Export File");
 	});
 
-	it("clicking on any tab other than File should open MUI 'not implemented' snackbar", async () => {
-		const TABS = ["Edit", "View", "Filter", "Admin"];
-
-		for (const tab of TABS) {
-			fireEvent.click(screen.getByText(tab));
-
-			// Wait for the snackbar to appear
-			const snackbar = await screen.findByText(
-				/This feature is not yet implemented/i
-			);
-			expect(snackbar).not.toBeNull();
-
-			// Close the snackbar
-			fireEvent.click(snackbar);
-		}
-	});
-
 	it("should save the file when clicking Save File from File menu", async () => {
+		renderWithProviders(<Navbar />);
 		const alertSpy = vi.spyOn(window, "alert");
 		const fileTab = screen.getByRole("menuitem", { name: "File" });
 
@@ -126,7 +101,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should show an error if failed to save", async () => {
-		useLayerReferencesSpy.mockReturnValue({
+		vi.mocked(useLayerReferences.default).mockReturnValueOnce({
 			references: {
 				current: []
 			},
@@ -135,6 +110,8 @@ describe("Navbar functionality", () => {
 			setActiveIndex: vi.fn(),
 			getActiveLayer: vi.fn()
 		});
+
+		renderWithProviders(<Navbar />);
 
 		const alertSpy = vi.spyOn(window, "alert");
 		const error = new Error(
@@ -157,6 +134,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should perform a save when using CTRL S", async () => {
+		renderWithProviders(<Navbar />);
 		const alertSpy = vi.spyOn(window, "alert");
 		fireEvent.keyDown(document, { key: "s", ctrlKey: true });
 
@@ -166,6 +144,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should export file when clicking Export File from File menu", async () => {
+		renderWithProviders(<Navbar />);
 		const exportLink = screen.getByTestId("export-link");
 		const clickSpy = vi.spyOn(exportLink, "click");
 		const fileTab = screen.getByRole("menuitem", { name: "File" });
@@ -182,6 +161,7 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should toggle full screen from the View menu", async () => {
+		renderWithProviders(<Navbar />);
 		const requestFullscreenSpy = vi.spyOn(
 			HTMLElement.prototype,
 			"requestFullscreen"

@@ -1,20 +1,12 @@
-import {
-	describe,
-	it,
-	expect,
-	vi,
-	beforeEach,
-	afterEach,
-	afterAll
-} from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
+import LayersStore from "@/state/stores/LayersStore";
+import ElementsStore from "@/state/stores/ElementsStore";
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/tests/test-utils";
 
 import { Page } from "@/pages/index/index.page";
 import { SliceStores } from "@/types";
-import LayersStore from "@/state/stores/LayersStore";
-import ElementsStore from "@/state/stores/ElementsStore";
 
 describe("Page", () => {
 	const mockState: Partial<SliceStores> = {
@@ -27,27 +19,27 @@ describe("Page", () => {
 			}
 		]
 	};
-	let originalCreateObjectURL: typeof URL.createObjectURL;
-	let originalRevokeObjectURL: typeof URL.revokeObjectURL;
+	let layersStoreGetSpy: ReturnType<typeof vi.spyOn>;
+	let elementsStoreGetSpy: ReturnType<typeof vi.spyOn>;
+
+	beforeAll(() => {
+		elementsStoreGetSpy = vi.spyOn(ElementsStore, "getElements");
+
+		layersStoreGetSpy = vi.spyOn(LayersStore, "getLayers").mockResolvedValue([
+			[
+				"123",
+				{
+					id: "123",
+					name: "Layer 1",
+					image: new Blob(),
+					position: 0
+				}
+			]
+		]);
+	});
 
 	beforeEach(() => {
 		renderWithProviders(<Page />, { preloadedState: mockState });
-
-		originalCreateObjectURL = URL.createObjectURL;
-		originalRevokeObjectURL = URL.revokeObjectURL;
-		URL.createObjectURL = vi.fn().mockReturnValue("blob://localhost:3000/1234");
-		URL.revokeObjectURL = vi.fn();
-	});
-
-	afterEach(() => {
-		vi.clearAllMocks();
-	});
-
-	afterAll(() => {
-		vi.restoreAllMocks();
-
-		URL.createObjectURL = originalCreateObjectURL;
-		URL.revokeObjectURL = originalRevokeObjectURL;
 	});
 
 	it("should render the page", () => {
@@ -55,33 +47,20 @@ describe("Page", () => {
 		expect(screen.getByTestId("main-content")).toBeInTheDocument();
 	});
 
-	it("should get the layers and elements from IndexedDB", () => {
-		const layersStoreGetSpy = vi.spyOn(LayersStore, "getLayers");
-		const elementsStoreGetSpy = vi.spyOn(ElementsStore, "getElements");
-
-		expect(layersStoreGetSpy).toHaveBeenCalled();
-		expect(elementsStoreGetSpy).toHaveBeenCalled();
+	it("should get the layers and elements from IndexedDB", async () => {
+		await vi.waitFor(() => {
+			expect(layersStoreGetSpy).toHaveBeenCalled();
+			expect(elementsStoreGetSpy).toHaveBeenCalled();
+		});
 	});
 
 	it("should update the canvas with existing layers from IndexedDB", () => {
-		vi.spyOn(LayersStore, "getLayers").mockResolvedValue([
-			[
-				"456",
-				{
-					id: "456",
-					name: "A new layer",
-					image: new Blob(),
-					position: 0
-				}
-			]
-		]);
-
 		// Verify that the layer is being added to the canvas
 
 		const layer = screen.getByTestId("canvas-layer");
 		expect(layer).toBeInTheDocument();
-		expect(layer).toHaveAttribute("id", "456");
-		expect(layer).toHaveAttribute("data-name", "A new layer");
+		expect(layer).toHaveAttribute("id", "123");
+		expect(layer).toHaveAttribute("data-name", "Layer 1");
 	});
 
 	it("should set the layers in IndexedDB when saving", async () => {
@@ -121,6 +100,8 @@ describe("Page", () => {
 		fireEvent.mouseUp(document);
 		fireEvent.keyUp(document, { ctrlKey: false });
 
+		const [element] = screen.getAllByTestId("element");
+
 		fireEvent.keyDown(document, { key: "s", ctrlKey: true }); // Shortcut to save the layers
 		const [layer] = mockState.layers!;
 
@@ -135,19 +116,17 @@ describe("Page", () => {
 			]);
 
 			expect(elementsStoreAddSpy).toHaveBeenCalledWith([
-				[
-					{
-						id: expect.any(String),
-						layerId: expect.any(String),
-						type: "rectangle",
-						x: 100,
-						y: 100,
-						width: 118,
-						height: 118,
-						fill: "hsla(0, 0%, 0%, 1)",
-						stroke: "#000000"
-					}
-				]
+				{
+					id: element.id,
+					layerId: "123",
+					type: "rectangle",
+					x: 100,
+					y: 100,
+					width: 118,
+					height: 118,
+					fill: "hsla(0, 0%, 0%, 1)",
+					stroke: "#000000"
+				}
 			]);
 		});
 	});
@@ -164,7 +143,7 @@ describe("Page", () => {
 	});
 
 	it("should close the reference window from the close button", async () => {
-    const viewTab = screen.getByRole("menuitem", { name: "View" });
+		const viewTab = screen.getByRole("menuitem", { name: "View" });
 		await userEvent.click(viewTab);
 
 		const referenceWindowOption = screen.getByText("Reference Window");
@@ -178,8 +157,8 @@ describe("Page", () => {
 		// Close it.
 		const closeRefWindow = screen.getByTestId("close-ref-window");
 		await userEvent.click(closeRefWindow);
-		
-    referenceWindow = screen.queryByTestId("reference-window");
+
+		referenceWindow = screen.queryByTestId("reference-window");
 		expect(referenceWindow).not.toBeInTheDocument();
 	});
 });
