@@ -19,7 +19,11 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build  -t ghcr.io/marke16/livecanvas:dev .
+          # Note: We pass NODE_ENV=production to the build command to ensure that the production build is created.
+          # Although this is the dev branch, we want to ensure that the production build is created for deployment.
+          # We would use NODE_ENV=development if we were testing locally.
+          # 
+          docker build  -t ghcr.io/marke16/livecanvas:dev . --build-arg NODE_ENV=production
           docker push ghcr.io/marke16/livecanvas:dev
 
       - name: Deploy to Render

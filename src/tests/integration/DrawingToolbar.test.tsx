@@ -19,7 +19,9 @@ const preloadedState: CanvasState = {
 	color: "hsla(0, 0%, 0%, 1)",
 	scale: 1,
 	position: { x: 0, y: 0 },
-	layers: []
+	layers: [],
+	shape: "rectangle",
+	referenceWindowEnabled: false
 };
 
 describe("DrawingToolbar functionality", () => {

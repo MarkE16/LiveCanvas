@@ -1,5 +1,3 @@
-"use client";
-
 // Lib
 import { useEffect } from "react";
 import LayersStore from "@/state/stores/LayersStore";
@@ -20,7 +18,7 @@ export const documentProps = {
 function Page() {
 	useEffect(() => {
 		async function checkStoragePersistency() {
-			if (!navigator.storage || !navigator.storage.persist) return;
+			if (!navigator.storage?.persist) return;
 
 			const isPersisted = await navigator.storage.persisted();
 
