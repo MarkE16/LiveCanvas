@@ -5,6 +5,8 @@ FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV HUSKY=0
+ARG NODE_ENV=default
+ENV NODE_ENV=${NODE_ENV}
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@8.10.0 --activate
@@ -24,7 +26,7 @@ COPY . ./
 
 # Install bash to be able to run our script
 FROM base AS build
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash && if [ "$NODE_ENV" = "production" ]; then pnpm run build; fi
 
 # Copy docker entrypoint script to user binaries
 # to be executed

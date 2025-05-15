@@ -1,5 +1,3 @@
-"use client";
-
 // Lib
 import { useEffect } from "react";
 import LayersStore from "@/state/stores/LayersStore";

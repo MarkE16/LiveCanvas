@@ -59,3 +59,9 @@ jobs:
 
       - name: Run linter
         run: pnpm run lint
+
+      - name: Run prettier
+        run: pnpm run format
+      
+      - name: Run Typescript check
+        run: pnpm run types:check
