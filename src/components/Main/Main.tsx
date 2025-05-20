@@ -5,9 +5,6 @@ import useStore from "@/state/hooks/useStore";
 // Types
 import type { ReactNode } from "react";
 
-// Styles
-import "./Main.styles.css";
-
 // Components
 import CanvasPane from "@/components/CanvasPane/CanvasPane";
 import LeftToolbar from "@/components/LeftToolbar/LeftToolbar";
@@ -39,6 +36,7 @@ function Main(): ReactNode {
 		<main
 			id="main-content"
 			data-testid="main-content"
+			className="flex h-[calc(100vh-3rem)]"
 		>
 			<LeftToolbar />
 

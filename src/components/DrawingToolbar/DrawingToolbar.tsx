@@ -16,9 +16,6 @@ import ShapeOption from "@/components/ShapeOption/ShapeOption";
 import Square from "@/components/icons/Square/Square";
 import Circle from "@/components/icons/Circle/Circle";
 import Triangle from "../icons/Triangle/Triangle";
-
-// Styles
-import "./DrawingToolbar.styles.css";
 import Brush from "../icons/Brush/Brush";
 
 const MemoizedColorPicker = memo(ColorPicker);
@@ -178,7 +175,7 @@ function DrawingToolbar(): ReactNode {
 				0,
 				<span
 					key={`break-${index}`}
-					style={{ margin: "0 15px", border: "1px solid gray", height: "100%" }}
+					className="mx-[15px] border-l border-[rgb(99,99,99)] h-[30px]"
 				/>
 			);
 		}
@@ -188,7 +185,7 @@ function DrawingToolbar(): ReactNode {
 
 	return (
 		<div
-			id="drawing-toolbar"
+			className="flex items-center justify-center absolute top-[10px] w-[80%] min-w-0 min-h-[46px] rounded-[25px] bg-[#303744] shadow-[0_0_10px_rgba(0,0,0,0.5)] p-[0.5em_1.5em] overflow-auto z-[100] pointer-events-none [&>*]:pointer-events-auto"
 			data-testid="drawing-toolbar"
 			role="toolbar"
 			onMouseDown={stopPropagation}
@@ -197,7 +194,7 @@ function DrawingToolbar(): ReactNode {
 			{additionalSettings.length > 0 ? (
 				additionalSettings
 			) : (
-				<span id="draw-toolbar-no-actions">
+				<span className="text-gray-500 text-medium overflow-hidden text-ellipsis whitespace-nowrap">
 					Choose a different tool for actions.
 				</span>
 			)}

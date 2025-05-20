@@ -9,9 +9,6 @@ import type { ResizePosition } from "@/types";
 // Components
 import ResizeHandle from "@/components/ResizeHandle/ResizeHandle";
 
-// Styles
-import "./ResizeGrid.styles.css";
-
 type ResizeGridProps = Readonly<{
 	children: ReactNode;
 	x: number;
@@ -39,8 +36,6 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			outlineOffset: OFFSET,
 			zIndex: zIndex ?? 99
 		};
-		const cn = clsx("grid", { focused });
-
 		const onResizeStart = (pos?: ResizePosition) => {
 			if (!pos) throw new Error("Cannot resize without a position.");
 			setResizing(pos);
@@ -124,7 +119,9 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			<div
 				ref={ref}
 				tabIndex={0}
-				className={cn}
+				className={clsx("absolute outline-none hover:cursor-move", {
+					"outline-dotted outline-[#d1836a]": focused
+				})}
 				data-testid="resize-grid"
 				data-resizing={resizing}
 				style={styles}

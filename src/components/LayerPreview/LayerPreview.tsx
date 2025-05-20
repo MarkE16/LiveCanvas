@@ -2,9 +2,6 @@
 import { useState, useEffect } from "react";
 import useStore from "@/state/hooks/useStore";
 
-// Styles
-import "./LayerPreview.styles.css";
-
 // Types
 import type { ReactNode } from "react";
 import type { ImageUpdateEvent } from "@/types";
@@ -16,6 +13,7 @@ type LayerPreviewProps = Readonly<{
 function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 	const prepareForExport = useStore((state) => state.prepareForExport);
 	const [url, setUrl] = useState<string | null>(null);
+	const css = "h-full bg-white ml-1 min-w-[35px]";
 
 	useEffect(() => {
 		async function updateImage(event: ImageUpdateEvent) {
@@ -46,7 +44,7 @@ function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 	if (!url) {
 		return (
 			<div
-				className="layer-preview"
+				className={css}
 				data-testid={`preview-${id}`}
 			/>
 		);
@@ -55,7 +53,7 @@ function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 	return (
 		<img
 			onLoad={onImageLoad}
-			className="layer-preview"
+			className={css}
 			data-testid={`preview-${id}`}
 			src={url}
 			alt="Layer Preview"

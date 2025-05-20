@@ -18,8 +18,7 @@ import ScaleIndicator from "@/components/ScaleIndicator/ScaleIndicator";
 import type { ReactNode } from "react";
 import type { Coordinates } from "@/types";
 
-// Styles
-import "./CanvasPane.styles.css";
+// Using Tailwind for styles
 
 const MemoizedCanvasInteractiveElement = memo(CanvasInteractiveElement);
 const MemoizedCanvas = memo(Canvas);
@@ -339,7 +338,7 @@ function CanvasPane(): ReactNode {
 
 	return (
 		<div
-			id="canvas-pane"
+			className="flex relative justify-center items-center flex-[3] w-full overflow-hidden [&:not(:hover)>#canvas-pointer-marker]:opacity-0 [&:not(:hover)>#canvas-pointer-marker]:transition-opacity [&:not(:hover)>#canvas-pointer-marker]:duration-200 [&:hover>#canvas-pointer-marker]:absolute [&:hover>#canvas-pointer-marker]:border-[3px] [&:hover>#canvas-pointer-marker]:border-black [&:hover>#canvas-pointer-marker]:outline [&:hover>#canvas-pointer-marker]:outline-[1px] [&:hover>#canvas-pointer-marker]:outline-white [&:hover>#canvas-pointer-marker]:outline-offset-[-3px] [&:hover>#canvas-pointer-marker]:pointer-events-none"
 			data-testid="canvas-pane"
 		>
 			{(mode === "draw" || mode == "erase") && (
@@ -367,7 +366,7 @@ function CanvasPane(): ReactNode {
 				/>
 			))}
 			<div
-				id="canvas-container"
+				className="flex justify-center relative items-center h-full w-full overflow-hidden data-[moving=true]:cursor-grab data-[grabbing=true]:cursor-grabbing data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 				data-testid="canvas-container"
 				ref={canvasSpaceRef}
 				data-moving={canMove}

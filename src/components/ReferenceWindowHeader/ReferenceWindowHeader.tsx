@@ -28,6 +28,7 @@ function ReferenceWindowHeader({
 	const toggleReferenceWindow = useStore(
 		(state) => state.toggleReferenceWindow
 	);
+
 	const isDraggingWindow = useRef<boolean>(false);
 	const headerRef = useRef<HTMLHeadingElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
@@ -83,10 +84,11 @@ function ReferenceWindowHeader({
 
 	return (
 		<header
+			className="flex justify-between items-center border-b border-white p-[10px] h-[35px] cursor-move"
 			ref={headerRef}
 			onMouseDown={handleMouseDown}
 		>
-			<h5 id="reference-window-header-title">{children}</h5>
+			<h5 className="font-bold">{children}</h5>
 			<button
 				data-testid="close-ref-window"
 				onClick={toggleReferenceWindowState}

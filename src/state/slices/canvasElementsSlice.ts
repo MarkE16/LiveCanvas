@@ -8,13 +8,15 @@ import type {
 	HistoryStore
 } from "@/types";
 
+type Predicate = (element: CanvasElement) => boolean;
+
 export const createCanvasElementsSlice: StateCreator<
 	CanvasElementsStore & CanvasStore & HistoryStore,
 	[],
 	[],
 	CanvasElementsStore
 > = (set, get) => {
-	function focusElement(predicate: (el: CanvasElement) => boolean) {
+	function focusElement(predicate: Predicate) {
 		const elements = get().elements;
 		const newElements = elements.map((element) => {
 			if (predicate(element)) {
@@ -25,7 +27,7 @@ export const createCanvasElementsSlice: StateCreator<
 		set({ elements: newElements });
 	}
 
-	function unfocusElement(predicate: (el: CanvasElement) => boolean) {
+	function unfocusElement(predicate: Predicate) {
 		const elements = get().elements;
 		const newElements = elements.map((element) => {
 			if (predicate(element)) {
@@ -75,7 +77,7 @@ export const createCanvasElementsSlice: StateCreator<
 
 	function changeElementProperties(
 		callback: (el: CanvasElement) => CanvasElement,
-		predicate: (el: CanvasElement) => boolean
+		predicate: Predicate
 	) {
 		const elements = get().elements;
 		const newElements = elements.map((element) => {
@@ -99,7 +101,7 @@ export const createCanvasElementsSlice: StateCreator<
 		});
 	}
 
-	function deleteElement(predicate: (el: CanvasElement) => boolean) {
+	function deleteElement(predicate: Predicate) {
 		set((state) => ({
 			elements: state.elements.filter((element) => !predicate(element))
 		}));
@@ -113,7 +115,7 @@ export const createCanvasElementsSlice: StateCreator<
 		set({ elements });
 	}
 
-	function copyElement(predicate: (el: CanvasElement) => boolean) {
+	function copyElement(predicate: Predicate) {
 		const elements = get().elements;
 		const copiedElements = elements.filter((element) => predicate(element));
 		set({ copiedElements });
