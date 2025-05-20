@@ -23,7 +23,6 @@ async function render(pageContext: PageContextServer) {
 			([, value]) => typeof value !== "function"
 		)
 	);
-	pageContext.zustandState = stateWithoutFunctions;
 
 	const html = await renderToStream(
 		<PageShell pageContext={pageContext}>
@@ -38,8 +37,8 @@ async function render(pageContext: PageContextServer) {
 		(documentProps && documentProps.description) ||
 		"App using Vite + vite-plugin-ssr";
 
-	// we use the dangerouslySkipEscape() so that the JSON is not escaped
-	// due to escapeInject, which is supposed to help prevent XSS attacks
+	// escapeInject is a helper function to escape HTML injections
+	// which is common with XXS attacks.
 	const documentHtml = escapeInject`<!DOCTYPE html>
     <html lang="en">
       <head>
