@@ -24,6 +24,8 @@ async function render(pageContext: PageContextServer) {
 		)
 	);
 
+	pageContext.zustandState = stateWithoutFunctions;
+
 	const html = await renderToStream(
 		<PageShell pageContext={pageContext}>
 			<Page {...pageProps} />
