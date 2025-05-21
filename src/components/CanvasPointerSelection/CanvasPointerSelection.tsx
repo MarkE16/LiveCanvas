@@ -6,7 +6,6 @@ import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 
-
 // Types
 import type { ReactNode, RefObject } from "react";
 import type { Coordinates } from "@/types";
