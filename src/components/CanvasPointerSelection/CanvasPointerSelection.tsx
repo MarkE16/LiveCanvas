@@ -5,7 +5,7 @@ import useLayerReferences from "@/state/hooks/useLayerReferences";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
-import clsx from "clsx";
+
 
 // Types
 import type { ReactNode, RefObject } from "react";
@@ -194,15 +194,10 @@ function CanvasPointerSelection({
 				left: rect.x,
 				top: rect.y,
 				width: rect.width,
-				height: rect.height
+				height: rect.height,
+				display: rect.width + rect.height > 0 ? "block" : "none"
 			}}
-			className={clsx(
-				"absolute pointer-events-none border-dashed border-[#d1836a] bg-[hsla(20,50%,60%,0.3)] z-100 rounded-md",
-				{
-					hidden: rect.width + rect.height === 0,
-					block: rect.width + rect.height > 0
-				}
-			)}
+			className="absolute pointer-events-none border-dotted border-[#d1836a] bg-[hsla(20,50%,60%,0.3)] z-100 rounded-md"
 		></div>
 	);
 }

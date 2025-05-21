@@ -109,7 +109,6 @@ function ToolbarButton({
 				className={clsx(
 					"p-[0.2em] text-2xl text-center cursor-pointer transition-colors duration-100",
 					"inline-flex justify-center",
-					"bg-[#d1836a]",
 					"disabled:text-[#3b3b3b] disabled:cursor-not-allowed disabled:hover:bg-transparent",
 					{
 						"bg-transparent hover:bg-[#3b3b3b]": !active,

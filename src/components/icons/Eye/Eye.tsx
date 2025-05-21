@@ -5,6 +5,16 @@ const Eye = ({
 	lineCross = false,
 	...props
 }: { lineCross: boolean } & ComponentProps<"svg">) =>
-	lineCross ? <LucideEyeOff size="1em" {...props} /> : <LucideEye size="1em" {...props} />;
+	lineCross ? (
+		<LucideEyeOff
+			size="1em"
+			{...props}
+		/>
+	) : (
+		<LucideEye
+			size="1em"
+			{...props}
+		/>
+	);
 
 export default Eye;

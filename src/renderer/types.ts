@@ -22,7 +22,7 @@ export type PageContextCustom = {
 	Page: Page;
 	pageProps?: PageProps;
 	urlPathname: string;
-  zustandState: Partial<SliceStores>;
+	zustandState: Partial<SliceStores>;
 	exports: {
 		documentProps?: {
 			title?: string;

@@ -524,7 +524,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(moveTool);
 
-			expect(moveTool.classList).toContain("active");
+			expect(moveTool).toHaveClass("bg-[#d1836a]");
 
 			fireEvent.mouseDown(space, {
 				clientX: beforeX,
@@ -644,7 +644,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			// First, let's zoom in.
 			fireEvent.click(toolButton);
-			expect(toolButton.classList).toContain("active");
+			expect(toolButton).toHaveClass("bg-[#d1836a]");
 
 			fireEvent.click(space);
 
@@ -654,7 +654,7 @@ describe("Canvas Interactive Functionality", () => {
 			toolButton = screen.getByTestId("tool-zoom_out");
 
 			fireEvent.click(toolButton);
-			expect(toolButton.classList).toContain("active");
+			expect(toolButton).toHaveClass("bg-[#d1836a]");
 
 			fireEvent.click(space);
 
@@ -798,8 +798,7 @@ describe("Canvas Interactive Functionality", () => {
 			expect(canvas).toBeInstanceOf(HTMLCanvasElement);
 			expect(canvas).toHaveAttribute("width", "400");
 			expect(canvas).toHaveAttribute("height", "400");
-			expect(canvas).toHaveClass("active");
-			expect(canvas).not.toHaveClass("hidden");
+			expect(canvas).not.toHaveClass("opacity-0");
 		});
 
 		it("should draw a line", () => {
@@ -922,7 +921,7 @@ describe("Canvas Interactive Functionality", () => {
 
 			fireEvent.click(eyeDropTool);
 
-			expect(selectTool).not.toHaveClass("active");
+			expect(selectTool).not.toHaveClass("bg-[#d1836a]");
 
 			const ctx = canvas.getContext("2d");
 
@@ -942,7 +941,7 @@ describe("Canvas Interactive Functionality", () => {
 			);
 			// After the color is changed, the eye drop tool should be deactivated
 			// and the select tool should be activated.
-			expect(selectTool).toHaveClass("active");
+			expect(selectTool).toHaveClass("bg-[#d1836a]");
 		});
 	});
 
@@ -1078,7 +1077,7 @@ describe("Canvas Interactive Functionality", () => {
 			]);
 			fireEvent.mouseUp(space);
 
-			expect(grid).toHaveClass("focused");
+			expect(grid).toHaveClass("outline-[#d1836a]");
 			expect(document.activeElement).toBe(element);
 			expect(element).toBeInstanceOf(HTMLTextAreaElement);
 			expect(element).toHaveTextContent("Text");

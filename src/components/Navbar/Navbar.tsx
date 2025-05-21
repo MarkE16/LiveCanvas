@@ -14,7 +14,7 @@ import Export from "@/components/icons/Export/Export";
 import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
 
 // Types
-import type { ReactElement, ReactNode } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 // Components
 import * as Menubar from "@radix-ui/react-menubar";
@@ -37,7 +37,7 @@ function Navbar(): ReactNode {
 		[key: string]: {
 			text: string;
 			action: (() => void) | (() => Promise<void>);
-			icon?: () => ReactElement;
+			icon?: (props: ComponentProps<"svg">) => ReactElement;
 		}[];
 	};
 
@@ -195,7 +195,7 @@ function Navbar(): ReactNode {
 			<a
 				type="file"
 				ref={downloadRef}
-				className="hidden"
+				style={{ display: "none" }}
 				data-testid="export-link"
 			/>
 		</header>

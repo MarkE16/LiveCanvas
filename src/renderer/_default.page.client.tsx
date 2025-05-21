@@ -14,7 +14,6 @@ async function render(pageContext: PageContextClient) {
 	const root = document.getElementById("entry");
 	if (!root) throw new Error("DOM element #entry not found");
 
-
 	hydrateRoot(
 		root,
 		<PageShell pageContext={pageContext}>
