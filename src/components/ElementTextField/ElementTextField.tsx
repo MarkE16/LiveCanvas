@@ -2,9 +2,6 @@
 import { useState, useRef, useEffect } from "react";
 import useStore from "@/state/hooks/useStore";
 
-// Styles
-import "./ElementTextField.styles.css";
-
 // Types
 import type {
 	ReactNode,
@@ -110,7 +107,7 @@ function ElementTextField({
 		return (
 			<span
 				tabIndex={0}
-				className="element"
+				className="inline-block w-full h-full min-w-[20px] border-none break-all whitespace-pre-wrap outline-none resize-none bg-transparent overflow-hidden caret-black -mt-[1px] p-0 align-text-top leading-[1.5]"
 				style={fontStyles}
 				onFocus={onFocus}
 				onMouseUp={stopPropagation}
@@ -134,7 +131,7 @@ function ElementTextField({
 		<textarea
 			autoFocus
 			spellCheck={false}
-			className="element"
+			className="inline-block w-full h-full min-w-[20px] border-none break-all whitespace-pre-wrap outline-none resize-none bg-transparent overflow-hidden caret-black -mt-[1px] p-0 align-text-top leading-[1.5] text-[1em] text-white"
 			style={fontStyles}
 			onBlur={handleBlur}
 			onKeyDown={onKeyDown}

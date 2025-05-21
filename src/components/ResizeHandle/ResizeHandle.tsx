@@ -6,9 +6,6 @@ import useStore from "@/state/hooks/useStore";
 import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import type { ResizePosition } from "@/types";
 
-// Styles
-import "./ResizeHandle.styles.css";
-
 type ResizeHandleProps = Readonly<{
 	placement: ResizePosition;
 	resizeOffset: number;
@@ -125,7 +122,7 @@ function ResizeHandle({
 
 	return (
 		<svg
-			className="handle"
+			className="absolute bg-white border-black border-[1px] z-10"
 			tabIndex={0}
 			data-testid={`handle-${placement}`}
 			style={styles}

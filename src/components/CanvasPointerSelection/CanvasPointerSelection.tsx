@@ -190,17 +190,13 @@ function CanvasPointerSelection({
 			data-testid="selection-rect"
 			ref={rectRef}
 			style={{
-				display: rect.width + rect.height === 0 ? "none" : "block",
-				position: "absolute",
-				pointerEvents: "none",
-				border: `1px dashed #d1836a`,
-				backgroundColor: "hsla(20, 50%, 60%, 0.3)",
-				zIndex: 100,
 				left: rect.x,
 				top: rect.y,
 				width: rect.width,
-				height: rect.height
+				height: rect.height,
+				display: rect.width + rect.height > 0 ? "block" : "none"
 			}}
+			className="absolute pointer-events-none border-dotted border-[#d1836a] bg-[hsla(20,50%,60%,0.3)] z-100 rounded-md"
 		></div>
 	);
 }

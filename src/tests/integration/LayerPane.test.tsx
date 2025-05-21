@@ -76,20 +76,20 @@ describe("LayerPane functionality", () => {
 
 		const [layer1, layer2] = screen.getAllByLabelText("Layer Info");
 
-		expect(layer1).toHaveClass("active");
-		expect(layer2).not.toHaveClass("active");
+		expect(layer1).toHaveClass("bg-[#d1836a]");
+		expect(layer2).not.toHaveClass("bg-[#d1836a]");
 	});
 
 	it("should switch active layer on click", () => {
 		const [layer1, layer2] = screen.getAllByLabelText("Layer Info");
 
-		expect(layer1).toHaveClass("active");
-		expect(layer2).not.toHaveClass("active");
+		expect(layer1).toHaveClass("bg-[#d1836a]");
+		expect(layer2).not.toHaveClass("bg-[#d1836a]");
 
 		fireEvent.click(layer2);
 
-		expect(layer1).not.toHaveClass("active");
-		expect(layer2).toHaveClass("active");
+		expect(layer1).not.toHaveClass("bg-[#d1836a]");
+		expect(layer2).toHaveClass("bg-[#d1836a]");
 	});
 
 	it("should add a new layer when clicking the add layer button", () => {

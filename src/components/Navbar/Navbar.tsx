@@ -14,10 +14,7 @@ import Export from "@/components/icons/Export/Export";
 import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
 
 // Types
-import type { ReactElement, ReactNode } from "react";
-
-// Styles
-import "./Navbar.styles.css";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 // Components
 import * as Menubar from "@radix-ui/react-menubar";
@@ -40,7 +37,7 @@ function Navbar(): ReactNode {
 		[key: string]: {
 			text: string;
 			action: (() => void) | (() => Promise<void>);
-			icon?: () => ReactElement;
+			icon?: (props: ComponentProps<"svg">) => ReactElement;
 		}[];
 	};
 
@@ -138,14 +135,14 @@ function Navbar(): ReactNode {
 
 	return (
 		<header data-testid="nav-bar">
-			<nav id="navbar-container">
+			<nav className="flex items-center p-[0.2rem] min-h-[3rem] h-[3rem] border-b border-b-[#d1836a] w-full whitespace-nowrap">
 				<img
-					id="navbar-logo"
+					className="w-[3rem] h-[3rem] mr-2"
 					src={logo}
 					alt="logo"
 				/>
 
-				<Menubar.Root className="MenubarRoot">
+				<Menubar.Root className="flex items-center">
 					{menuTabs.map((tab) => {
 						if (!menuOptions[tab]) {
 							return (
@@ -154,7 +151,7 @@ function Navbar(): ReactNode {
 									key={tab}
 								>
 									<span
-										className="emptyDropdown"
+										className="mr-[0.8rem] text-[1.1em] font-medium text-[#fdfdfd] border-b-2 border-transparent no-underline bg-transparent cursor-default"
 										key={tab}
 									>
 										{tab}
@@ -165,21 +162,25 @@ function Navbar(): ReactNode {
 
 						return (
 							<Menubar.Menu key={tab}>
-								<Menubar.Trigger className="MenubarTrigger">
+								<Menubar.Trigger className="mr-[0.8rem] text-[1.1em] font-medium text-[#fdfdfd] cursor-pointer">
 									{tab}
 								</Menubar.Trigger>
 								<Menubar.Portal>
 									<Menubar.Content
-										className="MenubarContent"
+										className="z-[1000] min-w-[200px] bg-[#242424] rounded-md border border-[#3e3e3e] p-[5px] shadow-[0px_10px_38px_-10px_rgba(22,23,24,0.35),0px_10px_20px_-15px_rgba(22,23,24,0.2)]"
 										align="start"
 									>
 										{menuOptions[tab].map((option) => (
 											<Menubar.Item
 												key={option.text}
-												className="MenubarItem"
+												className="font-normal text-sm leading-none text-[#fdfdfd] rounded py-[10px] px-[10px] flex items-center h-[25px] relative select-none data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-[#d1836a] data-[highlighted]:to-[#d1836a] data-[highlighted]:text-white data-[disabled]:text-gray-500 data-[disabled]:pointer-events-none"
 												onClick={option.action}
 											>
-												{option.icon && <option.icon />}
+												{option.icon && (
+													<span className="text-lg mr-[10px]">
+														<option.icon />
+													</span>
+												)}
 												{option.text}
 											</Menubar.Item>
 										))}

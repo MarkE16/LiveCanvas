@@ -62,7 +62,6 @@ function ToolbarButton({
 			titleCase: true,
 			delimiter: "_"
 		}).replace("_", " ") + ` (${shortcut.toUpperCase()})`;
-	const cn = clsx("toolbar-option", { active });
 
 	const performAction = useCallback(() => {
 		if (name === "undo") {
@@ -107,7 +106,15 @@ function ToolbarButton({
 			position="right"
 		>
 			<button
-				className={cn}
+				className={clsx(
+					"p-[0.2em] text-2xl text-center cursor-pointer transition-colors duration-100",
+					"inline-flex justify-center",
+					"disabled:text-[#3b3b3b] disabled:cursor-not-allowed disabled:hover:bg-transparent",
+					{
+						"bg-transparent hover:bg-[#3b3b3b]": !active,
+						"bg-[#d1836a] border-[#d1603a]": active
+					}
+				)}
 				data-modename={name}
 				data-shortcut={shortcut}
 				data-testid={`tool-${name}`}

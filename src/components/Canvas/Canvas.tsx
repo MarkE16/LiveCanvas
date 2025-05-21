@@ -13,8 +13,7 @@ import LayersStore from "@/state/stores/LayersStore";
 import type { ReactNode, MouseEvent } from "react";
 import type { Layer, Coordinates } from "@/types";
 
-// Styles
-import "./Canvas.styles.css";
+// Styles using Tailwind
 
 type CanvasProps = {
 	isGrabbing: boolean;
@@ -330,41 +329,37 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	return (
 		<>
 			{/* The main canvas. */}
-			{layers.map((layer, i) => {
-				const cn = clsx("canvas", {
-					active: layer.active,
-					hidden: layer.hidden && layers.length > 1
-				});
-
-				return (
-					<canvas
-						key={layer.id}
-						data-testid="canvas-layer"
-						className={cn}
-						style={{
-							width: `${width}px`,
-							height: `${height}px`,
-							transform
-						}}
-						ref={(element) => {
-							if (element !== null) {
-								add(element, i);
-							}
-						}}
-						id={layer.id}
-						width={width * dpi}
-						height={height * dpi}
-						onMouseDown={onMouseDown}
-						onMouseMove={onMouseMove}
-						onMouseUp={onMouseUp}
-						onMouseEnter={onMouseEnter}
-						onMouseLeave={onMouseLeave}
-						data-name={layer.name}
-						data-scale={scale}
-						data-dpi={dpi}
-					/>
-				);
-			})}
+			{layers.map((layer, i) => (
+				<canvas
+					key={layer.id}
+					data-testid="canvas-layer"
+					className={clsx("absolute bg-white cursor-inherit z-0", {
+						"z-[1]": layer.active,
+						"opacity-0": layer.hidden && layers.length > 1
+					})}
+					style={{
+						width: `${width}px`,
+						height: `${height}px`,
+						transform
+					}}
+					ref={(element) => {
+						if (element !== null) {
+							add(element, i);
+						}
+					}}
+					id={layer.id}
+					width={width * dpi}
+					height={height * dpi}
+					onMouseDown={onMouseDown}
+					onMouseMove={onMouseMove}
+					onMouseUp={onMouseUp}
+					onMouseEnter={onMouseEnter}
+					onMouseLeave={onMouseLeave}
+					data-name={layer.name}
+					data-scale={scale}
+					data-dpi={dpi}
+				/>
+			))}
 		</>
 	);
 }

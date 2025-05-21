@@ -2,9 +2,6 @@
 import { useState, memo, useRef } from "react";
 import clsx from "clsx";
 
-// Styles
-import "./ReferenceWindow.styles.css";
-
 // Components
 import ReferenceWindowHeader from "@/components/ReferenceWindowHeader/ReferenceWindowHeader";
 import ReferenceWindowContent from "@/components/ReferenceWindowContent/ReferenceWindowContent";
@@ -66,16 +63,29 @@ function ReferenceWindow(): ReactNode {
 				top: 0
 			};
 
-	const cn = clsx("reference-window", {
-		pinned
-	});
+	// CSS variables for calculations
+	const headerHeight = "35px";
+	const controlsHeight = "70px";
+	const controlsPadding = "10px";
+
+	const cn = clsx(
+		"fixed min-w-[300px] max-w-[60vw] max-h-[95%] bg-[rgb(36,36,36)] border border-[rgb(56,55,55)] rounded-[5px] z-[100] overflow-hidden resize",
+		{
+			"relative border-none top-0 left-0 resize-none max-w-[300px] min-h-full":
+				pinned
+		}
+	);
 
 	return (
 		<div
 			className={cn}
 			data-testid="reference-window"
 			ref={windowRef}
-			style={styles}
+			style={{
+				...styles,
+				// Using CSS variable calculations since they're dynamic
+				minHeight: `calc(${headerHeight} + ${controlsHeight} + ${controlsPadding} + 10px)`
+			}}
 		>
 			<MemoizedReferenceWindowHeader
 				setPosition={setPosition}

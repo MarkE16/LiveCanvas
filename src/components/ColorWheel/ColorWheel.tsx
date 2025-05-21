@@ -15,9 +15,6 @@ import type {
 	ColorWheelProps as AriaColorWheelProps
 } from "react-aria-components";
 
-// Styles
-import "./ColorWheel.styles.css";
-
 type ColorWheelProps = Omit<
 	AriaColorWheelProps,
 	"value" | "onChange" | "outerRadius" | "innerRadius"
@@ -46,6 +43,7 @@ function ColorWheel(props: ColorWheelProps): ReactNode {
 		<div
 			id={id}
 			data-testid={id}
+			className="flex relative justify-center items-center w-full mb-4"
 		>
 			<AriaColorWheel
 				outerRadius={COLOR_WHEEL_OUTER_RADIUS}
@@ -66,7 +64,7 @@ function ColorWheel(props: ColorWheelProps): ReactNode {
 			<AriaColorArea
 				value={color}
 				onChange={onChange}
-				className="color-area"
+				className="outline outline-1 outline-black border-2 border-white absolute"
 				data-testid="color-area"
 				style={{
 					width: `${COLOR_AREA_WIDTH}px`,

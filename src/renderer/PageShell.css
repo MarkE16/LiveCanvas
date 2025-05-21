@@ -18,6 +18,10 @@ a {
   background-color: #eee;
 } */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
 	box-sizing: border-box;
 	user-select: none;
@@ -46,7 +50,7 @@ body {
 	/* max-height: 100vh; */
 	/* overflow: hidden; */
 }
-/* 
+/*
 a {
   font-weight: 500;
   color: #646cff;
