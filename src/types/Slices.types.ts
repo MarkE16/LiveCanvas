@@ -62,6 +62,7 @@ export type CanvasStore = CanvasState & {
 		layerRefs: HTMLCanvasElement[],
 		quality?: number
 	) => Promise<Blob>;
+	drawCanvas: (canvas: HTMLCanvasElement) => void;
 };
 
 export type HistoryStore = {

@@ -347,7 +347,7 @@ function CanvasPane(): ReactNode {
 					shiftKey={shiftKey}
 				/>
 			)}
-			{(mode === "select" || (mode === "shapes" && !ctrlKey)) && !isMoving && (
+			{mode === "select" && !isMoving && (
 				<CanvasPointerSelection
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
@@ -355,7 +355,7 @@ function CanvasPane(): ReactNode {
 			)}
 			<MemoizedDrawingToolbar />
 
-			{elements.map((element) => (
+			{/* {elements.map((element) => (
 				<MemoizedCanvasInteractiveElement
 					key={element.id}
 					canvasSpaceReference={canvasSpaceRef}
@@ -364,7 +364,7 @@ function CanvasPane(): ReactNode {
 					clientPosition={clientPosition}
 					{...element}
 				/>
-			))}
+			))} */}
 			<div
 				className="flex justify-center relative items-center h-full w-full overflow-hidden data-[moving=true]:cursor-grab data-[grabbing=true]:cursor-grabbing data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 				data-testid="canvas-container"

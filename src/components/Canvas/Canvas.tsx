@@ -12,6 +12,8 @@ import LayersStore from "@/state/stores/LayersStore";
 // Types
 import type { ReactNode, MouseEvent } from "react";
 import type { Layer, Coordinates } from "@/types";
+import useThrottle from "@/state/hooks/useThrottle";
+import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
 // Styles using Tailwind
 
@@ -26,9 +28,12 @@ type DBLayer = {
 	id: string;
 };
 
+const THROTTLE_DELAY_MS = 10; // milliseconds
+
 function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	const {
 		mode,
+		shape,
 		width,
 		height,
 		layers,
@@ -37,10 +42,12 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 		position,
 		changeMode,
 		changeColor,
-		setLayers
+		setLayers,
+		createElement
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
+			shape: state.shape,
 			width: state.width,
 			height: state.height,
 			layers: state.layers,
@@ -49,7 +56,8 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 			position: state.position,
 			changeMode: state.changeMode,
 			changeColor: state.changeColor,
-			setLayers: state.setLayers
+			setLayers: state.setLayers,
+			createElement: state.createElement
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
@@ -60,16 +68,19 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 	const isDrawing = useRef<boolean>(false);
 	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
+	const initialPosition = useRef<Coordinates | null>(null);
 
 	const ERASER_RADIUS = 7;
 
 	// Handler for when the mouse is pressed down on the canvas.
 	// This should initiate the drawing process.
 	const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
-		isDrawing.current =
-			(mode === "draw" || mode === "erase") && !isMovingElement.current;
+		// isDrawing.current =
+		// 	(mode === "draw" || mode === "erase") && !isMovingElement.current;
+		isDrawing.current = true;
 
 		const activeLayer = e.currentTarget;
 
@@ -82,10 +93,12 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 		// Calculate the position of the mouse relative to the canvas.
 		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
-		if (mode === "draw") {
+		initialPosition.current = { x, y };
+
+		if (mode === "draw" || mode === "shapes") {
 			ctx?.beginPath();
 			currentPath2D.current = new Path2D();
-			currentPath2D.current.moveTo(x, y);
+			// currentPath2D.current.moveTo(x, y);
 		} else if (mode === "eye_drop" && !isGrabbing) {
 			// `.getImageData()` retreives the x and y coordinates of the pixel
 			// differently if the canvas is scaled. So, we need to multiply the
@@ -125,62 +138,24 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 	// Handler for when the mouse is moved on the canvas.
 	// This should handle a majority of the drawing process.
-	const onMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
-		// If the left mouse button is not pressed, then we should not draw.
-		// If the layer is hidden, we should not draw.
-		// If the user is grabbing the canvas (for moving), we should not draw.
 
-		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
-			return;
-		}
-		const activeLayer = e.currentTarget;
-		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
-
-		const ctx = activeLayer.getContext("2d");
-
-		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
-
-		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
-
-		switch (mode) {
-			case "draw": {
-				if (!currentPath2D.current) {
-					console.error("Couldn't create a Path2D object.");
-					return;
-				}
-				ctx.strokeStyle = color.current;
-				ctx.lineWidth = drawStrength.current * dpi;
-				ctx.lineCap = "round";
-				ctx.lineJoin = "round";
-
-				currentPath2D.current.lineTo(x, y);
-				ctx.stroke(currentPath2D.current);
-
-				currentPath.current.push({ x, y });
-
-				break;
-			}
-
-			case "erase": {
-				ctx.clearRect(
-					x - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
-					y - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
-					ERASER_RADIUS * eraserStrength.current * dpi,
-					ERASER_RADIUS * eraserStrength.current * dpi
-				);
-				break;
-			}
-
-			default: {
-				break;
-			}
-		}
-	};
-
-	const onMouseUp = (e: MouseEvent) => {
+	const onMouseUp = useThrottle((e: MouseEvent<HTMLCanvasElement>) => {
 		if (isGrabbing) return;
 		isDrawing.current = false;
+
+		const activeLayer = e.currentTarget;
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+
+		createElement(shape, {
+			x: initialPosition.current?.x || 0,
+			y: initialPosition.current?.y || 0,
+			width: x - (initialPosition.current?.x || 0),
+			height: y - (initialPosition.current?.y || 0),
+			layerId: e.currentTarget.id
+		});
+
+		document.dispatchEvent(new CustomEvent("canvas:redraw"));
+		initialPosition.current = null;
 
 		// A custom event to notify that the image of the layer
 		// displayed in the layer list needs to be updated.
@@ -219,7 +194,7 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 			// Clear the current path.
 			currentPath.current = [];
 		}
-	};
+	}, THROTTLE_DELAY_MS);
 
 	const onMouseEnter = (e: MouseEvent<HTMLCanvasElement>) => {
 		if (e.buttons === 1) {
@@ -230,6 +205,139 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	const onMouseLeave = () => {
 		isDrawing.current = false;
 	};
+
+	const onMouseMove = useThrottle((e: MouseEvent<HTMLCanvasElement>) => {
+		// If the left mouse button is not pressed, then we should not draw.
+		// If the layer is hidden, we should not draw.
+		// If the user is grabbing the canvas (for moving), we should not draw.
+
+		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
+			return;
+		}
+		const activeLayer = e.currentTarget;
+		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
+
+		const ctx = activeLayer.getContext("2d");
+
+		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
+
+		document.dispatchEvent(new CustomEvent("canvas:redraw"));
+
+		// Calculate the position of the mouse relative to the canvas.
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+
+		switch (mode) {
+			case "draw": {
+				if (!currentPath2D.current) {
+					console.error("Couldn't create a Path2D object.");
+					return;
+				}
+				ctx.strokeStyle = color.current;
+				ctx.lineWidth = drawStrength.current * dpi;
+				ctx.lineCap = "round";
+				ctx.lineJoin = "round";
+
+				currentPath2D.current.lineTo(x, y);
+				ctx.stroke(currentPath2D.current);
+
+				currentPath.current.push({ x, y });
+
+				break;
+			}
+
+			case "erase": {
+				ctx.clearRect(
+					x - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
+					y - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
+					ERASER_RADIUS * eraserStrength.current * dpi,
+					ERASER_RADIUS * eraserStrength.current * dpi
+				);
+				break;
+			}
+
+			case "shapes": {
+				if (shape === "circle") {
+					if (!currentPath2D.current) {
+						console.error("Couldn't create a Path2D object.");
+						return;
+					}
+
+					currentPath2D.current = new Path2D();
+
+					const width = x - initialPosition.current!.x;
+					const height = y - initialPosition.current!.y;
+					const radius = Math.sqrt(
+						Math.pow(width, 2) + Math.pow(y - initialPosition.current!.y, 2)
+					);
+					currentPath2D.current.ellipse(
+						x,
+						y,
+						radius,
+						radius,
+						0,
+						0,
+						Math.PI * 2
+					);
+					ctx.fillStyle = color.current;
+					ctx.fill(currentPath2D.current);
+				} else if (shape === "rectangle") {
+					if (!currentPath2D.current) {
+						console.error("Couldn't create a Path2D object.");
+						return;
+					}
+
+					currentPath2D.current = new Path2D();
+
+					const width = x - initialPosition.current!.x;
+					const height = y - initialPosition.current!.y;
+					currentPath2D.current.rect(
+						initialPosition.current!.x,
+						initialPosition.current!.y,
+						width,
+						height
+					);
+					ctx.fillStyle = color.current;
+					ctx.fill(currentPath2D.current);
+				} else if (shape === "triangle") {
+					if (!currentPath2D.current) {
+						console.error("Couldn't create a Path2D object.");
+						return;
+					}
+
+					currentPath2D.current = new Path2D();
+
+					const width = x - initialPosition.current!.x;
+					const height = y - initialPosition.current!.y;
+					//     ctx!.moveTo(startX + rectWidth / 2, startY);
+					// ctx!.lineTo(startX, startY + rectHeight);
+					// ctx!.lineTo(startX + rectWidth, startY + rectHeight);
+					// ctx!.lineTo(startX + rectWidth / 2, startY);
+					currentPath2D.current.moveTo(
+						initialPosition.current!.x + width / 2,
+						initialPosition.current!.y
+					);
+					currentPath2D.current.lineTo(
+						initialPosition.current!.x,
+						initialPosition.current!.y + height
+					);
+					currentPath2D.current.lineTo(
+						initialPosition.current!.x + width,
+						initialPosition.current!.y + height
+					);
+					currentPath2D.current.closePath();
+					ctx.fillStyle = color.current;
+					ctx.fill(currentPath2D.current);
+				}
+				break;
+			}
+
+			default: {
+				break;
+			}
+		}
+	}, THROTTLE_DELAY_MS);
+
+	useCanvasRedrawListener(canvasRef);
 
 	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
@@ -327,40 +435,30 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	const transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
 
 	return (
-		<>
-			{/* The main canvas. */}
-			{layers.map((layer, i) => (
-				<canvas
-					key={layer.id}
-					data-testid="canvas-layer"
-					className={clsx("absolute bg-white cursor-inherit z-0", {
-						"z-[1]": layer.active,
-						"opacity-0": layer.hidden && layers.length > 1
-					})}
-					style={{
-						width: `${width}px`,
-						height: `${height}px`,
-						transform
-					}}
-					ref={(element) => {
-						if (element !== null) {
-							add(element, i);
-						}
-					}}
-					id={layer.id}
-					width={width * dpi}
-					height={height * dpi}
-					onMouseDown={onMouseDown}
-					onMouseMove={onMouseMove}
-					onMouseUp={onMouseUp}
-					onMouseEnter={onMouseEnter}
-					onMouseLeave={onMouseLeave}
-					data-name={layer.name}
-					data-scale={scale}
-					data-dpi={dpi}
-				/>
-			))}
-		</>
+		<canvas
+			data-testid="canvas-layer"
+			className={clsx("absolute bg-white cursor-inherit z-0", {
+				"z-[1]": layers[0]?.active,
+				"opacity-0": layers.length > 1
+			})}
+			style={{
+				width: `${width}px`,
+				height: `${height}px`,
+				transform
+			}}
+			ref={canvasRef}
+			id={layers[0]?.id}
+			width={width * dpi}
+			height={height * dpi}
+			onMouseDown={onMouseDown}
+			onMouseMove={onMouseMove}
+			onMouseUp={onMouseUp}
+			onMouseEnter={onMouseEnter}
+			onMouseLeave={onMouseLeave}
+			data-name={layers[0]?.name}
+			data-scale={scale}
+			data-dpi={dpi}
+		/>
 	);
 }
 

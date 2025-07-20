@@ -91,14 +91,19 @@ export const createCanvasSlice: StateCreator<
 
 	function toggleLayer(payload: string) {
 		const layers = get().layers;
-		const newLayers = layers.map((layer) => {
+		let nextActiveLayerIndex = 0;
+		const newLayers = layers.map((layer, i) => {
 			if (layer.id === payload || layer.active) {
 				layer.active = !layer.active;
+			}
+			
+			if (layer.active) {
+        nextActiveLayerIndex = i;
 			}
 			return layer;
 		});
 
-		set({ layers: newLayers });
+		set({ layers: newLayers, currentLayer: nextActiveLayerIndex });
 	}
 
 	function toggleLayerVisibility(payload: string) {
@@ -146,20 +151,36 @@ export const createCanvasSlice: StateCreator<
 				return state;
 			}
 
-			const pendingLayer = state.layers.find((layer) => layer.id === payload)!;
+      let activeLayerIndex = 0;
+			const pendingLayer = state.layers.find((layer, i) => {
+			  if (layer.id === payload) {
+          activeLayerIndex = i;
+        }
+        return layer.id === payload;
+			})!;
 			const newLayers = state.layers.filter(
 				(layer) => layer.id !== pendingLayer.id
 			);
 			if (pendingLayer.active) {
 				newLayers[0].active = true;
+		    activeLayerIndex = 0;
 			}
 
-			return { layers: newLayers };
+			return { layers: newLayers, currentLayer: activeLayerIndex };
 		});
 	}
 
 	function setLayers(payload: Layer[]) {
 		set({ layers: payload });
+	}
+	
+	function getActiveLayer(): Layer {
+	const { layers, currentLayer } = get();
+	if (layers.length === 0) {
+	  throw new Error("No layers available to get the active layer.");
+	}
+	
+    return layers[currentLayer];
 	}
 
 	function increaseScale() {
@@ -468,6 +489,41 @@ export const createCanvasSlice: StateCreator<
 		}));
 	}
 
+	function drawCanvas(canvas: HTMLCanvasElement) {
+		const elements = get().elements;
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			throw new Error("Failed to get 2D context from canvas when drawing.");
+		}
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for (const element of elements) {
+			// Note: we do not need to convert the coordinates to canvas space here,
+			//
+			const { x, y, width, height } = element;
+
+			switch (element.type) {
+				case "circle": {
+					ctx.beginPath();
+					ctx.arc(x + width / 2, y + height / 2, width / 2, 0, 2 * Math.PI);
+					ctx.fillStyle = element.fill ?? "transparent";
+					ctx.fill();
+					ctx.strokeStyle = element.stroke ?? "black";
+					ctx.stroke();
+					break;
+				}
+				case "rectangle": {
+					ctx.fillStyle = element.fill ?? "transparent";
+					ctx.fillRect(x, y, width, height);
+					ctx.strokeStyle = element.stroke ?? "black";
+					ctx.strokeRect(x, y, width, height);
+					break;
+				}
+			}
+		}
+	}
+
 	return {
 		width: 400,
 		height: 400,
@@ -477,6 +533,7 @@ export const createCanvasSlice: StateCreator<
 		drawStrength: 5,
 		eraserStrength: 3,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
+		currentLayer: 0,
 		scale: 1,
 		dpi: 1,
 		position: { x: 0, y: 0 },
@@ -498,6 +555,7 @@ export const createCanvasSlice: StateCreator<
 		renameLayer,
 		removeLayer,
 		setLayers,
+		getActiveLayer,
 		increaseScale,
 		decreaseScale,
 		setPosition,
@@ -505,6 +563,7 @@ export const createCanvasSlice: StateCreator<
 		changeY,
 		prepareForSave,
 		prepareForExport,
-		toggleReferenceWindow
+		toggleReferenceWindow,
+		drawCanvas,
 	};
 };

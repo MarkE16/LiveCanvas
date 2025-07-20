@@ -196,7 +196,7 @@ function CanvasPointerSelection({
 				height: rect.height,
 				display: rect.width + rect.height > 0 ? "block" : "none"
 			}}
-			className="absolute pointer-events-none border-dotted border-[#d1836a] bg-[hsla(20,50%,60%,0.3)] z-100 rounded-md"
+			className="absolute pointer-events-none border-dotted border-[#d1836a] bg-[hsla(20,50%,60%,0.3)] z-[100] rounded-md"
 		></div>
 	);
 }

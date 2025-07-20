@@ -9,6 +9,7 @@ export type CanvasState = {
 	drawStrength: number;
 	eraserStrength: number;
 	layers: Layer[];
+  currentLayer: number;
 	scale: number;
 	dpi: number;
 	position: Coordinates;
