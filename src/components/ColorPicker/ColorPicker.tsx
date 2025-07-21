@@ -30,7 +30,7 @@ import type { CanvasElement } from "@/types";
 
 type ColorPickerProps = {
 	label: string;
-	__for: keyof Pick<CanvasElement, "fill" | "stroke">;
+	__for: keyof Pick<CanvasElement, "fill">;
 	value: string;
 };
 
@@ -45,13 +45,13 @@ function ColorPicker({ label, __for, value }: ColorPickerProps): ReactNode {
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");
 
-		changeElementProperties(
-			(state) => ({
-				...state,
-				[__for]: hex
-			}),
-			(element) => element.focused
-		);
+		// changeElementProperties(
+		// 	(state) => ({
+		// 		...state,
+		// 		[__for]: hex
+		// 	}),
+		// 	(element) => element.focused
+		// );
 
 		setHex(hex);
 	};

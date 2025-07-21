@@ -9,7 +9,7 @@ export type CanvasState = {
 	drawStrength: number;
 	eraserStrength: number;
 	layers: Layer[];
-  currentLayer: number;
+	currentLayer: number;
 	scale: number;
 	dpi: number;
 	position: Coordinates;
@@ -17,17 +17,19 @@ export type CanvasState = {
 };
 
 export type Mode =
-	| "select"
-	| "draw"
-	| "erase"
+	| "brush"
+	| "eraser"
 	| "shapes"
 	| "text"
 	| "eye_drop"
 	| "zoom_in"
 	| "zoom_out"
 	| "move"
+	| "pan"
 	| "undo"
 	| "redo";
+
+	
 export type Shape = "rectangle" | "circle" | "triangle";
 export type Coordinates = {
 	x: number;
@@ -52,7 +54,7 @@ export type Modes = ToolbarMode[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 
-export type CanvasElementType = Shape | "text";
+export type CanvasElementType = Shape | 'text' | Extract<Mode, "brush" | "eraser">;
 
 export type FontProperties = {
 	size: number;
@@ -67,11 +69,10 @@ export type CanvasElement = {
 	height: number;
 	type: CanvasElementType;
 	fill: string;
-	stroke: string;
 	id: string;
 	text?: FontProperties;
+  path: Coordinates[];
 	layerId: string;
-	focused: boolean;
 	// More properties later...
 };
 
@@ -81,11 +82,6 @@ export type Dimensions = {
 };
 
 export type SavedCanvasProperties = {
-	layers: {
-		name: string;
-		image: Blob;
-		position: number;
-		id: string;
-	}[];
+	layers: Layer[];
 	elements: Omit<CanvasElement, "focused">[];
 };

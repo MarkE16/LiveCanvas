@@ -1,11 +1,6 @@
 import { Layer } from "@/types";
 import BaseStore from "./BaseStore";
 
-type LayerProperties = Pick<Layer, "name" | "id"> & {
-	image: Blob;
-	position: number;
-};
-
 /**
  * A class for interacting with the Layers store of IndexedDB.
  */
@@ -18,7 +13,7 @@ export default class LayersStore extends BaseStore {
 	 * @param layers Layers to add to the store.
 	 * @returns Promise of void
 	 */
-	public static addLayers(layers: LayerProperties[]) {
+	public static addLayers(layers: Layer[]) {
 		return this.add(layers);
 	}
 
@@ -28,7 +23,7 @@ export default class LayersStore extends BaseStore {
 	 * @returns A singular layer or undefined if not found
 	 */
 	public static getLayer(id: string) {
-		return this.get<LayerProperties>(id);
+		return this.get<Layer>(id);
 	}
 
 	/**
@@ -36,7 +31,7 @@ export default class LayersStore extends BaseStore {
 	 * @returns The entries
 	 */
 	public static getLayers() {
-		return this.get<LayerProperties>();
+		return this.get<Layer>();
 	}
 
 	/**

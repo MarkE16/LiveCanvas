@@ -43,8 +43,7 @@ function Navbar(): ReactNode {
 
 	const handleSaveFile = useCallback(async () => {
 		try {
-			console.log(references.current);
-			const { layers, elements } = await prepareForSave(references.current);
+			const { layers, elements } = await prepareForSave();
 
 			const promises = [];
 

@@ -49,19 +49,11 @@ function DrawingToolbar(): ReactNode {
 	);
 	const elements = useStore(
 		(state) => state.elements,
-		(a, b) =>
-			a.length === b.length &&
-			a.every(
-				(el, i) =>
-					el.focused === b[i].focused &&
-					el.fill === b[i].fill &&
-					el.stroke === b[i].stroke
-			)
+		(a, b) => a.length === b.length && a.every((el, i) => el.fill === b[i].fill)
 	);
-	const focusedElements = elements.filter((element) => element.focused);
 
 	const strengthSettings =
-		mode === "draw"
+		mode === "brush"
 			? {
 					value: drawStrength,
 					min: 1,
@@ -76,7 +68,7 @@ function DrawingToolbar(): ReactNode {
 	const handleStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const strength = Number(e.target.value);
 
-		if (mode === "draw") {
+		if (mode === "brush") {
 			changeDrawStrength(strength);
 		} else {
 			changeEraserStrength(strength);
@@ -131,16 +123,11 @@ function DrawingToolbar(): ReactNode {
 
 	const renderedShapeSettings = (
 		<Fragment key="settings_Shapes">
-			<MemoizedColorPicker
+			{/* <MemoizedColorPicker
 				label="Fill"
 				__for="fill"
 				value={focusedElements[0]?.fill}
-			/>
-			<MemoizedColorPicker
-				label="Border"
-				__for="stroke"
-				value={focusedElements[0]?.stroke}
-			/>
+			/> */}
 			{/* <ColorField
 				label="Border Width"
 				value={
@@ -155,17 +142,17 @@ function DrawingToolbar(): ReactNode {
 
 	const additionalSettings: ReactNode[] = [];
 
-	if (mode === "draw") {
+	if (mode === "brush") {
 		additionalSettings.push(renderedStrength, renderedBrush);
-	} else if (mode === "erase") {
+	} else if (mode === "eraser") {
 		additionalSettings.push(renderedStrength);
 	} else if (mode === "shapes") {
 		additionalSettings.push(<>{renderedShapes}</>);
 	}
 
-	if (focusedElements.length > 0) {
-		additionalSettings.push(renderedShapeSettings);
-	}
+	// if (focusedElements.length > 0) {
+	// 	additionalSettings.push(renderedShapeSettings);
+	// }
 
 	// Now insert a break between each setting.
 	additionalSettings.forEach((_, index) => {

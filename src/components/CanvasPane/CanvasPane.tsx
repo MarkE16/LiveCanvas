@@ -1,7 +1,5 @@
 // Lib
 import { useRef, useEffect, useState, memo } from "react";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
-import useWindowDimensions from "@/state/hooks/useWindowDimesions";
 import useStore from "@/state/hooks/useStore";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
@@ -11,16 +9,12 @@ import DrawingToolbar from "@/components/DrawingToolbar/DrawingToolbar";
 import Canvas from "@/components/Canvas/Canvas";
 import CanvasPointerMarker from "@/components/CanvasPointerMarker/CanvasPointerMarker";
 import CanvasPointerSelection from "@/components/CanvasPointerSelection/CanvasPointerSelection";
-import CanvasInteractiveElement from "@/components/CanvasInteractiveElement/CanvasInteractiveElement";
 import ScaleIndicator from "@/components/ScaleIndicator/ScaleIndicator";
 
 // Types
 import type { ReactNode } from "react";
 import type { Coordinates } from "@/types";
 
-// Using Tailwind for styles
-
-const MemoizedCanvasInteractiveElement = memo(CanvasInteractiveElement);
 const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
 const MemoizedScaleIndicator = memo(ScaleIndicator);
@@ -33,11 +27,11 @@ function CanvasPane(): ReactNode {
 		changeY,
 		increaseScale,
 		decreaseScale,
-		elements,
 		changeElementProperties,
 		copyElement,
 		pasteElement,
-		createElement
+		createElement,
+		getActiveLayer
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -46,27 +40,24 @@ function CanvasPane(): ReactNode {
 			changeY: state.changeY,
 			increaseScale: state.increaseScale,
 			decreaseScale: state.decreaseScale,
-			elements: state.elements,
 			changeElementProperties: state.changeElementProperties,
 			copyElement: state.copyElement,
 			pasteElement: state.pasteElement,
-			createElement: state.createElement
+			createElement: state.createElement,
+			getActiveLayer: state.getActiveLayer
 		}))
 	);
 	const currentShape = useStoreSubscription((state) => state.shape);
 	const currentColor = useStoreSubscription((state) => state.color);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
-	const isSelecting = useRef<boolean>(false);
-	const createdShapeId = useRef<string | null>(null);
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [ctrlKey, setCtrlKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
-	const { getActiveLayer } = useLayerReferences();
-	const dimensions = useWindowDimensions();
+	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-	const canMove = mode === "move" || shiftKey;
-	const isMoving = canMove && isGrabbing;
+	const isPanning = mode === "pan";
+	const isMoving = mode === "move";
 
 	// Effect is getting ugly... Might be a good idea to split
 	// this into multiple effects.
@@ -92,48 +83,33 @@ function CanvasPane(): ReactNode {
 				!document.activeElement?.classList.contains("grid") &&
 				!document.activeElement?.classList.contains("handle")
 			) {
-				const activeLayer = getActiveLayer();
+				const layer = getActiveLayer();
 
-				if (!activeLayer) throw new Error("No active layer found");
+				if (!layer) throw new Error("No active layer found");
 
 				createElement("text", {
 					x: e.clientX,
 					y: e.clientY,
 					width: 100,
 					height: 30,
-					focused: true,
 					text: {
 						size: 25,
 						family: "Times New Roman",
 						content: "Text"
 					},
-					layerId: activeLayer.id
+					layerId: layer.id
 				});
 				return;
 			}
-
-			if (mode === "shapes" && ctrlKey) {
-				const activeLayer = getActiveLayer();
-
-				const id = createElement(currentShape.current, {
-					x: e.clientX,
-					y: e.clientY,
-					width: 18,
-					height: 18,
-					focused: false,
-					layerId: activeLayer.id,
-					fill: currentColor.current
-				});
-				createdShapeId.current = id;
-			}
-
 			setIsGrabbing(isOnCanvas);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
 			if (e.buttons !== 1 || !isGrabbing || !canvasSpace) return;
 
+			const canvas = canvasRef.current;
 			const layer = getActiveLayer();
+			if (!canvas) return;
 
 			let dx = e.clientX - clientPosition.current.x;
 			let dy = e.clientY - clientPosition.current.y;
@@ -145,67 +121,53 @@ function CanvasPane(): ReactNode {
 				top: sTop
 			} = canvasSpace.getBoundingClientRect();
 
-			if (canMove && isGrabbing) {
+			if (isPanning && isGrabbing) {
 				const {
-					left: lLeft,
-					top: lTop,
-					width: lWidth,
-					height: lHeight
-				} = layer.getBoundingClientRect();
+					left: cLeft,
+					top: cTop,
+					width: cWidth,
+					height: cHeight
+				} = canvas.getBoundingClientRect();
 
 				// Check if the layer is outside the canvas space.
 				// If it is, we don't want to move it.
 				// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
-				if (lLeft + dx <= -lWidth + sLeft + 20 || lLeft + dx >= sWidth + 20) {
+				if (cLeft + dx <= -cWidth + sLeft + 20 || cLeft + dx >= sWidth + 20) {
 					dx = 0; // Set to 0 so that the layer doesn't move.
 				}
 
-				if (lTop + dy <= -lHeight + sTop + 20 || lTop + dy >= sHeight + 20) {
+				if (cTop + dy <= -cHeight + sTop + 20 || cTop + dy >= sHeight + 20) {
 					dy = 0; // Set to 0 so that the layer doesn't move.
 				}
 
 				// Apply the changes.
 				changeX(dx);
 				changeY(dy);
-
-				changeElementProperties(
-					(state) => ({
-						...state,
-						x: state.x + dx,
-						y: state.y + dy
-					}),
-					() => true // Update on each element
-				);
-			} else if (mode === "shapes") {
-				// Required for shapes to have a minimum size.
-				// It is also set in `ShapeElement` in the resizing
-				// logic. If you change it here, make sure to change
-				// it there as well.
-				const MIN_SIZE = 18;
-				const pointerX = e.clientX;
-				const pointerY = e.clientY;
+			} else if (isMoving) {
+				// Move the shapes for the current layer.
 
 				changeElementProperties(
 					(state) => {
-						let newWidth = Math.max(MIN_SIZE, state.width + dx);
-						let newHeight = Math.max(MIN_SIZE, state.height + dy);
-
-						if (pointerX - MIN_SIZE < state.x) {
-							newWidth = MIN_SIZE;
+						if (state.type === "brush" || state.type === "eraser") {
+							return {
+								...state,
+								path: state.path.map((point) => ({
+									x: point.x + dx,
+									y: point.y + dy
+								}))
+							};
+						} else {
+							return {
+								...state,
+								x: state.x + dx,
+								y: state.y + dy
+							};
 						}
-
-						if (pointerY - MIN_SIZE < state.y) {
-							newHeight = MIN_SIZE;
-						}
-
-						return {
-							...state,
-							width: newWidth,
-							height: newHeight
-						};
 					},
-					(element) => element.id === createdShapeId.current!
+					(element) => element.layerId === layer.id
 				);
+
+				document.dispatchEvent(new CustomEvent("canvas:redraw"));
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -214,17 +176,13 @@ function CanvasPane(): ReactNode {
 			// clientPosition.current = { x: 0, y: 0 };
 			setIsGrabbing(false);
 
-			if (mode === "shapes") {
-				createdShapeId.current = null;
+			const ev = new CustomEvent("imageupdate", {
+				detail: {
+					layerId: getActiveLayer().id
+				}
+			});
 
-				const ev = new CustomEvent("imageupdate", {
-					detail: {
-						layer: getActiveLayer()
-					}
-				});
-
-				document.dispatchEvent(ev);
-			}
+			document.dispatchEvent(ev);
 		}
 
 		function handleKeyDown(e: KeyboardEvent) {
@@ -243,13 +201,13 @@ function CanvasPane(): ReactNode {
 				return;
 			}
 
-			if (e.key === "c" && e.ctrlKey && !e.repeat) {
-				// We're copying elements here
-				copyElement((element) => element.focused);
-			} else if (e.key === "v" && e.ctrlKey && !e.repeat) {
-				// We're pasting elements here
-				pasteElement();
-			}
+			// if (e.key === "c" && e.ctrlKey && !e.repeat) {
+			// 	// We're copying elements here
+			// 	copyElement((element) => element.focused);
+			// } else if (e.key === "v" && e.ctrlKey && !e.repeat) {
+			// 	// We're pasting elements here
+			// 	pasteElement();
+			// }
 		}
 
 		function handleZoom(e: Event) {
@@ -281,19 +239,6 @@ function CanvasPane(): ReactNode {
 			}
 		}
 
-		function onWindowResize() {
-			const { changeInWidth, changeInHeight } = dimensions.current;
-
-			changeElementProperties(
-				(state) => ({
-					...state,
-					x: state.x + changeInWidth,
-					y: state.y + changeInHeight
-				}),
-				() => true // Update on all elements
-			);
-		}
-
 		document.addEventListener("mousedown", handleMouseDown);
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
@@ -304,7 +249,6 @@ function CanvasPane(): ReactNode {
 		document.addEventListener("keydown", handleKeyDown);
 		document.addEventListener("keyup", handleKeyDown);
 
-		window.addEventListener("resize", onWindowResize);
 		return () => {
 			document.removeEventListener("mousedown", handleMouseDown);
 			document.removeEventListener("mousemove", handleMouseMove);
@@ -314,14 +258,13 @@ function CanvasPane(): ReactNode {
 
 			document.removeEventListener("keydown", handleKeyDown);
 			document.removeEventListener("keyup", handleKeyDown);
-			window.removeEventListener("resize", onWindowResize);
 		};
 	}, [
 		mode,
+		isMoving,
+		isPanning,
 		isGrabbing,
-		canMove,
 		changeElementProperties,
-		dimensions,
 		copyElement,
 		pasteElement,
 		createElement,
@@ -341,39 +284,31 @@ function CanvasPane(): ReactNode {
 			className="flex relative justify-center items-center flex-[3] w-full overflow-hidden [&:not(:hover)>#canvas-pointer-marker]:opacity-0 [&:not(:hover)>#canvas-pointer-marker]:transition-opacity [&:not(:hover)>#canvas-pointer-marker]:duration-200 [&:hover>#canvas-pointer-marker]:absolute [&:hover>#canvas-pointer-marker]:border-[3px] [&:hover>#canvas-pointer-marker]:border-black [&:hover>#canvas-pointer-marker]:outline [&:hover>#canvas-pointer-marker]:outline-[1px] [&:hover>#canvas-pointer-marker]:outline-white [&:hover>#canvas-pointer-marker]:outline-offset-[-3px] [&:hover>#canvas-pointer-marker]:pointer-events-none"
 			data-testid="canvas-pane"
 		>
-			{(mode === "draw" || mode == "erase") && (
+			{(mode === "brush" || mode == "eraser") && (
 				<CanvasPointerMarker
 					canvasSpaceReference={canvasSpaceRef}
 					shiftKey={shiftKey}
 				/>
 			)}
-			{mode === "select" && !isMoving && (
+			{/* {mode === "select" && !isMoving && (
 				<CanvasPointerSelection
 					canvasSpaceReference={canvasSpaceRef}
 					isSelecting={isSelecting}
 				/>
-			)}
+			)} */}
 			<MemoizedDrawingToolbar />
 
-			{/* {elements.map((element) => (
-				<MemoizedCanvasInteractiveElement
-					key={element.id}
-					canvasSpaceReference={canvasSpaceRef}
-					isSelecting={isSelecting}
-					isCreatingElement={createdShapeId.current !== null}
-					clientPosition={clientPosition}
-					{...element}
-				/>
-			))} */}
 			<div
-				className="flex justify-center relative items-center h-full w-full overflow-hidden data-[moving=true]:cursor-grab data-[grabbing=true]:cursor-grabbing data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
+				className="flex justify-center relative items-center h-full w-full overflow-hidden data-[mode=move]:cursor-grab data-[mode=pan]:cursor-grab data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 				data-testid="canvas-container"
 				ref={canvasSpaceRef}
-				data-moving={canMove}
-				data-grabbing={canMove && isGrabbing}
+				data-moving={isPanning || isMoving}
 				data-mode={mode}
 			>
-				<MemoizedCanvas isGrabbing={isMoving} />
+				<MemoizedCanvas
+					isGrabbing={isMoving || isPanning}
+					ref={canvasRef}
+				/>
 			</div>
 
 			<MemoizedScaleIndicator scale={scale} />

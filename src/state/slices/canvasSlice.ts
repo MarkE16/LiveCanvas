@@ -96,9 +96,9 @@ export const createCanvasSlice: StateCreator<
 			if (layer.id === payload || layer.active) {
 				layer.active = !layer.active;
 			}
-			
+
 			if (layer.active) {
-        nextActiveLayerIndex = i;
+				nextActiveLayerIndex = i;
 			}
 			return layer;
 		});
@@ -151,19 +151,19 @@ export const createCanvasSlice: StateCreator<
 				return state;
 			}
 
-      let activeLayerIndex = 0;
+			let activeLayerIndex = 0;
 			const pendingLayer = state.layers.find((layer, i) => {
-			  if (layer.id === payload) {
-          activeLayerIndex = i;
-        }
-        return layer.id === payload;
+				if (layer.id === payload) {
+					activeLayerIndex = i;
+				}
+				return layer.id === payload;
 			})!;
 			const newLayers = state.layers.filter(
 				(layer) => layer.id !== pendingLayer.id
 			);
 			if (pendingLayer.active) {
 				newLayers[0].active = true;
-		    activeLayerIndex = 0;
+				activeLayerIndex = 0;
 			}
 
 			return { layers: newLayers, currentLayer: activeLayerIndex };
@@ -173,14 +173,14 @@ export const createCanvasSlice: StateCreator<
 	function setLayers(payload: Layer[]) {
 		set({ layers: payload });
 	}
-	
+
 	function getActiveLayer(): Layer {
-	const { layers, currentLayer } = get();
-	if (layers.length === 0) {
-	  throw new Error("No layers available to get the active layer.");
-	}
-	
-    return layers[currentLayer];
+		const { layers, currentLayer } = get();
+		if (layers.length === 0) {
+			throw new Error("No layers available to get the active layer.");
+		}
+
+		return layers[currentLayer];
 	}
 
 	function increaseScale() {
@@ -236,37 +236,9 @@ export const createCanvasSlice: StateCreator<
 	 * elements. Therefore, the caller must save the
 	 * layers and elements themselves.
 	 */
-	async function prepareForSave(
-		layerRefs: HTMLCanvasElement[]
-	): Promise<SavedCanvasProperties> {
-		if (!layerRefs.length)
-			throw new Error(
-				"Cannot export canvas: no references found. This is a bug."
-			);
+	async function prepareForSave(): Promise<SavedCanvasProperties> {
+		const { layers, elements } = get();
 
-		const elements = get().elements;
-
-		const layerPromises = layerRefs.map((layer, i) => {
-			if (!layer) {
-				throw new Error("Failed to get canvas when exporting.");
-			}
-			return new Promise<{
-				name: string;
-				image: Blob;
-				position: number;
-				id: string;
-			}>((resolve) => {
-				layer.toBlob((blob) => {
-					if (!blob) throw new Error("Failed to extract blob when exporting.");
-					resolve({
-						name: layer.getAttribute("data-name") ?? "Untitled Layer",
-						image: blob,
-						position: i,
-						id: layer.id
-					});
-				});
-			});
-		});
 		const newElements = elements.map((element) => {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { focused, ...rest } = element;
@@ -274,9 +246,7 @@ export const createCanvasSlice: StateCreator<
 			return rest;
 		});
 
-		const newLayers = await Promise.all(layerPromises);
-
-		return { layers: newLayers, elements: newElements };
+		return { layers, elements: newElements };
 	}
 
 	async function prepareForExport(
@@ -398,7 +368,7 @@ export const createCanvasSlice: StateCreator<
 					const height = endY - startY;
 
 					ctx.fillStyle = element.fill ?? "";
-					ctx.strokeStyle = element.stroke ?? "";
+					ctx.strokeStyle = element.fill ?? "black";
 
 					ctx.beginPath();
 					switch (element.type) {
@@ -489,8 +459,12 @@ export const createCanvasSlice: StateCreator<
 		}));
 	}
 
-	function drawCanvas(canvas: HTMLCanvasElement) {
-		const elements = get().elements;
+	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
+		let elements = get().elements;
+
+		if (layerId) {
+			elements = elements.filter((element) => element.layerId === layerId);
+		}
 
 		const ctx = canvas.getContext("2d");
 		if (!ctx) {
@@ -498,26 +472,62 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 		for (const element of elements) {
-			// Note: we do not need to convert the coordinates to canvas space here,
-			//
 			const { x, y, width, height } = element;
 
+			ctx.fillStyle = element.fill ?? "transparent";
+			ctx.strokeStyle = element.fill ?? "black";
+			ctx.globalCompositeOperation =
+				element.type === "eraser" ? "destination-out" : "source-over";
+
 			switch (element.type) {
+				case "brush":
+				case "eraser": {
+					ctx.beginPath();
+					ctx.lineWidth = 5;
+					ctx.lineCap = "round";
+
+					for (const [index, point] of element.path.entries()) {
+						if (index === 0) {
+							ctx.moveTo(point.x, point.y);
+						} else {
+							ctx.lineTo(point.x, point.y);
+						}
+					}
+					ctx.stroke();
+					ctx.closePath();
+					break;
+				}
 				case "circle": {
 					ctx.beginPath();
-					ctx.arc(x + width / 2, y + height / 2, width / 2, 0, 2 * Math.PI);
-					ctx.fillStyle = element.fill ?? "transparent";
+					ctx.ellipse(
+						x + width / 2,
+						y + height / 2,
+						width / 2,
+						height / 2,
+						0,
+						0,
+						2 * Math.PI
+					);
 					ctx.fill();
-					ctx.strokeStyle = element.stroke ?? "black";
 					ctx.stroke();
 					break;
 				}
 				case "rectangle": {
-					ctx.fillStyle = element.fill ?? "transparent";
 					ctx.fillRect(x, y, width, height);
-					ctx.strokeStyle = element.stroke ?? "black";
 					ctx.strokeRect(x, y, width, height);
+					break;
+				}
+
+				case "triangle": {
+					ctx.beginPath();
+					ctx.moveTo(x + width / 2, y);
+					ctx.lineTo(x + width, y + height);
+					ctx.lineTo(x, y + height);
+					ctx.closePath();
+					ctx.fill();
+					ctx.stroke();
 					break;
 				}
 			}
@@ -527,7 +537,7 @@ export const createCanvasSlice: StateCreator<
 	return {
 		width: 400,
 		height: 400,
-		mode: "select",
+		mode: "move",
 		shape: "rectangle",
 		color: "hsla(0, 0%, 0%, 1)",
 		drawStrength: 5,
@@ -564,6 +574,6 @@ export const createCanvasSlice: StateCreator<
 		prepareForSave,
 		prepareForExport,
 		toggleReferenceWindow,
-		drawCanvas,
+		drawCanvas
 	};
 };

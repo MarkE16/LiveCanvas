@@ -21,7 +21,6 @@ describe("ElementsStore functionality", () => {
 			height: 100,
 			x: 100,
 			y: 100,
-			stroke: "#000000"
 		},
 		{
 			id: "456",
@@ -32,7 +31,6 @@ describe("ElementsStore functionality", () => {
 			height: 50,
 			x: 50,
 			y: 50,
-			stroke: "#000000"
 		}
 	];
 
@@ -69,7 +67,6 @@ describe("ElementsStore functionality", () => {
 				height: 100,
 				x: 100,
 				y: 100,
-				stroke: "#00000"
 			},
 			{
 				id: "135",
@@ -80,7 +77,6 @@ describe("ElementsStore functionality", () => {
 				height: 50,
 				x: 50,
 				y: 50,
-				stroke: "#000000"
 			}
 		];
 		await ElementsStore.addElements(newElements);

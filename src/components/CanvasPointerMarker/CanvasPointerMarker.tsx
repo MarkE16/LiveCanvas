@@ -34,7 +34,7 @@ function CanvasPointerMarker({
 
 	const ERASER_RADIUS = 7;
 	const POINTER_SIZE =
-		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
+		(mode === "brush" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
 
 	useEffect(() => {
 		const canvasSpace = canvasSpaceReference.current;
@@ -107,7 +107,7 @@ function CanvasPointerMarker({
 				if (
 					Utils.isRectIntersecting(m, node) &&
 					!isMovingElement.current &&
-					mode === "erase" &&
+					mode === "eraser" &&
 					e.buttons === 1
 				) {
 					deleteElement((element) => element.id === node.id);
@@ -129,7 +129,7 @@ function CanvasPointerMarker({
 			data-testid="canvas-pointer-marker"
 			style={{
 				// Remove pointer events so the pointer doesn't interfere with the canvas.
-				borderRadius: mode === "draw" ? "50%" : "0%",
+				borderRadius: "50%",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
 				display: isVisible && !shiftKey ? "block" : "none",

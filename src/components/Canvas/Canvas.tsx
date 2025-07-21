@@ -1,5 +1,5 @@
 // Lib
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
@@ -30,48 +30,54 @@ type DBLayer = {
 
 const THROTTLE_DELAY_MS = 10; // milliseconds
 
-function Canvas({ isGrabbing }: CanvasProps): ReactNode {
+const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
+	{ isGrabbing },
+	ref
+) {
 	const {
 		mode,
 		shape,
 		width,
 		height,
-		layers,
 		dpi,
 		scale,
 		position,
 		changeMode,
 		changeColor,
 		setLayers,
-		createElement
+		createElement,
+		getActiveLayer
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			shape: state.shape,
 			width: state.width,
 			height: state.height,
-			layers: state.layers,
 			dpi: state.dpi,
 			scale: state.scale,
 			position: state.position,
 			changeMode: state.changeMode,
 			changeColor: state.changeColor,
 			setLayers: state.setLayers,
-			createElement: state.createElement
+			createElement: state.createElement,
+			getActiveLayer: state.getActiveLayer
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
 	const drawStrength = useStoreSubscription((state) => state.drawStrength);
 	const eraserStrength = useStoreSubscription((state) => state.eraserStrength);
 
-	const { references, add } = useLayerReferences();
+	const { references } = useLayerReferences();
 
 	const isDrawing = useRef<boolean>(false);
 	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
-	const canvasRef = useRef<HTMLCanvasElement | null>(null);
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
-	const initialPosition = useRef<Coordinates | null>(null);
+	const initialPosition = useRef<Coordinates>({
+		x: 0,
+		y: 0
+	});
 
 	const ERASER_RADIUS = 7;
 
@@ -82,23 +88,22 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 		// 	(mode === "draw" || mode === "erase") && !isMovingElement.current;
 		isDrawing.current = true;
 
-		const activeLayer = e.currentTarget;
+		const canvas = e.currentTarget;
 
-		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
+		if (!canvas) throw new Error("No active layer found. This is a bug.");
 
-		const ctx = activeLayer.getContext("2d", {
+		const ctx = canvas.getContext("2d", {
 			willReadFrequently: true
 		});
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
 
 		initialPosition.current = { x, y };
 
-		if (mode === "draw" || mode === "shapes") {
+		if (mode === "brush" || mode === "shapes" || mode === "eraser") {
 			ctx?.beginPath();
 			currentPath2D.current = new Path2D();
-			// currentPath2D.current.moveTo(x, y);
 		} else if (mode === "eye_drop" && !isGrabbing) {
 			// `.getImageData()` retreives the x and y coordinates of the pixel
 			// differently if the canvas is scaled. So, we need to multiply the
@@ -127,10 +132,10 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 			// The color picker only supports HSLA, so we need to convert the color to HSLA.
 			changeColor(color.toString("hsla"));
-			changeMode("select");
+			changeMode("move");
 		}
 
-		if (mode === "draw" || mode === "erase") {
+		if (mode === "brush" || mode === "eraser") {
 			// Save the current path.
 			currentPath.current.push({ x, y });
 		}
@@ -139,23 +144,35 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	// Handler for when the mouse is moved on the canvas.
 	// This should handle a majority of the drawing process.
 
-	const onMouseUp = useThrottle((e: MouseEvent<HTMLCanvasElement>) => {
+	const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
 		if (isGrabbing) return;
 		isDrawing.current = false;
 
-		const activeLayer = e.currentTarget;
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		const activeLayer = getActiveLayer();
+		const canvas = e.currentTarget;
 
-		createElement(shape, {
-			x: initialPosition.current?.x || 0,
-			y: initialPosition.current?.y || 0,
-			width: x - (initialPosition.current?.x || 0),
-			height: y - (initialPosition.current?.y || 0),
-			layerId: e.currentTarget.id
-		});
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
+		const { x: initX, y: initY } = initialPosition.current;
+
+		if (mode === "shapes") {
+			createElement(shape, {
+				x: Math.min(x, initX),
+				y: Math.min(y, initY),
+				width: Math.abs(x - initX),
+				height: Math.abs(y - initY),
+				fill: color.current,
+				layerId: activeLayer.id
+			});
+		} else if (mode === "brush" || mode === "eraser") {
+			createElement(mode, {
+				fill: color.current,
+				layerId: activeLayer.id,
+				path: currentPath.current
+			});
+		}
 
 		document.dispatchEvent(new CustomEvent("canvas:redraw"));
-		initialPosition.current = null;
+		initialPosition.current = { x: 0, y: 0 };
 
 		// A custom event to notify that the image of the layer
 		// displayed in the layer list needs to be updated.
@@ -166,22 +183,17 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 		// Only fire the imageupdate event if the
 		// user actually drew/erased something.
+		const imageUpdate = new CustomEvent("imageupdate", {
+			detail: {
+				layerId: activeLayer.id
+			}
+		});
+
+		document.dispatchEvent(imageUpdate);
 		if (currentPath.current.length > 0) {
-			const activeLayer = e.currentTarget;
-
-			if (!activeLayer)
-				throw new Error("No active layer found. This is a bug.");
-
-			const imageUpdate = new CustomEvent("imageupdate", {
-				detail: {
-					layer: activeLayer
-				}
-			});
-
-			document.dispatchEvent(imageUpdate);
 		}
 
-		if (mode === "draw" || mode === "erase") {
+		if (mode === "brush" || mode === "eraser") {
 			// Save the action to the history.
 			// history.addHistory({
 			// 	mode: mode as "draw" | "erase" | "shapes",
@@ -194,7 +206,7 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 			// Clear the current path.
 			currentPath.current = [];
 		}
-	}, THROTTLE_DELAY_MS);
+	};
 
 	const onMouseEnter = (e: MouseEvent<HTMLCanvasElement>) => {
 		if (e.buttons === 1) {
@@ -215,8 +227,6 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 			return;
 		}
 		const activeLayer = e.currentTarget;
-		if (!activeLayer) throw new Error("No active layer found. This is a bug.");
-
 		const ctx = activeLayer.getContext("2d");
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
@@ -227,7 +237,8 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
 		switch (mode) {
-			case "draw": {
+			case "brush":
+			case "eraser": {
 				if (!currentPath2D.current) {
 					console.error("Couldn't create a Path2D object.");
 					return;
@@ -236,22 +247,13 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 				ctx.lineWidth = drawStrength.current * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
+				ctx.globalCompositeOperation =
+					mode === "eraser" ? "destination-out" : "source-over";
 
 				currentPath2D.current.lineTo(x, y);
 				ctx.stroke(currentPath2D.current);
 
 				currentPath.current.push({ x, y });
-
-				break;
-			}
-
-			case "erase": {
-				ctx.clearRect(
-					x - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
-					y - ((ERASER_RADIUS * eraserStrength.current) / 2) * dpi,
-					ERASER_RADIUS * eraserStrength.current * dpi,
-					ERASER_RADIUS * eraserStrength.current * dpi
-				);
 				break;
 			}
 
@@ -264,16 +266,20 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 					currentPath2D.current = new Path2D();
 
-					const width = x - initialPosition.current!.x;
-					const height = y - initialPosition.current!.y;
-					const radius = Math.sqrt(
-						Math.pow(width, 2) + Math.pow(y - initialPosition.current!.y, 2)
-					);
+					const width = x - initialPosition.current.x;
+					const height = y - initialPosition.current.y;
+
 					currentPath2D.current.ellipse(
-						x,
-						y,
-						radius,
-						radius,
+						Math.min(
+							x + Math.abs(width) / 2,
+							initialPosition.current.x + Math.abs(width) / 2
+						),
+						Math.min(
+							y + Math.abs(height) / 2,
+							initialPosition.current.y + Math.abs(height) / 2
+						),
+						Math.abs(width) / 2,
+						Math.abs(height) / 2,
 						0,
 						0,
 						Math.PI * 2
@@ -288,11 +294,11 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 					currentPath2D.current = new Path2D();
 
-					const width = x - initialPosition.current!.x;
-					const height = y - initialPosition.current!.y;
+					const width = x - initialPosition.current.x;
+					const height = y - initialPosition.current.y;
 					currentPath2D.current.rect(
-						initialPosition.current!.x,
-						initialPosition.current!.y,
+						initialPosition.current.x,
+						initialPosition.current.y,
 						width,
 						height
 					);
@@ -306,25 +312,31 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 
 					currentPath2D.current = new Path2D();
 
-					const width = x - initialPosition.current!.x;
-					const height = y - initialPosition.current!.y;
+					const width = x - initialPosition.current.x;
+					const height = y - initialPosition.current.y;
 					//     ctx!.moveTo(startX + rectWidth / 2, startY);
 					// ctx!.lineTo(startX, startY + rectHeight);
 					// ctx!.lineTo(startX + rectWidth, startY + rectHeight);
 					// ctx!.lineTo(startX + rectWidth / 2, startY);
 					currentPath2D.current.moveTo(
-						initialPosition.current!.x + width / 2,
-						initialPosition.current!.y
+						initialPosition.current.x + width / 2,
+						initialPosition.current.y
 					);
 					currentPath2D.current.lineTo(
-						initialPosition.current!.x,
-						initialPosition.current!.y + height
+						initialPosition.current.x,
+						initialPosition.current.y + height
 					);
 					currentPath2D.current.lineTo(
-						initialPosition.current!.x + width,
-						initialPosition.current!.y + height
+						initialPosition.current.x + width,
+						initialPosition.current.y + height
 					);
 					currentPath2D.current.closePath();
+					ctx.rotate(
+						Math.atan2(
+							y - initialPosition.current.y,
+							x - initialPosition.current.x
+						)
+					);
 					ctx.fillStyle = color.current;
 					ctx.fill(currentPath2D.current);
 				}
@@ -337,6 +349,8 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 		}
 	}, THROTTLE_DELAY_MS);
 
+	useImperativeHandle(ref, () => canvasRef.current!, []);
+
 	useCanvasRedrawListener(canvasRef);
 
 	// TODO: Improve this implementation of updating the layers from the storage.
@@ -348,8 +362,9 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 				return;
 			}
 
-			const newEntries = await updateLayerState(entries);
-			updateLayerContents(newEntries);
+			await updateLayerState(entries);
+			// updateLayerContents(newEntries);
+			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
 
 		function updateLayerState(entries: [string, DBLayer][]) {
@@ -437,17 +452,13 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 	return (
 		<canvas
 			data-testid="canvas-layer"
-			className={clsx("absolute bg-white cursor-inherit z-0", {
-				"z-[1]": layers[0]?.active,
-				"opacity-0": layers.length > 1
-			})}
+			className={clsx("absolute bg-white cursor-inherit z-0")}
 			style={{
 				width: `${width}px`,
 				height: `${height}px`,
 				transform
 			}}
 			ref={canvasRef}
-			id={layers[0]?.id}
 			width={width * dpi}
 			height={height * dpi}
 			onMouseDown={onMouseDown}
@@ -455,11 +466,10 @@ function Canvas({ isGrabbing }: CanvasProps): ReactNode {
 			onMouseUp={onMouseUp}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
-			data-name={layers[0]?.name}
 			data-scale={scale}
 			data-dpi={dpi}
 		/>
 	);
-}
+});
 
 export default Canvas;

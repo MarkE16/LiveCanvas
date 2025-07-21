@@ -2,7 +2,7 @@ export * from "./Canvas.types";
 export * from "./History.types";
 export * from "./Slices.types";
 
-export type ImageUpdateEvent = CustomEvent<{ layer: HTMLCanvasElement }>;
+export type ImageUpdateEvent = CustomEvent<{ layerId: string }>;
 export type CanvasRedrawEvent = CustomEvent<{}>;
 
 declare global {

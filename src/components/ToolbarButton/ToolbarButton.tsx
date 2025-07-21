@@ -22,6 +22,7 @@ import Undo from "@/components/icons/Undo/Undo";
 import Redo from "@/components/icons/Redo/Redo";
 import Text from "@/components/icons/Text/Text";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import Hand from "../icons/Hand/Hand";
 
 type ToolbarButtonProps = Readonly<
 	ToolbarMode & {
@@ -30,15 +31,15 @@ type ToolbarButtonProps = Readonly<
 >;
 
 const ICONS: Record<Mode, ReactNode> = {
-	select: <Select />,
-	draw: <Pen />,
-	erase: <Eraser />,
+	move: <Move />,
+	brush: <Pen />,
+	eraser: <Eraser />,
 	shapes: <Shapes />,
 	text: <Text />,
 	eye_drop: <EyeDropper />,
 	zoom_in: <ZoomIn />,
 	zoom_out: <ZoomOut />,
-	move: <Move />,
+	pan: <Hand />,
 	undo: <Undo />,
 	redo: <Redo />
 };

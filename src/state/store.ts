@@ -41,15 +41,15 @@ export function initializeStore(preloadedState: Partial<SliceStores> = {}) {
 }
 
 export const MODES: Modes = [
-	{ name: "select", shortcut: "s" },
-	{ name: "draw", shortcut: "d" },
-	{ name: "erase", shortcut: "e" },
+	{ name: "move", shortcut: "m" },
+	{ name: "brush", shortcut: "b" },
+	{ name: "eraser", shortcut: "e" },
 	{ name: "shapes", shortcut: "a" },
 	// { name: "text", shortcut: "t" },
 	{ name: "eye_drop", shortcut: "i" },
 	{ name: "zoom_in", shortcut: "+" },
 	{ name: "zoom_out", shortcut: "_" },
-	{ name: "move", shortcut: "m" },
+	{ name: "pan", shortcut: "p" },
 	{ name: "undo", shortcut: "ctrl + z" },
 	{ name: "redo", shortcut: "ctrl + shift + z" }
 ];

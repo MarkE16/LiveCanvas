@@ -2,10 +2,10 @@ import type { StateCreator } from "zustand";
 import { v4 as uuid } from "uuid";
 import type {
 	CanvasElement,
-	Shape,
 	CanvasElementsStore,
 	CanvasStore,
-	HistoryStore
+	HistoryStore,
+	CanvasElementType
 } from "@/types";
 
 type Predicate = (element: CanvasElement) => boolean;
@@ -16,30 +16,8 @@ export const createCanvasElementsSlice: StateCreator<
 	[],
 	CanvasElementsStore
 > = (set, get) => {
-	function focusElement(predicate: Predicate) {
-		const elements = get().elements;
-		const newElements = elements.map((element) => {
-			if (predicate(element)) {
-				return { ...element, focused: true };
-			}
-			return element;
-		});
-		set({ elements: newElements });
-	}
-
-	function unfocusElement(predicate: Predicate) {
-		const elements = get().elements;
-		const newElements = elements.map((element) => {
-			if (predicate(element)) {
-				return { ...element, focused: false };
-			}
-			return element;
-		});
-		set({ elements: newElements });
-	}
-
 	function createElement(
-		type: Shape | "text",
+		type: CanvasElementType,
 		properties?: Omit<Partial<CanvasElement>, "id">
 	) {
 		if (type === "text" && !properties?.text) {
@@ -54,16 +32,14 @@ export const createCanvasElementsSlice: StateCreator<
 
 		const id = uuid();
 
-		// Used NaN to indicate that the x and y values are not set. They will be set later when the user moves the element.
 		const element = {
-			x: NaN,
-			y: NaN,
+			x: 0,
+			y: 0,
 			width: 100,
 			height: 100,
 			fill: "#000000",
-			stroke: "#000000",
-			focused: false,
 			type,
+			path: [],
 			...properties, // Override the default properties with the provided properties, if any.
 			id // Keep the id as the last property to ensure that it is not overridden.
 		};
@@ -107,10 +83,6 @@ export const createCanvasElementsSlice: StateCreator<
 		}));
 	}
 
-	function updateMovingState(state: boolean) {
-		set({ elementMoving: state });
-	}
-
 	function setElements(elements: CanvasElement[]) {
 		set({ elements });
 	}
@@ -140,13 +112,9 @@ export const createCanvasElementsSlice: StateCreator<
 	return {
 		elements: [],
 		copiedElements: [],
-		elementMoving: false,
-		focusElement,
-		unfocusElement,
 		createElement,
 		changeElementProperties,
 		deleteElement,
-		updateMovingState,
 		setElements,
 		copyElement,
 		pasteElement
