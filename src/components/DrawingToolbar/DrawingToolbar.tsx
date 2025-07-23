@@ -49,11 +49,11 @@ function DrawingToolbar(): ReactNode {
 		}))
 	);
 
-  const strengthSettings = {
-    value: strokeWidth,
-    min: 1,
-    max: 100
-  };
+	const strengthSettings = {
+		value: strokeWidth,
+		min: 1,
+		max: 100
+	};
 
 	const handleStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const strength = Number(e.target.value);
@@ -110,7 +110,7 @@ function DrawingToolbar(): ReactNode {
 
 	const renderedStrength = (
 		<Fragment key="settings_Strength">
-			Strength:{" "}
+			Stroke Width:
 			<input
 				name={`${mode}_strength`.toUpperCase()}
 				type="range"
@@ -192,7 +192,7 @@ function DrawingToolbar(): ReactNode {
 
 	return (
 		<div
-			className="flex items-center justify-center absolute top-[10px] w-[80%] min-w-0 min-h-[46px] rounded-[25px] bg-[#303744] shadow-[0_0_10px_rgba(0,0,0,0.5)] p-[0.5em_1.5em] overflow-auto z-[100] pointer-events-none [&>*]:pointer-events-auto"
+			className="flex items-center justify-center text-center absolute top-[10px] w-[80%] min-w-0 min-h-[46px] rounded-[25px] bg-[#303744] shadow-[0_0_10px_rgba(0,0,0,0.5)] p-[0.5em_1.5em] overflow-auto z-[100] pointer-events-none [&>*]:pointer-events-auto"
 			data-testid="drawing-toolbar"
 			role="toolbar"
 			onMouseDown={stopPropagation}

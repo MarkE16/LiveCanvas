@@ -10,8 +10,6 @@ import type { Mode, ToolbarMode } from "@/types";
 import type { ReactNode } from "react";
 
 // Components
-import Select from "@/components/icons/Select/Select";
-import Pen from "@/components/icons/Pen/Pen";
 import Eraser from "@/components/icons/Eraser/Eraser";
 import Shapes from "@/components/icons/Shapes/Shapes";
 import EyeDropper from "@/components/icons/EyeDropper/EyeDropper";
@@ -24,6 +22,7 @@ import Text from "@/components/icons/Text/Text";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Hand from "../icons/Hand/Hand";
 import Square from "../icons/Square/Square";
+import Brush from "../icons/Brush/Brush";
 
 type ToolbarButtonProps = Readonly<
 	ToolbarMode & {
@@ -33,7 +32,7 @@ type ToolbarButtonProps = Readonly<
 
 const ICONS: Record<Mode, ReactNode> = {
 	move: <Move />,
-	brush: <Pen />,
+	brush: <Brush />,
 	select: <Square dashed />,
 	eraser: <Eraser />,
 	shapes: <Shapes />,

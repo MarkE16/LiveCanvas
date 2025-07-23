@@ -350,8 +350,13 @@ export const createCanvasSlice: StateCreator<
 
 	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
 		let elements = get().elements;
-		const background = get().background;
-		const layers = get().layers;
+		const {
+			background,
+			layers,
+			dpi,
+			width: canvasWidth,
+			height: canvasHeight
+		} = get();
 
 		const ctx = canvas.getContext("2d");
 		if (!ctx) {
@@ -373,6 +378,17 @@ export const createCanvasSlice: StateCreator<
 		const canvasX = 0;
 		const canvasY = 0;
 		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
+
+		const isPreviewCanvas = canvas.width < canvasWidth * dpi;
+
+		if (isPreviewCanvas) {
+			// If the canvas is a preview canvas, scale it down.
+			const scale = canvas.width / (canvasWidth * dpi);
+			// Save the current transform state.
+			ctx.save();
+
+			ctx.scale(scale, scale);
+		}
 
 		for (const element of elements) {
 			const { x, y, width, height } = element;
@@ -453,8 +469,14 @@ export const createCanvasSlice: StateCreator<
 		// Finally, draw the background behind all elements.
 		ctx.fillStyle = background;
 
+		// 'destination-over' changes the way the background is drawn
+		// by drawing behind existing content.
 		ctx.globalCompositeOperation = "destination-over";
 		ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
+
+		if (isPreviewCanvas) {
+			ctx.restore(); // Restore the previous transform state.
+		}
 	}
 
 	return {
