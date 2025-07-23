@@ -5,9 +5,9 @@ export type CanvasState = {
 	height: number;
 	mode: Mode;
 	shape: Shape;
+	shapeMode: "fill" | "stroke";
 	color: string;
-	drawStrength: number;
-	eraserStrength: number;
+	strokeWidth: number;
 	selection: RectProperties | null;
 	layers: Layer[];
 	currentLayer: number;
@@ -74,11 +74,13 @@ export type CanvasElement = {
 	width: number;
 	height: number;
 	type: CanvasElementType;
-	fill: string;
+	color: string;
 	id: string;
 	text?: FontProperties;
 	path: Coordinates[];
 	layerId: string;
+	drawType: "fill" | "stroke";
+	strokeWidth: number;
 	// Inverted means if the current y coordinate is less
 	// than the initial y coordinate (the coordinate when the mouse was pressed)
 	inverted: boolean;

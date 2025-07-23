@@ -3,6 +3,7 @@ import { SHAPES } from "@/state/store";
 import { memo, Fragment } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
 
 // Type
 import type { ReactNode, ChangeEvent, MouseEvent, ReactElement } from "react";
@@ -31,48 +32,33 @@ function DrawingToolbar(): ReactNode {
 	const {
 		mode,
 		shape,
-		drawStrength,
-		eraserStrength,
-		changeDrawStrength,
-		changeEraserStrength,
-		changeColorAlpha
+		shapeMode,
+		strokeWidth,
+		changeStrokeWidth,
+		changeColorAlpha,
+		changeShapeMode
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			shape: state.shape,
-			drawStrength: state.drawStrength,
-			eraserStrength: state.eraserStrength,
-			changeDrawStrength: state.changeDrawStrength,
-			changeEraserStrength: state.changeEraserStrength,
-			changeColorAlpha: state.changeColorAlpha
+			shapeMode: state.shapeMode,
+			strokeWidth: state.strokeWidth,
+			changeStrokeWidth: state.changeStrokeWidth,
+			changeColorAlpha: state.changeColorAlpha,
+			changeShapeMode: state.changeShapeMode
 		}))
 	);
-	const elements = useStore(
-		(state) => state.elements,
-		(a, b) => a.length === b.length && a.every((el, i) => el.fill === b[i].fill)
-	);
 
-	const strengthSettings =
-		mode === "brush"
-			? {
-					value: drawStrength,
-					min: 1,
-					max: 15
-				}
-			: {
-					value: eraserStrength,
-					min: 3,
-					max: 10
-				};
+  const strengthSettings = {
+    value: strokeWidth,
+    min: 1,
+    max: 100
+  };
 
 	const handleStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const strength = Number(e.target.value);
 
-		if (mode === "brush") {
-			changeDrawStrength(strength);
-		} else {
-			changeEraserStrength(strength);
-		}
+		changeStrokeWidth(strength);
 	};
 
 	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -80,14 +66,47 @@ function DrawingToolbar(): ReactNode {
 		changeColorAlpha(value);
 	};
 
-	const renderedShapes = SHAPES.map((s) => (
-		<MemoizedShapeOption
-			key={s}
-			icon={SHAPE_ICONS[s]}
-			name={s}
-			isActive={shape === s}
-		/>
-	));
+	const renderedShapes = (
+		<Fragment key="settings_Shapes">
+			{SHAPES.map((s) => (
+				<MemoizedShapeOption
+					key={s}
+					icon={SHAPE_ICONS[s]}
+					name={s}
+					isActive={shape === s}
+				/>
+			))}
+		</Fragment>
+	);
+
+	const renderedShapeMode = (
+		<Fragment key="settings_ShapeMode">
+			<button
+				onClick={() => changeShapeMode("fill")}
+				className={clsx(
+					"border-none inline-flex justify-center items-center bg-transparent w-[30px] h-[30px] rounded-full mx-[0.5em] my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					{
+						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
+							shapeMode === "fill"
+					}
+				)}
+			>
+				Fill
+			</button>
+			<button
+				onClick={() => changeShapeMode("stroke")}
+				className={clsx(
+					"border-none inline-flex justify-center items-center bg-transparent w-[30px] h-[30px] rounded-full mx-[0.5em] my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					{
+						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
+							shapeMode === "stroke"
+					}
+				)}
+			>
+				Stroke
+			</button>
+		</Fragment>
+	);
 
 	const renderedStrength = (
 		<Fragment key="settings_Strength">
@@ -147,26 +166,27 @@ function DrawingToolbar(): ReactNode {
 	} else if (mode === "eraser") {
 		additionalSettings.push(renderedStrength);
 	} else if (mode === "shapes") {
-		additionalSettings.push(<>{renderedShapes}</>);
+		additionalSettings.push(
+			renderedShapes,
+			renderedStrength,
+			renderedShapeMode
+		);
 	}
 
-	// if (focusedElements.length > 0) {
-	// 	additionalSettings.push(renderedShapeSettings);
-	// }
-
 	// Now insert a break between each setting.
-	additionalSettings.forEach((_, index) => {
-		if (index % 2 !== 0) {
+	for (let i = 0; i < additionalSettings.length; i++) {
+		if (i % 2 !== 0) {
 			additionalSettings.splice(
-				index,
+				i,
 				0,
 				<span
-					key={`break-${index}`}
+					key={`break-${i}`}
 					className="mx-[15px] border-l border-[rgb(99,99,99)] h-[30px]"
 				/>
 			);
+			i++; // Skip the next index since we just added a break
 		}
-	});
+	}
 
 	const stopPropagation = (e: MouseEvent) => e.stopPropagation();
 

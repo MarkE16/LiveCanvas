@@ -1,5 +1,5 @@
 // Lib
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import useStore from "@/state/hooks/useStore";
 
 // Types

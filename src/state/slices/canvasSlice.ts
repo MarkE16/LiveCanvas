@@ -60,16 +60,12 @@ export const createCanvasSlice: StateCreator<
 		set({ shape: payload });
 	}
 
-	function changeDrawStrength(payload: number) {
-		set({
-			drawStrength: Math.max(1, Math.min(15, payload))
-		});
+	function changeShapeMode(payload: "fill" | "stroke") {
+		set({ shapeMode: payload });
 	}
 
-	function changeEraserStrength(payload: number) {
-		set({
-			eraserStrength: Math.max(3, Math.min(10, payload))
-		});
+	function changeStrokeWidth(payload: number) {
+    set({ strokeWidth: payload });
 	}
 
 	function changeDPI(payload: number) {
@@ -376,8 +372,8 @@ export const createCanvasSlice: StateCreator<
 					const width = endX - startX;
 					const height = endY - startY;
 
-					ctx.fillStyle = element.fill ?? "";
-					ctx.strokeStyle = element.fill ?? "black";
+					ctx.fillStyle = element.color ?? "";
+					ctx.strokeStyle = element.color ?? "black";
 
 					ctx.beginPath();
 					switch (element.type) {
@@ -480,22 +476,24 @@ export const createCanvasSlice: StateCreator<
 			throw new Error("Failed to get 2D context from canvas when drawing.");
 		}
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		const canvasX = 0;
+		const canvasY = 0;
+		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
 
 		for (const element of elements) {
 			const { x, y, width, height } = element;
 
-			ctx.fillStyle = element.fill ?? "transparent";
-			ctx.strokeStyle = element.fill ?? "black";
+			ctx.fillStyle = element.color ?? "transparent";
+			ctx.strokeStyle = element.color ?? "black";
+			ctx.lineWidth = element.strokeWidth;
 			ctx.globalCompositeOperation =
 				element.type === "eraser" ? "destination-out" : "source-over";
+			ctx.lineCap = "round";
 
 			switch (element.type) {
 				case "brush":
 				case "eraser": {
 					ctx.beginPath();
-					ctx.lineWidth = 5;
-					ctx.lineCap = "round";
 
 					for (const [index, point] of element.path.entries()) {
 						if (index === 0) {
@@ -519,30 +517,40 @@ export const createCanvasSlice: StateCreator<
 						0,
 						2 * Math.PI
 					);
-					ctx.fill();
-					ctx.stroke();
+					if (element.drawType === "fill") {
+						ctx.fill();
+					} else {
+						ctx.stroke();
+					}
 					break;
 				}
 				case "rectangle": {
-					ctx.fillRect(x, y, width, height);
-					ctx.strokeRect(x, y, width, height);
+					if (element.drawType === "fill") {
+						ctx.fillRect(x, y, width, height);
+					} else {
+						ctx.strokeRect(x, y, width, height);
+					}
 					break;
 				}
 
 				case "triangle": {
 					ctx.beginPath();
 					if (element.inverted) {
-					  ctx.moveTo(x + width / 2, y + height);
-            ctx.lineTo(x + width, y);
-            ctx.lineTo(x, y);
+						ctx.moveTo(x + width / 2, y + height);
+						ctx.lineTo(x + width, y);
+						ctx.lineTo(x, y);
 					} else {
 						ctx.moveTo(x + width / 2, y);
 						ctx.lineTo(x + width, y + height);
 						ctx.lineTo(x, y + height);
 					}
 					ctx.closePath();
-					ctx.fill();
-					ctx.stroke();
+
+					if (element.drawType === "fill") {
+						ctx.fill();
+					} else {
+						ctx.stroke();
+					}
 					break;
 				}
 			}
@@ -554,9 +562,9 @@ export const createCanvasSlice: StateCreator<
 		height: 400,
 		mode: "move",
 		shape: "rectangle",
+		shapeMode: "fill",
 		color: "hsla(0, 0%, 0%, 1)",
-		drawStrength: 5,
-		eraserStrength: 3,
+		strokeWidth: 5,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 		selection: null,
 		currentLayer: 0,
@@ -569,8 +577,8 @@ export const createCanvasSlice: StateCreator<
 		changeColorAlpha,
 		changeMode,
 		changeShape,
-		changeDrawStrength,
-		changeEraserStrength,
+		changeShapeMode,
+		changeStrokeWidth,
 		changeDPI,
 		createLayer,
 		deleteLayer,

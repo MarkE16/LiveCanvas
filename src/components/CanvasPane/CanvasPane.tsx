@@ -304,7 +304,6 @@ function CanvasPane(): ReactNode {
 			>
 				<MemoizedCanvas
 					isGrabbing={isMoving || isPanning}
-					canvasSpaceRef={canvasSpaceRef}
 					ref={canvasRef}
 				/>
 			</div>

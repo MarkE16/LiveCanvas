@@ -10,9 +10,7 @@ function useCanvasRedrawListener(
 	const handleCanvasRedraw = useThrottle(() => {
 		const canvas = canvasRef.current;
 		if (canvas) {
-			// requestAnimationFrame(() => {
-				drawCanvas(canvas);
-			// });
+			drawCanvas(canvas);
 		}
 	}, 10);
 

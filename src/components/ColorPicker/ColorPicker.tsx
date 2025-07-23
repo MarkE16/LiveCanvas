@@ -30,7 +30,7 @@ import type { CanvasElement } from "@/types";
 
 type ColorPickerProps = {
 	label: string;
-	__for: keyof Pick<CanvasElement, "fill">;
+	__for: keyof Pick<CanvasElement, "color">;
 	value: string;
 };
 

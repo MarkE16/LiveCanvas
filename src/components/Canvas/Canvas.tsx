@@ -3,7 +3,6 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import useStore from "@/state/hooks/useStore";
 import * as Utils from "@/lib/utils";
 import clsx from "clsx";
@@ -19,7 +18,6 @@ import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
 type CanvasProps = {
 	isGrabbing: boolean;
-	canvasSpaceRef: RefObject<HTMLDivElement | null>;
 };
 
 type DBLayer = {
@@ -32,7 +30,7 @@ type DBLayer = {
 const THROTTLE_DELAY_MS = 10; // milliseconds
 
 const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
-	{ isGrabbing, canvasSpaceRef },
+	{ isGrabbing },
 	ref
 ) {
 	const {
@@ -65,10 +63,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
-	const drawStrength = useStoreSubscription((state) => state.drawStrength);
-	const eraserStrength = useStoreSubscription((state) => state.eraserStrength);
+  const strokeWidth = useStoreSubscription(
+    (state) => state.strokeWidth
+  );
 
-	const { references } = useLayerReferences();
+
+	const shapeMode = useStoreSubscription((state) => state.shapeMode);
 
 	const isDrawing = useRef<boolean>(false);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,8 +85,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		height: 0
 	});
 	const isClipped = useRef<boolean>(false);
-
-	const ERASER_RADIUS = 7;
 
 	// Handler for when the mouse is pressed down on the canvas.
 	// This should initiate the drawing process.
@@ -166,13 +164,13 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				y: Math.min(y, initY),
 				width: Math.abs(x - initX),
 				height: Math.abs(y - initY),
-				fill: color.current,
+				color: color.current,
 				layerId: activeLayer.id,
 				inverted: y < initY
 			});
 		} else if (mode === "brush" || mode === "eraser") {
 			createElement(mode, {
-				fill: color.current,
+				color: color.current,
 				layerId: activeLayer.id,
 				path: currentPath.current
 			});
@@ -260,17 +258,24 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		// 	// check if the mouse is within the rectangle.
 		// 	// Otherwise, we should not draw.
 		// 	if (e.clientX - left < selectX) {
-		// 		x = startRectX + drawStrength.current * dpi;
+		// 		x = startRectX + strokeWidth.current * dpi;
 		// 	} else {
-		// 		x = Math.min(x, startRectX + rectWidth - drawStrength.current * dpi);
+		// 		x = Math.min(x, startRectX + rectWidth - strokeWidth.current * dpi);
 		// 	}
 
 		// 	if (e.clientY - top < selectY) {
-		// 		y = startRectY + drawStrength.current * dpi;
+		// 		y = startRectY + strokeWidth.current * dpi;
 		// 	} else {
-		// 		y = Math.min(y, startRectY + rectHeight - drawStrength.current * dpi);
+		// 		y = Math.min(y, startRectY + rectHeight - strokeWidth.current * dpi);
 		// 	}
 		// }
+
+		ctx.globalCompositeOperation =
+			mode === "eraser" ? "destination-out" : "source-over";
+		ctx.fillStyle = color.current;
+		ctx.strokeStyle = color.current;
+		ctx.lineWidth = strokeWidth.current * dpi;
+		const currentShapeMode = shapeMode.current;
 
 		switch (mode) {
 			case "select": {
@@ -299,11 +304,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 					return;
 				}
 				ctx.strokeStyle = color.current;
-				ctx.lineWidth = drawStrength.current * dpi;
+				ctx.lineWidth = strokeWidth.current * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
-				ctx.globalCompositeOperation =
-					mode === "eraser" ? "destination-out" : "source-over";
 
 				currentPath2D.current.lineTo(x, y);
 				ctx.stroke(currentPath2D.current);
@@ -339,8 +342,11 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 						0,
 						Math.PI * 2
 					);
-					ctx.fillStyle = color.current;
-					ctx.fill(currentPath2D.current);
+					if (currentShapeMode === "fill") {
+						ctx.fill(currentPath2D.current);
+					} else {
+						ctx.stroke(currentPath2D.current);
+					}
 				} else if (shape === "rectangle") {
 					if (!currentPath2D.current) {
 						console.error("Couldn't create a Path2D object.");
@@ -357,8 +363,11 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 						width,
 						height
 					);
-					ctx.fillStyle = color.current;
-					ctx.fill(currentPath2D.current);
+					if (currentShapeMode === "fill") {
+						ctx.fill(currentPath2D.current);
+					} else {
+						ctx.stroke(currentPath2D.current);
+					}
 				} else if (shape === "triangle") {
 					if (!currentPath2D.current) {
 						console.error("Couldn't create a Path2D object.");
@@ -382,8 +391,11 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 						initialPosition.current.y + height
 					);
 					currentPath2D.current.closePath();
-					ctx.fillStyle = color.current;
-					ctx.fill(currentPath2D.current);
+					if (currentShapeMode === "fill") {
+						ctx.fill(currentPath2D.current);
+					} else {
+						ctx.stroke(currentPath2D.current);
+					}
 				}
 				break;
 			}
@@ -411,7 +423,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// updateLayerContents(newEntries);
 			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
-		
+
 		function updateLayerState(entries: [string, Layer][]) {
 			return new Promise<[string, DBLayer][]>((resolve) => {
 				const newLayers: Layer[] = [];
@@ -440,28 +452,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		}
 
 		updateLayers();
-	}, [setLayers, references]);
-
-	useEffect(() => {
-		const refs = references.current;
-		for (const canvas of refs) {
-			const ctx = canvas.getContext("2d");
-
-			if (!ctx) return;
-
-			ctx.scale(dpi, dpi);
-		}
-
-		return () => {
-			for (const canvas of refs) {
-				const ctx = canvas.getContext("2d");
-
-				if (!ctx) return;
-
-				ctx.scale(1 / dpi, 1 / dpi);
-			}
-		};
-	}, [dpi, references]);
+	}, [setLayers]);
 
 	const transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
 

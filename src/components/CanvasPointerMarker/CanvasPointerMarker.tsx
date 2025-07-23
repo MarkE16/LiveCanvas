@@ -18,23 +18,20 @@ function CanvasPointerMarker({
 	canvasSpaceReference,
 	shiftKey
 }: CanvasPointerMarker): ReactNode {
-	const { mode, scale, drawStrength, eraserStrength, deleteElement } = useStore(
+	const { mode, scale, strokeWidth, deleteElement } = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			scale: state.scale,
-			drawStrength: state.drawStrength,
-			eraserStrength: state.eraserStrength,
+			strokeWidth: state.strokeWidth,
 			deleteElement: state.deleteElement
 		}))
 	);
-	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const ref = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 
 	const ERASER_RADIUS = 7;
-	const POINTER_SIZE =
-		(mode === "brush" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
+	const POINTER_SIZE = strokeWidth * scale;
 
 	useEffect(() => {
 		const canvasSpace = canvasSpaceReference.current;
@@ -106,7 +103,6 @@ function CanvasPointerMarker({
 				const node = elements[i];
 				if (
 					Utils.isRectIntersecting(m, node) &&
-					!isMovingElement.current &&
 					mode === "eraser" &&
 					e.buttons === 1
 				) {
@@ -120,7 +116,7 @@ function CanvasPointerMarker({
 		return () => {
 			canvasSpace.removeEventListener("mousemove", isIntersecting);
 		};
-	}, [deleteElement, mode, canvasSpaceReference, isMovingElement]);
+	}, [deleteElement, mode, canvasSpaceReference]);
 
 	return (
 		<div

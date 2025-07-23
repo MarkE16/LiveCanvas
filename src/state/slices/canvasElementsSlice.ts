@@ -18,7 +18,7 @@ export const createCanvasElementsSlice: StateCreator<
 > = (set, get) => {
 	function createElement(
 		type: CanvasElementType,
-		properties?: Omit<Partial<CanvasElement>, "id">
+		properties?: Omit<Partial<CanvasElement>, "id" | "drawType" | "strokeWidth">
 	) {
 		if (type === "text" && !properties?.text) {
 			throw new Error(
@@ -31,17 +31,20 @@ export const createCanvasElementsSlice: StateCreator<
 		}
 
 		const id = uuid();
-		
+    const { shapeMode, strokeWidth } = get();
+
 		const element = {
 			x: 0,
 			y: 0,
 			width: 100,
 			height: 100,
-			fill: "#000000",
+			color: "#000000",
 			type,
 			inverted: false,
 			path: [],
 			...properties, // Override the default properties with the provided properties, if any.
+			drawType: shapeMode,
+			strokeWidth,
 			id // Keep the id as the last property to ensure that it is not overridden.
 		};
 

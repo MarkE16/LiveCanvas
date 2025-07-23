@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 const Square = ({
   dashed = false,
   ...props
-}: ComponentProps<"svg"> & { dashed: boolean }) => !dashed ? (
+}: ComponentProps<"svg"> & { dashed?: boolean }) => !dashed ? (
   <LucideSquare
     size="1em"
     {...props}
