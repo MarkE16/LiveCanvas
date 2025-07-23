@@ -23,6 +23,7 @@ import Redo from "@/components/icons/Redo/Redo";
 import Text from "@/components/icons/Text/Text";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Hand from "../icons/Hand/Hand";
+import Square from "../icons/Square/Square";
 
 type ToolbarButtonProps = Readonly<
 	ToolbarMode & {
@@ -33,6 +34,7 @@ type ToolbarButtonProps = Readonly<
 const ICONS: Record<Mode, ReactNode> = {
 	move: <Move />,
 	brush: <Pen />,
+	select: <Square dashed />,
 	eraser: <Eraser />,
 	shapes: <Shapes />,
 	text: <Text />,

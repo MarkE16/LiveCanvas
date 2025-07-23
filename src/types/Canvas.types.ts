@@ -8,6 +8,7 @@ export type CanvasState = {
 	color: string;
 	drawStrength: number;
 	eraserStrength: number;
+	selection: RectProperties | null;
 	layers: Layer[];
 	currentLayer: number;
 	scale: number;
@@ -18,6 +19,7 @@ export type CanvasState = {
 
 export type Mode =
 	| "brush"
+	| "select"
 	| "eraser"
 	| "shapes"
 	| "text"
@@ -29,7 +31,8 @@ export type Mode =
 	| "undo"
 	| "redo";
 
-	
+export type RectProperties = Dimensions & Coordinates;
+
 export type Shape = "rectangle" | "circle" | "triangle";
 export type Coordinates = {
 	x: number;
@@ -54,7 +57,10 @@ export type Modes = ToolbarMode[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 
-export type CanvasElementType = Shape | 'text' | Extract<Mode, "brush" | "eraser">;
+export type CanvasElementType =
+	| Shape
+	| "text"
+	| Extract<Mode, "brush" | "eraser">;
 
 export type FontProperties = {
 	size: number;
@@ -71,8 +77,11 @@ export type CanvasElement = {
 	fill: string;
 	id: string;
 	text?: FontProperties;
-  path: Coordinates[];
+	path: Coordinates[];
 	layerId: string;
+	// Inverted means if the current y coordinate is less
+	// than the initial y coordinate (the coordinate when the mouse was pressed)
+	inverted: boolean;
 	// More properties later...
 };
 

@@ -8,7 +8,8 @@ import type {
 	Coordinates,
 	HistoryAction,
 	SavedCanvasProperties,
-    CanvasElementType
+    CanvasElementType,
+    RectProperties
 } from "../types";
 
 export type CanvasElementsStore = {
@@ -47,6 +48,7 @@ export type CanvasStore = CanvasState & {
 	removeLayer: (payload: string) => void;
 	setLayers: (payload: Layer[]) => void;
   getActiveLayer: () => Layer;
+  updateSelectionRect: (payload: Partial<RectProperties> | null) => void;
 	increaseScale: () => void;
 	decreaseScale: () => void;
 	setPosition: (payload: Partial<Coordinates>) => void;

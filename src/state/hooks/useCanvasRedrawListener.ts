@@ -1,6 +1,5 @@
 import { RefObject, useEffect } from "react";
 import useStore from "./useStore";
-import { CanvasRedrawEvent } from "@/types";
 import useThrottle from "./useThrottle";
 
 function useCanvasRedrawListener(

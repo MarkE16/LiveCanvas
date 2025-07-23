@@ -10,7 +10,8 @@ import type {
 	HistoryStore,
 	CanvasElementsStore,
 	SavedCanvasProperties,
-	Shape
+	Shape,
+	RectProperties
 } from "@/types";
 import * as Utils from "@/lib/utils";
 
@@ -183,6 +184,21 @@ export const createCanvasSlice: StateCreator<
 		return layers[currentLayer];
 	}
 
+	function updateSelectionRect(payload: Partial<RectProperties> | null) {
+		if (!payload) {
+			set({ selection: null });
+		} else {
+			set((state) => ({
+				selection: {
+					x: payload.x ?? state.selection?.x ?? 0,
+					y: payload.y ?? state.selection?.y ?? 0,
+					width: payload.width ?? state.selection?.width ?? 0,
+					height: payload.height ?? state.selection?.height ?? 0
+				}
+			}));
+		}
+	}
+
 	function increaseScale() {
 		set((state) => ({
 			scale: Math.min(3, state.scale + 0.1)
@@ -239,14 +255,7 @@ export const createCanvasSlice: StateCreator<
 	async function prepareForSave(): Promise<SavedCanvasProperties> {
 		const { layers, elements } = get();
 
-		const newElements = elements.map((element) => {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { focused, ...rest } = element;
-
-			return rest;
-		});
-
-		return { layers, elements: newElements };
+		return { layers, elements };
 	}
 
 	async function prepareForExport(
@@ -522,9 +531,15 @@ export const createCanvasSlice: StateCreator<
 
 				case "triangle": {
 					ctx.beginPath();
-					ctx.moveTo(x + width / 2, y);
-					ctx.lineTo(x + width, y + height);
-					ctx.lineTo(x, y + height);
+					if (element.inverted) {
+					  ctx.moveTo(x + width / 2, y + height);
+            ctx.lineTo(x + width, y);
+            ctx.lineTo(x, y);
+					} else {
+						ctx.moveTo(x + width / 2, y);
+						ctx.lineTo(x + width, y + height);
+						ctx.lineTo(x, y + height);
+					}
 					ctx.closePath();
 					ctx.fill();
 					ctx.stroke();
@@ -543,6 +558,7 @@ export const createCanvasSlice: StateCreator<
 		drawStrength: 5,
 		eraserStrength: 3,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
+		selection: null,
 		currentLayer: 0,
 		scale: 1,
 		dpi: 1,
@@ -566,6 +582,7 @@ export const createCanvasSlice: StateCreator<
 		removeLayer,
 		setLayers,
 		getActiveLayer,
+		updateSelectionRect,
 		increaseScale,
 		decreaseScale,
 		setPosition,

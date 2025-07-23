@@ -14,7 +14,7 @@ export default {
 					"slideLeftAndFade 400ms cubic-bezier(0.16, 1, 0.3, 1)",
 				"menubar-appear": "menubarAppear 400ms cubic-bezier(0.16, 1, 0.3, 1)",
 				"popover-slide": "popoverSlide 200ms",
-				"popover-slide-reverse": "popoverSlide 200ms reverse ease-in"
+				"popover-slide-reverse": "popoverSlide 200ms reverse ease-in",
 			},
 			gridTemplateAreas: {
 				"color-slider": ["label output", "track track"]

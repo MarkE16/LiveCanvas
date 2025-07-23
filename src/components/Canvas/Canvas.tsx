@@ -10,8 +10,8 @@ import clsx from "clsx";
 import LayersStore from "@/state/stores/LayersStore";
 
 // Types
-import type { ReactNode, MouseEvent } from "react";
-import type { Layer, Coordinates } from "@/types";
+import type { RefObject, MouseEvent } from "react";
+import { type Layer, type Coordinates, RectProperties } from "@/types";
 import useThrottle from "@/state/hooks/useThrottle";
 import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
@@ -19,6 +19,7 @@ import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
 type CanvasProps = {
 	isGrabbing: boolean;
+	canvasSpaceRef: RefObject<HTMLDivElement | null>;
 };
 
 type DBLayer = {
@@ -31,7 +32,7 @@ type DBLayer = {
 const THROTTLE_DELAY_MS = 10; // milliseconds
 
 const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
-	{ isGrabbing },
+	{ isGrabbing, canvasSpaceRef },
 	ref
 ) {
 	const {
@@ -70,7 +71,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 	const { references } = useLayerReferences();
 
 	const isDrawing = useRef<boolean>(false);
-	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const currentPath2D = useRef<Path2D | null>(null);
 	const currentPath = useRef<Coordinates[]>([]);
@@ -78,6 +78,13 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		x: 0,
 		y: 0
 	});
+	const selectRect = useRef<RectProperties>({
+		x: 0,
+		y: 0,
+		width: 0,
+		height: 0
+	});
+	const isClipped = useRef<boolean>(false);
 
 	const ERASER_RADIUS = 7;
 
@@ -103,7 +110,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		if (mode === "brush" || mode === "shapes" || mode === "eraser") {
 			ctx?.beginPath();
-			currentPath2D.current = new Path2D();
 		} else if (mode === "eye_drop" && !isGrabbing) {
 			// `.getImageData()` retreives the x and y coordinates of the pixel
 			// differently if the canvas is scaled. So, we need to multiply the
@@ -161,7 +167,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				width: Math.abs(x - initX),
 				height: Math.abs(y - initY),
 				fill: color.current,
-				layerId: activeLayer.id
+				layerId: activeLayer.id,
+				inverted: y < initY
 			});
 		} else if (mode === "brush" || mode === "eraser") {
 			createElement(mode, {
@@ -190,8 +197,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		});
 
 		document.dispatchEvent(imageUpdate);
-		if (currentPath.current.length > 0) {
-		}
 
 		if (mode === "brush" || mode === "eraser") {
 			// Save the action to the history.
@@ -206,6 +211,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// Clear the current path.
 			currentPath.current = [];
 		}
+		currentPath2D.current = new Path2D();
 	};
 
 	const onMouseEnter = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -234,9 +240,58 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		document.dispatchEvent(new CustomEvent("canvas:redraw"));
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		let { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+
+		// const { x: startRectX, y: startRectY } = Utils.getCanvasPosition(
+		// 	selectX + left,
+		// 	selectY + top,
+		// 	activeLayer
+		// );
+		// const { x: endRectX, y: endRectY } = Utils.getCanvasPosition(
+		// 	selectX + selectWidth + left,
+		// 	selectY + selectHeight + top,
+		// 	activeLayer
+		// );
+		// const rectWidth = endRectX - startRectX;
+		// const rectHeight = endRectY - startRectY;
+
+		// if (selectRect.current) {
+		// 	// If the user is drawing a selection rectangle,
+		// 	// check if the mouse is within the rectangle.
+		// 	// Otherwise, we should not draw.
+		// 	if (e.clientX - left < selectX) {
+		// 		x = startRectX + drawStrength.current * dpi;
+		// 	} else {
+		// 		x = Math.min(x, startRectX + rectWidth - drawStrength.current * dpi);
+		// 	}
+
+		// 	if (e.clientY - top < selectY) {
+		// 		y = startRectY + drawStrength.current * dpi;
+		// 	} else {
+		// 		y = Math.min(y, startRectY + rectHeight - drawStrength.current * dpi);
+		// 	}
+		// }
 
 		switch (mode) {
+			case "select": {
+				document.dispatchEvent(new CustomEvent("canvas:redraw"));
+
+				ctx.save();
+				ctx.strokeStyle = "rgba(0, 0, 255, 1)";
+				ctx.lineWidth = 2;
+
+				ctx.setLineDash([5, 5]);
+				ctx.strokeRect(
+					initialPosition.current.x,
+					initialPosition.current.y,
+					x - initialPosition.current.x,
+					y - initialPosition.current.y
+				);
+
+				ctx.clip();
+				ctx.restore();
+				break;
+			}
 			case "brush":
 			case "eraser": {
 				if (!currentPath2D.current) {
@@ -314,10 +369,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 					const width = x - initialPosition.current.x;
 					const height = y - initialPosition.current.y;
-					//     ctx!.moveTo(startX + rectWidth / 2, startY);
-					// ctx!.lineTo(startX, startY + rectHeight);
-					// ctx!.lineTo(startX + rectWidth, startY + rectHeight);
-					// ctx!.lineTo(startX + rectWidth / 2, startY);
 					currentPath2D.current.moveTo(
 						initialPosition.current.x + width / 2,
 						initialPosition.current.y
@@ -331,12 +382,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 						initialPosition.current.y + height
 					);
 					currentPath2D.current.closePath();
-					ctx.rotate(
-						Math.atan2(
-							y - initialPosition.current.y,
-							x - initialPosition.current.x
-						)
-					);
 					ctx.fillStyle = color.current;
 					ctx.fill(currentPath2D.current);
 				}
@@ -366,8 +411,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// updateLayerContents(newEntries);
 			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
-
-		function updateLayerState(entries: [string, DBLayer][]) {
+		
+		function updateLayerState(entries: [string, Layer][]) {
 			return new Promise<[string, DBLayer][]>((resolve) => {
 				const newLayers: Layer[] = [];
 
@@ -391,35 +436,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				setLayers(newLayers);
 
 				resolve(sorted);
-			});
-		}
-
-		function updateLayerContents(entries: [string, DBLayer][]) {
-			entries.forEach((entry) => {
-				const [, { position, image }] = entry;
-				const canvas = references.current[position];
-
-				if (!canvas) return;
-
-				const ctx = canvas.getContext("2d");
-				const img = new Image();
-
-				img.onload = () => {
-					ctx!.drawImage(img, 0, 0);
-					URL.revokeObjectURL(img.src);
-
-					// A custom event to notify that the image of the layer
-					// displayed in the layer list needs to be updated.
-					const ev = new CustomEvent("imageupdate", {
-						detail: {
-							layer: canvas
-						}
-					});
-
-					document.dispatchEvent(ev);
-				};
-
-				img.src = URL.createObjectURL(image);
 			});
 		}
 

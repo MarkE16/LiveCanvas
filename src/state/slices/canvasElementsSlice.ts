@@ -31,7 +31,7 @@ export const createCanvasElementsSlice: StateCreator<
 		}
 
 		const id = uuid();
-
+		
 		const element = {
 			x: 0,
 			y: 0,
@@ -39,6 +39,7 @@ export const createCanvasElementsSlice: StateCreator<
 			height: 100,
 			fill: "#000000",
 			type,
+			inverted: false,
 			path: [],
 			...properties, // Override the default properties with the provided properties, if any.
 			id // Keep the id as the last property to ensure that it is not overridden.

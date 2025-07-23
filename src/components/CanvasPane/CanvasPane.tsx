@@ -290,12 +290,9 @@ function CanvasPane(): ReactNode {
 					shiftKey={shiftKey}
 				/>
 			)}
-			{/* {mode === "select" && !isMoving && (
-				<CanvasPointerSelection
-					canvasSpaceReference={canvasSpaceRef}
-					isSelecting={isSelecting}
-				/>
-			)} */}
+			{/* <CanvasPointerSelection
+				canvasSpaceReference={canvasSpaceRef}
+			/> */}
 			<MemoizedDrawingToolbar />
 
 			<div
@@ -307,6 +304,7 @@ function CanvasPane(): ReactNode {
 			>
 				<MemoizedCanvas
 					isGrabbing={isMoving || isPanning}
+					canvasSpaceRef={canvasSpaceRef}
 					ref={canvasRef}
 				/>
 			</div>
