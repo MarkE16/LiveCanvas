@@ -64,7 +64,7 @@ function Navbar(): ReactNode {
 		if (!downloadRef.current) throw new Error("Download ref not found");
 
 		try {
-			const blob = await prepareForExport(references.current);
+			const blob = await prepareForExport();
 
 			const url = URL.createObjectURL(blob);
 

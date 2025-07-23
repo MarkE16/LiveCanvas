@@ -75,7 +75,10 @@ function LayerInfo({
 		setActiveIndex(idx);
 	};
 
-	const onToggleVisibility = () => toggleVisibility(id);
+	const onToggleVisibility = () => {
+		toggleVisibility(id);
+		document.dispatchEvent(new CustomEvent("canvas:redraw"));
+	};
 
 	const onDelete = () => {
 		if (!window.confirm("Are you sure you want to delete " + name + "?"))

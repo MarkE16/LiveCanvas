@@ -109,7 +109,7 @@ function CanvasPane(): ReactNode {
 
 			const canvas = canvasRef.current;
 			const layer = getActiveLayer();
-			if (!canvas) return;
+			if (!canvas || layer.hidden) return;
 
 			let dx = e.clientX - clientPosition.current.x;
 			let dy = e.clientY - clientPosition.current.y;

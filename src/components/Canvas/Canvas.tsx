@@ -35,6 +35,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 ) {
 	const {
 		mode,
+		background,
 		shape,
 		width,
 		height,
@@ -49,6 +50,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
+			background: state.background,
 			shape: state.shape,
 			width: state.width,
 			height: state.height,
@@ -63,10 +65,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
-  const strokeWidth = useStoreSubscription(
-    (state) => state.strokeWidth
-  );
-
+	const strokeWidth = useStoreSubscription((state) => state.strokeWidth);
 
 	const shapeMode = useStoreSubscription((state) => state.shapeMode);
 
@@ -91,7 +90,10 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 	const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
 		// isDrawing.current =
 		// 	(mode === "draw" || mode === "erase") && !isMovingElement.current;
-		isDrawing.current = true;
+		const activeLayer = getActiveLayer();
+		isDrawing.current = !activeLayer.hidden;
+
+		console.log(activeLayer, isDrawing.current);
 
 		const canvas = e.currentTarget;
 
@@ -143,6 +145,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// Save the current path.
 			currentPath.current.push({ x, y });
 		}
+		currentPath2D.current = new Path2D();
 	};
 
 	// Handler for when the mouse is moved on the canvas.
@@ -209,7 +212,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// Clear the current path.
 			currentPath.current = [];
 		}
-		currentPath2D.current = new Path2D();
 	};
 
 	const onMouseEnter = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -420,7 +422,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			}
 
 			await updateLayerState(entries);
-			// updateLayerContents(newEntries);
 			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
 
@@ -459,8 +460,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 	return (
 		<canvas
 			data-testid="canvas-layer"
-			className={clsx("absolute bg-white cursor-inherit z-0")}
+			className="absolute cursor-inherit z-0"
 			style={{
+				backgroundColor: background,
 				width: `${width}px`,
 				height: `${height}px`,
 				transform

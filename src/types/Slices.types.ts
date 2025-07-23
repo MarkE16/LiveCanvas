@@ -8,8 +8,8 @@ import type {
 	Coordinates,
 	HistoryAction,
 	SavedCanvasProperties,
-    CanvasElementType,
-    RectProperties
+	CanvasElementType,
+	RectProperties
 } from "../types";
 
 export type CanvasElementsStore = {
@@ -17,7 +17,7 @@ export type CanvasElementsStore = {
 	copiedElements: CanvasElement[];
 	createElement: (
 		type: CanvasElementType,
-		properties?: Omit<Partial<CanvasElement>, "id">
+		properties?: Omit<Partial<CanvasElement>, "id" | "drawType" | "strokeWidth">
 	) => string;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
@@ -47,8 +47,8 @@ export type CanvasStore = CanvasState & {
 	renameLayer: (payload: { id: string; newName: string }) => void;
 	removeLayer: (payload: string) => void;
 	setLayers: (payload: Layer[]) => void;
-  getActiveLayer: () => Layer;
-  updateSelectionRect: (payload: Partial<RectProperties> | null) => void;
+	getActiveLayer: () => Layer;
+	updateSelectionRect: (payload: Partial<RectProperties> | null) => void;
 	increaseScale: () => void;
 	decreaseScale: () => void;
 	setPosition: (payload: Partial<Coordinates>) => void;
@@ -56,10 +56,7 @@ export type CanvasStore = CanvasState & {
 	changeY: (payload: number) => void;
 	toggleReferenceWindow: () => void;
 	prepareForSave: () => Promise<SavedCanvasProperties>;
-	prepareForExport: (
-		layerRefs: HTMLCanvasElement[],
-		quality?: number
-	) => Promise<Blob>;
+	prepareForExport: (quality?: number) => Promise<Blob>;
 	drawCanvas: (canvas: HTMLCanvasElement, layerId?: string) => void;
 };
 

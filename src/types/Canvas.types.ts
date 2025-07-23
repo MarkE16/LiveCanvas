@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 export type CanvasState = {
 	width: number;
 	height: number;
+  background: string;
 	mode: Mode;
 	shape: Shape;
 	shapeMode: "fill" | "stroke";
