@@ -23,7 +23,7 @@ export type CanvasElementsStore = {
 		callback: (el: CanvasElement) => CanvasElement,
 		predicate: (el: CanvasElement) => boolean
 	) => void;
-	deleteElement: (predicate: (el: CanvasElement) => boolean) => void;
+	deleteElement: (predicate: (el: CanvasElement) => boolean) => string[];
 	setElements: (elements: CanvasElement[]) => void;
 	copyElement: (predicate: (el: CanvasElement) => boolean) => void;
 	pasteElement: () => void;

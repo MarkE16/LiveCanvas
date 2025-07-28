@@ -364,15 +364,24 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		const visibilityMap = new Map<string, boolean>();
+		const positionMap = new Map<string, number>();
 
-		for (const layer of layers) {
+		for (let i = 0; i < layers.length; i++) {
+			const layer = layers[i];
 			visibilityMap.set(layer.id, layer.hidden);
+			positionMap.set(layer.id, layers.length - 1 - i);
 		}
 		elements = elements.filter((element) => {
 			if (layerId) {
 				return element.layerId === layerId;
 			}
 			return !visibilityMap.get(element.layerId);
+		});
+
+		elements.sort((a, b) => {
+			const aPosition = positionMap.get(a.layerId) ?? 0;
+			const bPosition = positionMap.get(b.layerId) ?? 0;
+			return aPosition - bPosition;
 		});
 
 		const canvasX = 0;

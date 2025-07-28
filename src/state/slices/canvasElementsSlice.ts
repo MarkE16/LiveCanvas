@@ -31,7 +31,7 @@ export const createCanvasElementsSlice: StateCreator<
 		}
 
 		const id = uuid();
-    const { shapeMode, strokeWidth } = get();
+		const { shapeMode, strokeWidth } = get();
 
 		const element = {
 			x: 0,
@@ -82,9 +82,18 @@ export const createCanvasElementsSlice: StateCreator<
 	}
 
 	function deleteElement(predicate: Predicate) {
+		const deletedIds: string[] = [];
 		set((state) => ({
-			elements: state.elements.filter((element) => !predicate(element))
+			elements: state.elements.filter((element) => {
+				if (predicate(element)) {
+					deletedIds.push(element.id);
+					return false; // Filter out the element
+				}
+				return true; // Keep the element
+			})
 		}));
+		
+		return deletedIds;
 	}
 
 	function setElements(elements: CanvasElement[]) {

@@ -21,6 +21,7 @@ import type { Layer } from "@/types";
 // Components
 import LayerPreview from "@/components/LayerPreview/LayerPreview";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import ElementsStore from "@/state/stores/ElementsStore";
 
 type LayerInfoProps = Readonly<
 	Layer & {
@@ -60,7 +61,7 @@ function LayerInfo({
 			deleteElement: state.deleteElement
 		}))
 	);
-	const { setActiveIndex } = useLayerReferences();
+	// const { setActiveIndex } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =
@@ -72,7 +73,6 @@ function LayerInfo({
 
 	const onToggle = () => {
 		toggleLayer(id);
-		setActiveIndex(idx);
 	};
 
 	const onToggleVisibility = () => {
@@ -88,7 +88,10 @@ function LayerInfo({
 
 		LayersStore.removeLayer([id]);
 
-		deleteElement((element) => element.layerId === id);
+		const deletedIds = deleteElement((element) => element.layerId === id);
+
+		ElementsStore.removeElement(deletedIds);
+		document.dispatchEvent(new CustomEvent("canvas:redraw"));
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {
@@ -97,6 +100,7 @@ function LayerInfo({
 		} else {
 			moveLayerDown(id);
 		}
+		document.dispatchEvent(new CustomEvent("canvas:redraw"));
 	};
 
 	const onRename = () => {
