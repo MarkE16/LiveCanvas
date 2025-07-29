@@ -10,7 +10,6 @@ import Navbar from "@/components/Navbar/Navbar";
 import Main from "@/components/Main/Main";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 import { StoreProvider } from "@/components/StoreContext/StoreContext";
-import { LayerReferencesProvider } from "@/components/LayerReferencesProvider/LayerReferencesProvider";
 
 // The <head> tags
 // eslint-disable-next-line
@@ -49,13 +48,11 @@ function Page() {
 
 	return (
 		<StoreProvider store={initializeStore(state)}>
-			<LayerReferencesProvider>
-				<ErrorBoundary>
-					<Navbar />
+			<ErrorBoundary>
+				<Navbar />
 
-					<Main />
-				</ErrorBoundary>
-			</LayerReferencesProvider>
+				<Main />
+			</ErrorBoundary>
 		</StoreProvider>
 	);
 }

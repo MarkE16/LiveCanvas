@@ -2,16 +2,15 @@ import type { StateCreator } from "zustand";
 import { v4 as uuid } from "uuid";
 import type {
 	CanvasElement,
+	SliceStores,
 	CanvasElementsStore,
-	CanvasStore,
-	HistoryStore,
 	CanvasElementType
 } from "@/types";
 
 type Predicate = (element: CanvasElement) => boolean;
 
 export const createCanvasElementsSlice: StateCreator<
-	CanvasElementsStore & CanvasStore & HistoryStore,
+	SliceStores,
 	[],
 	[],
 	CanvasElementsStore
@@ -31,7 +30,7 @@ export const createCanvasElementsSlice: StateCreator<
 		}
 
 		const id = uuid();
-		const { shapeMode, strokeWidth } = get();
+		const { shapeMode, strokeWidth, opacity } = get();
 
 		const element = {
 			x: 0,
@@ -45,6 +44,7 @@ export const createCanvasElementsSlice: StateCreator<
 			...properties, // Override the default properties with the provided properties, if any.
 			drawType: shapeMode,
 			strokeWidth,
+			opacity,
 			id // Keep the id as the last property to ensure that it is not overridden.
 		};
 

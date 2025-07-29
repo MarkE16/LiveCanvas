@@ -1,8 +1,8 @@
 // Lib
 import { useState, useRef } from "react";
 import useStore from "@/state/hooks/useStore";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { parseColor } from "react-aria-components";
+import { useShallow } from "zustand/react/shallow";
 
 // Components
 import {
@@ -36,11 +36,13 @@ type ColorPickerProps = {
 
 function ColorPicker({ label, __for, value }: ColorPickerProps): ReactNode {
 	const [hex, setHex] = useState<string>(parseColor(value).toString("hex"));
-	const changeElementProperties = useStore(
-		(state) => state.changeElementProperties
+	const { changeElementProperties, getActiveLayer } = useStore(
+		useShallow((state) => ({
+			changeElementProperties: state.changeElementProperties,
+			getActiveLayer: state.getActiveLayer
+		}))
 	);
 	const startColor = useRef<string>(value);
-	const { getActiveLayer } = useLayerReferences();
 
 	const handleColorChange = (color: Color) => {
 		const hex = color.toString("hex");

@@ -1,7 +1,6 @@
 // Lib
 import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
 import { useRef, useCallback, useEffect } from "react";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
 import useStore from "@/state/hooks/useStore";
 import LayersStore from "@/state/stores/LayersStore";
@@ -29,7 +28,6 @@ function Navbar(): ReactNode {
 		}))
 	);
 	const downloadRef = useRef<HTMLAnchorElement>(null);
-	const { references } = useLayerReferences();
 
 	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
 
@@ -58,7 +56,7 @@ function Navbar(): ReactNode {
 		} catch (e) {
 			alert("Error saving file. Reason: " + (e as Error).message);
 		}
-	}, [references, prepareForSave]);
+	}, [prepareForSave]);
 
 	const handleExportFile = async () => {
 		if (!downloadRef.current) throw new Error("Download ref not found");

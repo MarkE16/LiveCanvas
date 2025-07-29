@@ -7,16 +7,15 @@ import type {
 	Coordinates,
 	Dimensions,
 	CanvasStore,
-	HistoryStore,
-	CanvasElementsStore,
 	SavedCanvasProperties,
 	Shape,
-	RectProperties
+	RectProperties,
+	SliceStores
 } from "@/types";
 import * as Utils from "@/lib/utils";
 
 export const createCanvasSlice: StateCreator<
-	CanvasStore & HistoryStore & CanvasElementsStore,
+	SliceStores,
 	[],
 	[],
 	CanvasStore
@@ -29,26 +28,12 @@ export const createCanvasSlice: StateCreator<
 	}
 
 	function changeColor(payload: string) {
-		const space = parseColor(payload).getColorSpace();
-
-		if (!space.includes("hsl")) {
-			throw new Error(
-				`Invalid color format passed into state. Pass in a valid HSL color string, not ${space}.`
-			);
-		}
-
 		set({ color: payload });
 	}
 
-	function changeColorAlpha(payload: number) {
-		set((state) => {
-			const color = state.color;
-			const newColorString =
-				color.substring(0, color.lastIndexOf(",") + 1) +
-				payload.toString() +
-				")";
-
-			return { color: newColorString };
+	function changeOpacity(payload: number) {
+		set({
+			opacity: Math.max(Math.min(payload, 1), 0)
 		});
 	}
 
@@ -408,21 +393,20 @@ export const createCanvasSlice: StateCreator<
 			ctx.globalCompositeOperation =
 				element.type === "eraser" ? "destination-out" : "source-over";
 			ctx.lineCap = "round";
+			ctx.globalAlpha = element.opacity;
 
 			switch (element.type) {
 				case "brush":
 				case "eraser": {
-					ctx.beginPath();
-
-					for (const [index, point] of element.path.entries()) {
-						if (index === 0) {
+					for (const point of element.path) {
+						if (point.startingPoint) {
+							ctx.beginPath();
 							ctx.moveTo(point.x, point.y);
 						} else {
 							ctx.lineTo(point.x, point.y);
+							ctx.stroke();
 						}
 					}
-					ctx.stroke();
-					ctx.closePath();
 					break;
 				}
 				case "circle": {
@@ -436,6 +420,7 @@ export const createCanvasSlice: StateCreator<
 						0,
 						2 * Math.PI
 					);
+					ctx.closePath();
 					if (element.drawType === "fill") {
 						ctx.fill();
 					} else {
@@ -495,7 +480,8 @@ export const createCanvasSlice: StateCreator<
 		background: "white",
 		shape: "rectangle",
 		shapeMode: "fill",
-		color: "hsla(0, 0%, 0%, 1)",
+		color: "#000000",
+		opacity: 1,
 		strokeWidth: 5,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
 		selection: null,
@@ -506,7 +492,7 @@ export const createCanvasSlice: StateCreator<
 		referenceWindowEnabled: false,
 		changeDimensions,
 		changeColor,
-		changeColorAlpha,
+		changeOpacity,
 		changeMode,
 		changeShape,
 		changeShapeMode,

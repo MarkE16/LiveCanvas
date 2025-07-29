@@ -18,6 +18,7 @@ import Square from "@/components/icons/Square/Square";
 import Circle from "@/components/icons/Circle/Circle";
 import Triangle from "../icons/Triangle/Triangle";
 import Brush from "../icons/Brush/Brush";
+import Tooltip from "../Tooltip/Tooltip";
 
 const MemoizedColorPicker = memo(ColorPicker);
 const MemoizedShapeOption = memo(ShapeOption);
@@ -32,19 +33,21 @@ function DrawingToolbar(): ReactNode {
 	const {
 		mode,
 		shape,
+		opacity,
 		shapeMode,
 		strokeWidth,
 		changeStrokeWidth,
-		changeColorAlpha,
+		changeOpacity,
 		changeShapeMode
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			shape: state.shape,
+			opacity: state.opacity,
 			shapeMode: state.shapeMode,
 			strokeWidth: state.strokeWidth,
 			changeStrokeWidth: state.changeStrokeWidth,
-			changeColorAlpha: state.changeColorAlpha,
+			changeOpacity: state.changeOpacity,
 			changeShapeMode: state.changeShapeMode
 		}))
 	);
@@ -61,9 +64,9 @@ function DrawingToolbar(): ReactNode {
 		changeStrokeWidth(strength);
 	};
 
-	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const onOpacityChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const value = Number(e.target.value);
-		changeColorAlpha(value);
+		changeOpacity(value);
 	};
 
 	const renderedShapes = (
@@ -80,11 +83,14 @@ function DrawingToolbar(): ReactNode {
 	);
 
 	const renderedShapeMode = (
-		<Fragment key="settings_ShapeMode">
+		<div
+			className="w-[110px] flex justify-between"
+			key="settings_ShapeMode"
+		>
 			<button
 				onClick={() => changeShapeMode("fill")}
 				className={clsx(
-					"border-none inline-flex justify-center items-center bg-transparent w-[30px] h-[30px] rounded-full mx-[0.5em] my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
 					{
 						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
 							shapeMode === "fill"
@@ -96,7 +102,7 @@ function DrawingToolbar(): ReactNode {
 			<button
 				onClick={() => changeShapeMode("stroke")}
 				className={clsx(
-					"border-none inline-flex justify-center items-center bg-transparent w-[30px] h-[30px] rounded-full mx-[0.5em] my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
 					{
 						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
 							shapeMode === "stroke"
@@ -105,12 +111,12 @@ function DrawingToolbar(): ReactNode {
 			>
 				Stroke
 			</button>
-		</Fragment>
+		</div>
 	);
 
 	const renderedStrength = (
 		<Fragment key="settings_Strength">
-			Stroke Width:
+			<span className="text-sm">Stroke Width</span>
 			<input
 				name={`${mode}_strength`.toUpperCase()}
 				type="range"
@@ -121,21 +127,26 @@ function DrawingToolbar(): ReactNode {
 				onChange={handleStrengthChange}
 				data-testid="strength-range"
 			/>
-			<label data-testid="strength-value">{strengthSettings.value}</label>
+			<span
+				data-testid="strength-value"
+				className="text-sm"
+			>
+				{strengthSettings.value}
+			</span>
 		</Fragment>
 	);
 
-	const renderedBrush = (
+	const renderedOpacity = (
 		<Fragment key="settings_Brush">
 			<Brush />
 			<input
 				type="range"
 				id="brush-size"
-				defaultValue={1}
 				min={0.01}
 				max={1}
 				step={0.01}
-				onChange={onBrushChange}
+				value={opacity}
+				onChange={onOpacityChange}
 			/>
 		</Fragment>
 	);
@@ -162,14 +173,15 @@ function DrawingToolbar(): ReactNode {
 	const additionalSettings: ReactNode[] = [];
 
 	if (mode === "brush") {
-		additionalSettings.push(renderedStrength, renderedBrush);
+		additionalSettings.push(renderedStrength, renderedOpacity);
 	} else if (mode === "eraser") {
 		additionalSettings.push(renderedStrength);
 	} else if (mode === "shapes") {
 		additionalSettings.push(
 			renderedShapes,
+			renderedShapeMode,
 			renderedStrength,
-			renderedShapeMode
+			renderedOpacity
 		);
 	}
 

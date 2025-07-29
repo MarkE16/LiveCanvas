@@ -1,13 +1,12 @@
 import type { StateCreator } from "zustand";
 import type {
-	CanvasElementsStore,
-	CanvasStore,
+  SliceStores,
 	HistoryAction,
 	HistoryStore
 } from "@/types";
 
 export const createHistorySlice: StateCreator<
-	HistoryStore & CanvasStore & CanvasElementsStore,
+	SliceStores,
 	[],
 	[],
 	HistoryStore

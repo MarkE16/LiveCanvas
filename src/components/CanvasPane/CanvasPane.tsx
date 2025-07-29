@@ -152,6 +152,7 @@ function CanvasPane(): ReactNode {
 							return {
 								...state,
 								path: state.path.map((point) => ({
+									...point,
 									x: point.x + dx,
 									y: point.y + dy
 								}))

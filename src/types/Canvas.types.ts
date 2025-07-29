@@ -3,11 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 export type CanvasState = {
 	width: number;
 	height: number;
-  background: string;
+	background: string;
 	mode: Mode;
 	shape: Shape;
 	shapeMode: "fill" | "stroke";
 	color: string;
+	opacity: number;
 	strokeWidth: number;
 	selection: RectProperties | null;
 	layers: Layer[];
@@ -69,6 +70,11 @@ export type FontProperties = {
 	content: string;
 };
 
+export type CanvasElementPath = Coordinates & {
+	// Indicates if the path is the starting point of the element.
+	startingPoint: boolean;
+};
+
 export type CanvasElement = {
 	x: number;
 	y: number;
@@ -78,10 +84,11 @@ export type CanvasElement = {
 	color: string;
 	id: string;
 	text?: FontProperties;
-	path: Coordinates[];
+	path: CanvasElementPath[];
 	layerId: string;
 	drawType: "fill" | "stroke";
 	strokeWidth: number;
+	opacity: number;
 	// Inverted means if the current y coordinate is less
 	// than the initial y coordinate (the coordinate when the mouse was pressed)
 	inverted: boolean;

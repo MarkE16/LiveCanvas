@@ -17,7 +17,10 @@ export type CanvasElementsStore = {
 	copiedElements: CanvasElement[];
 	createElement: (
 		type: CanvasElementType,
-		properties?: Omit<Partial<CanvasElement>, "id" | "drawType" | "strokeWidth">
+		properties?: Omit<
+			Partial<CanvasElement>,
+			"id" | "drawType" | "strokeWidth" | "opacity"
+		>
 	) => string;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
@@ -32,7 +35,7 @@ export type CanvasElementsStore = {
 export type CanvasStore = CanvasState & {
 	changeDimensions: (payload: Partial<Dimensions>) => void;
 	changeColor: (payload: string) => void;
-	changeColorAlpha: (payload: number) => void;
+	changeOpacity: (payload: number) => void;
 	changeMode: (payload: Mode) => void;
 	changeShape: (payload: Shape) => void;
 	changeShapeMode: (payload: "fill" | "stroke") => void;
@@ -69,8 +72,3 @@ export type HistoryStore = {
 };
 
 export type SliceStores = CanvasStore & CanvasElementsStore & HistoryStore;
-export type SliceCreators = {
-	canvas: CanvasStore;
-	canvasElements: CanvasElementsStore;
-	history: HistoryStore;
-};

@@ -2,7 +2,6 @@
 import { useState, memo } from "react";
 import clsx from "clsx";
 import useStore from "@/state/hooks/useStore";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/react/shallow";
 import LayersStore from "@/state/stores/LayersStore";
 

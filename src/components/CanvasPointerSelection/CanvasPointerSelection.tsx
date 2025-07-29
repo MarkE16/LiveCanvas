@@ -1,7 +1,5 @@
 // Lib
 import { useRef, useEffect, useState } from "react";
-import * as UTILS from "@/lib/utils";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
@@ -17,7 +15,6 @@ type CanvasPointerSelectionProps = {
 function CanvasPointerSelection({
 	canvasSpaceReference
 }: CanvasPointerSelectionProps): ReactNode {
-	const { references } = useLayerReferences();
 	const startingPosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const { selection, updateSelectionRect } = useStore(
 		useShallow((state) => ({
@@ -89,7 +86,7 @@ function CanvasPointerSelection({
 			document.removeEventListener("mouseup", handleMouseUp);
 			document.removeEventListener("keydown", handleKeyboardDown);
 		};
-	}, [canvasSpaceReference, references, updateSelectionRect]);
+	}, [canvasSpaceReference, updateSelectionRect]);
 
 	return (
 		<svg
