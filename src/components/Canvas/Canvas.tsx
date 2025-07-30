@@ -25,13 +25,6 @@ type CanvasProps = {
 	isGrabbing: boolean;
 };
 
-type DBLayer = {
-	image: Blob;
-	name: string;
-	position: number;
-	id: string;
-};
-
 const THROTTLE_DELAY_MS = 10; // milliseconds
 
 const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
@@ -394,15 +387,10 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		}
 	};
 
-	const onMouseLeave = () => {
-		isDrawing.current = false;
-	};
-
 	useImperativeHandle(ref, () => canvasRef.current!, []);
 
 	useCanvasRedrawListener(canvasRef);
 
-	// TODO: Improve this implementation of updating the layers from the storage.
 	useEffect(() => {
 		async function updateLayers() {
 			const entries = await LayersStore.getLayers();
@@ -411,12 +399,15 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				return;
 			}
 
-			await updateLayerState(entries);
-			document.dispatchEvent(new CustomEvent("canvas:redraw"));
+			updateLayerState(entries).then(() =>
+				document.dispatchEvent(new CustomEvent("canvas:redraw"))
+			);
 		}
 
-		function updateLayerState(entries: [string, Layer][]) {
-			return new Promise<[string, DBLayer][]>((resolve) => {
+		function updateLayerState(
+			entries: Awaited<ReturnType<typeof LayersStore.getLayers>>
+		) {
+			return new Promise<void>((resolve) => {
 				const newLayers: Layer[] = [];
 
 				const sorted = entries.sort((a, b) => a[1].position - b[1].position); // Sort by position, where the highest position is the top layer.
@@ -425,20 +416,19 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 					const [id, { name }] = entry;
 
 					newLayers.push({
-						name: name,
-						id: id,
+						name,
+						id,
 						active: i === 0,
 						hidden: false
 					});
 				});
 
 				if (newLayers.length === 0) {
-					return;
+					resolve();
 				}
 
 				setLayers(newLayers);
-
-				resolve(sorted);
+				resolve();
 			});
 		}
 

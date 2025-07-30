@@ -383,7 +383,7 @@ export const createCanvasSlice: StateCreator<
 
 			ctx.scale(scale, scale);
 		}
-
+		
 		for (const element of elements) {
 			const { x, y, width, height } = element;
 

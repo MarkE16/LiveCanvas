@@ -7,7 +7,7 @@ import { useCallback, useRef } from "react";
  * Default is 1000 milliseconds (1 second).
  * @returns The throttled function.
  */
-function useThrottle<F extends (...args: any[]) => any>(fn: F, delay: number = 1000) {
+function useThrottle<F extends (...args: any[]) => ReturnType<F>>(fn: F, delay: number = 1000) {
   const lastNow = useRef<number>(Date.now());
   
   return useCallback(function(...args: Parameters<F>) {

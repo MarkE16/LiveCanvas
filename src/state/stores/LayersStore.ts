@@ -1,6 +1,10 @@
 import { Layer } from "@/types";
 import BaseStore from "./BaseStore";
 
+type LayerStoreObject = Layer & {
+	position: number;
+};
+
 /**
  * A class for interacting with the Layers store of IndexedDB.
  */
@@ -14,7 +18,12 @@ export default class LayersStore extends BaseStore {
 	 * @returns Promise of void
 	 */
 	public static addLayers(layers: Layer[]) {
-		return this.add(layers);
+		return this.add<LayerStoreObject>(
+			layers.map((layer, i) => ({
+				...layer,
+				position: i // Ensure position is set based on index
+			}))
+		);
 	}
 
 	/**
@@ -23,7 +32,7 @@ export default class LayersStore extends BaseStore {
 	 * @returns A singular layer or undefined if not found
 	 */
 	public static getLayer(id: string) {
-		return this.get<Layer>(id);
+		return this.get<LayerStoreObject>(id);
 	}
 
 	/**
@@ -31,7 +40,7 @@ export default class LayersStore extends BaseStore {
 	 * @returns The entries
 	 */
 	public static getLayers() {
-		return this.get<Layer>();
+		return this.get<LayerStoreObject>();
 	}
 
 	/**

@@ -76,7 +76,9 @@ function LayerInfo({
 
 	const onToggleVisibility = () => {
 		toggleVisibility(id);
-		document.dispatchEvent(new CustomEvent("canvas:redraw"));
+		document.dispatchEvent(
+			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
+		);
 	};
 
 	const onDelete = () => {
@@ -99,7 +101,9 @@ function LayerInfo({
 		} else {
 			moveLayerDown(id);
 		}
-		document.dispatchEvent(new CustomEvent("canvas:redraw"));
+		document.dispatchEvent(
+			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
+		);
 	};
 
 	const onRename = () => {
