@@ -11,14 +11,7 @@ export const createHistorySlice: StateCreator<
 		action: HistoryAction,
 		actionPerformed: "undo" | "redo" = "undo"
 	) {
-		const {
-			changeElementProperties,
-			createElement,
-			deleteElement,
-			undoStack,
-			redoStack
-		} = get();
-		console.log(undoStack, redoStack);
+		const { changeElementProperties, createElement, deleteElement } = get();
 		switch (action.type) {
 			case "add_element": {
 				const { type, ...rest } = action.properties;

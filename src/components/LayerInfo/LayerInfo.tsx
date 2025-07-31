@@ -60,7 +60,6 @@ function LayerInfo({
 			deleteElement: state.deleteElement
 		}))
 	);
-	// const { setActiveIndex } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =

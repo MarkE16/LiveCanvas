@@ -50,13 +50,17 @@ function ToolbarButton({
 	shortcut,
 	active
 }: ToolbarButtonProps): ReactNode {
-	const { changeMode, undoStack, redoStack, undo, redo } = useStore(
+	const { changeMode, undo, redo } = useStore(
 		useShallow((state) => ({
 			changeMode: state.changeMode,
-			undoStack: state.undoStack,
-			redoStack: state.redoStack,
 			undo: state.undo,
 			redo: state.redo
+		}))
+	);
+	const { undoLength, redoLength } = useStore(
+		useShallow((state) => ({
+			undoLength: state.undoStack.length,
+			redoLength: state.redoStack.length
 		}))
 	);
 	const tooltip =
@@ -125,9 +129,9 @@ function ToolbarButton({
 				onClick={performAction}
 				disabled={
 					name === "undo"
-						? !undoStack.length
+						? !undoLength
 						: name === "redo"
-							? !redoStack.length
+							? !redoLength
 							: false
 				}
 			>
