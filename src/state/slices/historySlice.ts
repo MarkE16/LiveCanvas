@@ -11,7 +11,14 @@ export const createHistorySlice: StateCreator<
 		action: HistoryAction,
 		actionPerformed: "undo" | "redo" = "undo"
 	) {
-		const { changeElementProperties, createElement, deleteElement } = get();
+		const {
+			changeElementProperties,
+			createElement,
+			deleteElement,
+			undoStack,
+			redoStack
+		} = get();
+		console.log(undoStack, redoStack);
 		switch (action.type) {
 			case "add_element": {
 				const { type, ...rest } = action.properties;
@@ -28,15 +35,47 @@ export const createHistorySlice: StateCreator<
 				break;
 			}
 			case "move_element": {
-				const { x, y, id } = action.properties;
+				const { layerId, dx, dy } = action.properties;
 
 				changeElementProperties(
-					(state) => ({
-						...state,
-						x: x ?? state.x,
-						y: y ?? state.y
-					}),
-					(element) => element.id === id
+					(state) => {
+						if (actionPerformed === "undo") {
+							// We need to move the element back to its original position.
+							if (state.type === "brush" || state.type === "eraser") {
+								return {
+									...state,
+									path: state.path.map((point) => ({
+										...point,
+										x: point.x - dx,
+										y: point.y - dy
+									}))
+								};
+							}
+							return {
+								...state,
+								x: state.x - dx,
+								y: state.y - dy
+							};
+						}
+
+						// We need to move the element to its new position.
+						if (state.type === "brush" || state.type === "eraser") {
+							return {
+								...state,
+								path: state.path.map((point) => ({
+									...point,
+									x: point.x + dx,
+									y: point.y + dy
+								}))
+							};
+						}
+						return {
+							...state,
+							x: state.x + dx,
+							y: state.y + dy
+						};
+					},
+					(element) => element.layerId === layerId
 				);
 				break;
 			}

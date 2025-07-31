@@ -48,6 +48,7 @@ function CanvasPane(): ReactNode {
 	const currentColor = useStoreSubscription((state) => state.color);
 	const canvasSpaceRef = useRef<HTMLDivElement>(null);
 	const clientPosition = useRef<Coordinates>({ x: 0, y: 0 });
+	const startMovePosition = useRef<Coordinates>({ x: 0, y: 0 });
 	const [shiftKey, setShiftKey] = useState<boolean>(false);
 	const [ctrlKey, setCtrlKey] = useState<boolean>(false);
 	const [isGrabbing, setIsGrabbing] = useState<boolean>(false);
@@ -69,6 +70,7 @@ function CanvasPane(): ReactNode {
 			if (e.buttons !== 1 || !canvasSpace) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
+			startMovePosition.current = { x: e.clientX, y: e.clientY };
 			const isOnCanvas = isClickingOnSpace(e);
 
 			if (!isOnCanvas) return;
@@ -168,8 +170,22 @@ function CanvasPane(): ReactNode {
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
 
-		function handleMouseUp() {
-			// clientPosition.current = { x: 0, y: 0 };
+		function handleMouseUp(e: MouseEvent) {
+			if (isMoving && isClickingOnSpace(e)) {
+				const dx = e.clientX - startMovePosition.current.x; // total change in x
+				const dy = e.clientY - startMovePosition.current.y; // total change in y
+
+				const layer = getActiveLayer();
+
+				pushHistory({
+					type: "move_element",
+					properties: {
+						layerId: layer.id,
+						dx,
+						dy
+					}
+				});
+			}
 			setIsGrabbing(false);
 		}
 

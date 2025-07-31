@@ -1,6 +1,15 @@
-import { CanvasElementPath, CanvasElement } from "./index";
+import { CanvasElement } from "./index";
 
-export type HistoryAction = {
-  type: "move_element" | "add_element" | "remove_element";
-  properties: Partial<CanvasElement>;
-}
+export type HistoryAction =
+	| {
+			type: "add_element";
+			properties: Partial<CanvasElement>;
+	  }
+	| {
+			type: "move_element";
+			properties: {
+				layerId: string;
+				dx: number;
+				dy: number;
+			};
+	  };
