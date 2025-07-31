@@ -153,12 +153,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const onCanvas =
 			e.target === activeLayer || activeLayer.contains(e.target as Node);
 
+		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
+			return;
+		}
 		if (mode === "shapes") {
 			currentPath2D.current = new Path2D();
 			document.dispatchEvent(new CustomEvent("canvas:redraw"));
-		}
-		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
-			return;
 		}
 		const ctx = activeLayer.getContext("2d");
 
@@ -320,10 +320,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
 		const { x: initX, y: initY } = initialPosition.current;
-		let elementId: string | undefined = undefined;
 
+		let elementType;
+		let elementPayload;
 		if (mode === "shapes") {
-			elementId = createElement(shape, {
+			elementType = shape;
+			elementPayload = {
 				x: Math.min(x, initX),
 				y: Math.min(y, initY),
 				width: Math.abs(x - initX),
@@ -331,28 +333,24 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				color: color.current,
 				layerId: activeLayer.id,
 				inverted: y < initY
-			});
+			};
 		} else if (mode === "brush" || mode === "eraser") {
-			elementId = createElement(mode, {
+			elementType = mode;
+			elementPayload = {
 				color: color.current,
 				path: currentPath.current
-			});
+			};
+		} else {
+			throw new Error(`Unsupported mode: ${mode}`);
 		}
+
+		const properties = createElement(elementType, elementPayload);
 
 		initialPosition.current = { x: 0, y: 0 };
 
-		if (!elementId) {
-			throw new Error("Element ID is not defined. This is a bug.");
-		}
-
 		pushHistory({
 			type: "add_element",
-			properties: {
-				id: elementId,
-				type: mode === "shapes" ? shape : (mode as "brush" | "eraser"),
-				color: color.current,
-				path: mode !== "shapes" ? currentPath.current : undefined
-			}
+			properties
 		});
 		currentPath.current = [];
 	};

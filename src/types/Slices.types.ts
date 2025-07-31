@@ -21,7 +21,7 @@ export type CanvasElementsStore = {
 			Partial<CanvasElement>,
 			"id" | "drawType" | "strokeWidth" | "opacity"
 		>
-	) => string;
+	) => CanvasElement;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
 		predicate: (el: CanvasElement) => boolean

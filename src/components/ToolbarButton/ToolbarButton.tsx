@@ -79,9 +79,9 @@ function ToolbarButton({
 		function handleShortcut(e: KeyboardEvent) {
 			let chosenShortcut = "";
 
-			if (e.ctrlKey) chosenShortcut += "ctrl +";
-			if (e.shiftKey) chosenShortcut += "shift +";
-			if (e.altKey) chosenShortcut += "alt +";
+			if (e.ctrlKey) chosenShortcut += "ctrl+";
+			if (e.shiftKey) chosenShortcut += "shift+";
+			if (e.altKey) chosenShortcut += "alt+";
 
 			// Handle the special case of "+" and "_" for zooming in and out
 			if (e.key === "+" || e.key === "_") {
@@ -89,6 +89,8 @@ function ToolbarButton({
 			} else {
 				chosenShortcut += e.key.toLowerCase();
 			}
+
+			console.log(chosenShortcut, shortcut);
 
 			if (chosenShortcut === shortcut) {
 				performAction();

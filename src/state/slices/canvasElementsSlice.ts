@@ -17,10 +17,7 @@ export const createCanvasElementsSlice: StateCreator<
 > = (set, get) => {
 	function createElement(
 		type: CanvasElementType,
-		properties?: Omit<
-			Partial<CanvasElement>,
-			"id" | "drawType" | "strokeWidth" | "layerId"
-		>
+		properties?: Partial<CanvasElement>
 	) {
 		if (type === "text" && !properties?.text) {
 			throw new Error(
@@ -54,7 +51,7 @@ export const createCanvasElementsSlice: StateCreator<
 			elements: [...state.elements, element as CanvasElement]
 		}));
 
-		return id;
+		return element;
 	}
 
 	function changeElementProperties(

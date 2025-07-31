@@ -51,8 +51,8 @@ export const MODES: Modes = [
 	{ name: "zoom_in", shortcut: "+" },
 	{ name: "zoom_out", shortcut: "_" },
 	{ name: "pan", shortcut: "p" },
-	{ name: "undo", shortcut: "ctrl + z" },
-	{ name: "redo", shortcut: "ctrl + shift + z" }
+	{ name: "undo", shortcut: "ctrl+z" },
+	{ name: "redo", shortcut: "ctrl+shift+z" }
 ];
 
 export const SHAPES: Shapes = ["circle", "rectangle", "triangle"];

@@ -19,8 +19,6 @@ export const createHistorySlice: StateCreator<
 					throw new Error("Element type is required for add_element action");
 				}
 
-				console.log(action.properties);
-
 				if (actionPerformed === "undo") {
 					// We're doing the inverse, so we remove the element.
 					deleteElement((element) => element.id === action.properties.id);
