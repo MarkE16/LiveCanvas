@@ -75,14 +75,13 @@ export const createCanvasSlice: StateCreator<
 		const layers = get().layers;
 		let nextActiveLayerIndex = 0;
 		const newLayers = layers.map((layer, i) => {
-			if (layer.id === payload || layer.active) {
-				layer.active = !layer.active;
-			}
-
-			if (layer.active) {
+			if (layer.id === payload) {
 				nextActiveLayerIndex = i;
 			}
-			return layer;
+			return {
+				...layer,
+				active: layer.id === payload
+			};
 		});
 
 		set({ layers: newLayers, currentLayer: nextActiveLayerIndex });
@@ -383,7 +382,9 @@ export const createCanvasSlice: StateCreator<
 
 			ctx.scale(scale, scale);
 		}
-		
+
+		console.log("drawing...", layers, elements);
+
 		for (const element of elements) {
 			const { x, y, width, height } = element;
 

@@ -66,7 +66,7 @@ export type CanvasStore = CanvasState & {
 export type HistoryStore = {
 	undoStack: HistoryAction[];
 	redoStack: HistoryAction[];
-	push: (action: HistoryAction) => void;
+	pushHistory: (action: HistoryAction) => void;
 	undo: () => void;
 	redo: () => void;
 };

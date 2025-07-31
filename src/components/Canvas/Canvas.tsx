@@ -5,17 +5,10 @@ import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
 import * as Utils from "@/lib/utils";
-import clsx from "clsx";
-import LayersStore from "@/state/stores/LayersStore";
 
 // Types
 import type { RefObject, MouseEvent as ReactMouseEvent } from "react";
-import {
-	type Layer,
-	type Coordinates,
-	RectProperties,
-	CanvasElementPath
-} from "@/types";
+import { type Coordinates, RectProperties, CanvasElementPath } from "@/types";
 import useThrottle from "@/state/hooks/useThrottle";
 import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
@@ -42,9 +35,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		position,
 		changeMode,
 		changeColor,
-		setLayers,
 		createElement,
-		getActiveLayer
+		getActiveLayer,
+		pushHistory
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -57,9 +50,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			position: state.position,
 			changeMode: state.changeMode,
 			changeColor: state.changeColor,
-			setLayers: state.setLayers,
 			createElement: state.createElement,
-			getActiveLayer: state.getActiveLayer
+			getActiveLayer: state.getActiveLayer,
+			pushHistory: state.pushHistory
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
@@ -327,9 +320,10 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
 		const { x: initX, y: initY } = initialPosition.current;
+		let elementId: string | undefined = undefined;
 
 		if (mode === "shapes") {
-			createElement(shape, {
+			elementId = createElement(shape, {
 				x: Math.min(x, initX),
 				y: Math.min(y, initY),
 				width: Math.abs(x - initX),
@@ -339,46 +333,28 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				inverted: y < initY
 			});
 		} else if (mode === "brush" || mode === "eraser") {
-			createElement(mode, {
+			elementId = createElement(mode, {
 				color: color.current,
-				layerId: activeLayer.id,
 				path: currentPath.current
 			});
 		}
 
-		document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		initialPosition.current = { x: 0, y: 0 };
 
-		// A custom event to notify that the image of the layer
-		// displayed in the layer list needs to be updated.
-		// This event should only really be listened for by the
-		// LayerInfo component; however, other components may
-		// listen for this event if they need to update the image,
-		// if needed.
+		if (!elementId) {
+			throw new Error("Element ID is not defined. This is a bug.");
+		}
 
-		// Only fire the imageupdate event if the
-		// user actually drew/erased something.
-		const imageUpdate = new CustomEvent("imageupdate", {
-			detail: {
-				layerId: activeLayer.id
+		pushHistory({
+			type: "add_element",
+			properties: {
+				id: elementId,
+				type: mode === "shapes" ? shape : (mode as "brush" | "eraser"),
+				color: color.current,
+				path: mode !== "shapes" ? currentPath.current : undefined
 			}
 		});
-
-		document.dispatchEvent(imageUpdate);
-
-		if (mode === "brush" || mode === "eraser") {
-			// Save the action to the history.
-			// history.addHistory({
-			// 	mode: mode as "draw" | "erase" | "shapes",
-			// 	path: currentPath.current,
-			// 	layerId: layerRef!.id,
-			// 	color,
-			// 	drawStrength
-			// });
-
-			// Clear the current path.
-			currentPath.current = [];
-		}
+		currentPath.current = [];
 	};
 
 	const onMouseEnter = (e: ReactMouseEvent<HTMLCanvasElement>) => {
@@ -390,50 +366,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 	useImperativeHandle(ref, () => canvasRef.current!, []);
 
 	useCanvasRedrawListener(canvasRef);
-
-	useEffect(() => {
-		async function updateLayers() {
-			const entries = await LayersStore.getLayers();
-
-			if (!entries) {
-				return;
-			}
-
-			updateLayerState(entries).then(() =>
-				document.dispatchEvent(new CustomEvent("canvas:redraw"))
-			);
-		}
-
-		function updateLayerState(
-			entries: Awaited<ReturnType<typeof LayersStore.getLayers>>
-		) {
-			return new Promise<void>((resolve) => {
-				const newLayers: Layer[] = [];
-
-				const sorted = entries.sort((a, b) => a[1].position - b[1].position); // Sort by position, where the highest position is the top layer.
-
-				sorted.forEach((entry, i) => {
-					const [id, { name }] = entry;
-
-					newLayers.push({
-						name,
-						id,
-						active: i === 0,
-						hidden: false
-					});
-				});
-
-				if (newLayers.length === 0) {
-					resolve();
-				}
-
-				setLayers(newLayers);
-				resolve();
-			});
-		}
-
-		updateLayers();
-	}, [setLayers]);
 
 	useEffect(() => {
 		document.addEventListener("mousemove", onMouseMove);

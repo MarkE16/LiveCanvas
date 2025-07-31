@@ -17,7 +17,10 @@ export const createCanvasElementsSlice: StateCreator<
 > = (set, get) => {
 	function createElement(
 		type: CanvasElementType,
-		properties?: Omit<Partial<CanvasElement>, "id" | "drawType" | "strokeWidth">
+		properties?: Omit<
+			Partial<CanvasElement>,
+			"id" | "drawType" | "strokeWidth" | "layerId"
+		>
 	) {
 		if (type === "text" && !properties?.text) {
 			throw new Error(
@@ -25,12 +28,10 @@ export const createCanvasElementsSlice: StateCreator<
 			);
 		}
 
-		if (!properties?.layerId) {
-			throw new Error("Cannot create element: No existing layer.");
-		}
-
 		const id = uuid();
-		const { shapeMode, strokeWidth, opacity } = get();
+		const { shapeMode, strokeWidth, opacity, getActiveLayer } = get();
+
+		const layer = getActiveLayer();
 
 		const element = {
 			x: 0,
@@ -41,11 +42,12 @@ export const createCanvasElementsSlice: StateCreator<
 			type,
 			inverted: false,
 			path: [],
+			id,
+			layerId: layer.id,
 			...properties, // Override the default properties with the provided properties, if any.
 			drawType: shapeMode,
 			strokeWidth,
-			opacity,
-			id // Keep the id as the last property to ensure that it is not overridden.
+			opacity
 		};
 
 		set((state) => ({
@@ -92,7 +94,7 @@ export const createCanvasElementsSlice: StateCreator<
 				return true; // Keep the element
 			})
 		}));
-		
+
 		return deletedIds;
 	}
 

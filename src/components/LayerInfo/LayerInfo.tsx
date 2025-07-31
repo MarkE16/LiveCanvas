@@ -92,7 +92,6 @@ function LayerInfo({
 		const deletedIds = deleteElement((element) => element.layerId === id);
 
 		ElementsStore.removeElement(deletedIds);
-		document.dispatchEvent(new CustomEvent("canvas:redraw"));
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {

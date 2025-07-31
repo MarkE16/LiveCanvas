@@ -8,7 +8,6 @@ import { useShallow } from "zustand/react/shallow";
 import DrawingToolbar from "@/components/DrawingToolbar/DrawingToolbar";
 import Canvas from "@/components/Canvas/Canvas";
 import CanvasPointerMarker from "@/components/CanvasPointerMarker/CanvasPointerMarker";
-import CanvasPointerSelection from "@/components/CanvasPointerSelection/CanvasPointerSelection";
 import ScaleIndicator from "@/components/ScaleIndicator/ScaleIndicator";
 
 // Types
@@ -28,10 +27,9 @@ function CanvasPane(): ReactNode {
 		increaseScale,
 		decreaseScale,
 		changeElementProperties,
-		copyElement,
-		pasteElement,
 		createElement,
-		getActiveLayer
+		getActiveLayer,
+		pushHistory
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -41,10 +39,9 @@ function CanvasPane(): ReactNode {
 			increaseScale: state.increaseScale,
 			decreaseScale: state.decreaseScale,
 			changeElementProperties: state.changeElementProperties,
-			copyElement: state.copyElement,
-			pasteElement: state.pasteElement,
 			createElement: state.createElement,
-			getActiveLayer: state.getActiveLayer
+			getActiveLayer: state.getActiveLayer,
+			pushHistory: state.pushHistory
 		}))
 	);
 	const currentShape = useStoreSubscription((state) => state.shape);
@@ -167,8 +164,6 @@ function CanvasPane(): ReactNode {
 					},
 					(element) => element.layerId === layer.id
 				);
-
-				document.dispatchEvent(new CustomEvent("canvas:redraw"));
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 		}
@@ -176,14 +171,6 @@ function CanvasPane(): ReactNode {
 		function handleMouseUp() {
 			// clientPosition.current = { x: 0, y: 0 };
 			setIsGrabbing(false);
-
-			const ev = new CustomEvent("imageupdate", {
-				detail: {
-					layerId: getActiveLayer().id
-				}
-			});
-
-			document.dispatchEvent(ev);
 		}
 
 		function handleKeyDown(e: KeyboardEvent) {
@@ -201,14 +188,6 @@ function CanvasPane(): ReactNode {
 			if (e.type === "keyup") {
 				return;
 			}
-
-			// if (e.key === "c" && e.ctrlKey && !e.repeat) {
-			// 	// We're copying elements here
-			// 	copyElement((element) => element.focused);
-			// } else if (e.key === "v" && e.ctrlKey && !e.repeat) {
-			// 	// We're pasting elements here
-			// 	pasteElement();
-			// }
 		}
 
 		function handleZoom(e: Event) {
@@ -266,8 +245,6 @@ function CanvasPane(): ReactNode {
 		isPanning,
 		isGrabbing,
 		changeElementProperties,
-		copyElement,
-		pasteElement,
 		createElement,
 		increaseScale,
 		decreaseScale,
