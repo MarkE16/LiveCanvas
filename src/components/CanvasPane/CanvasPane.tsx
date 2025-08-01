@@ -270,7 +270,8 @@ function CanvasPane(): ReactNode {
 		shiftKey,
 		ctrlKey,
 		currentShape,
-		currentColor
+		currentColor,
+		pushHistory
 	]);
 
 	return (
@@ -284,9 +285,6 @@ function CanvasPane(): ReactNode {
 					shiftKey={shiftKey}
 				/>
 			)}
-			{/* <CanvasPointerSelection
-				canvasSpaceReference={canvasSpaceRef}
-			/> */}
 			<MemoizedDrawingToolbar />
 
 			<div

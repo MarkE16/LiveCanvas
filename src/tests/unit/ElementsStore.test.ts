@@ -21,11 +21,11 @@ describe("ElementsStore functionality", () => {
 			path: [],
 			opacity: 1,
 			strokeWidth: 5,
-			drawType: 'fill',
+			drawType: "fill",
 			width: 100,
 			height: 100,
 			x: 100,
-			y: 100,
+			y: 100
 		},
 		{
 			id: "456",
@@ -36,11 +36,11 @@ describe("ElementsStore functionality", () => {
 			path: [],
 			opacity: 1,
 			strokeWidth: 5,
-			drawType: 'fill',
+			drawType: "fill",
 			width: 50,
 			height: 50,
 			x: 50,
-			y: 50,
+			y: 50
 		}
 	];
 
@@ -77,11 +77,11 @@ describe("ElementsStore functionality", () => {
 				path: [],
 				opacity: 1,
 				strokeWidth: 5,
-				drawType: 'fill',
+				drawType: "fill",
 				width: 100,
 				height: 100,
 				x: 100,
-				y: 100,
+				y: 100
 			},
 			{
 				id: "135",
@@ -92,11 +92,11 @@ describe("ElementsStore functionality", () => {
 				path: [],
 				opacity: 1,
 				strokeWidth: 5,
-				drawType: 'fill',
+				drawType: "fill",
 				width: 50,
 				height: 50,
 				x: 50,
-				y: 50,
+				y: 50
 			}
 		];
 		await ElementsStore.addElements(newElements);

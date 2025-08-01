@@ -21,7 +21,6 @@ import Redo from "@/components/icons/Redo/Redo";
 import Text from "@/components/icons/Text/Text";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import Hand from "../icons/Hand/Hand";
-import Square from "../icons/Square/Square";
 import Brush from "../icons/Brush/Brush";
 
 type ToolbarButtonProps = Readonly<
@@ -127,11 +126,7 @@ function ToolbarButton({
 				data-testid={`tool-${name}`}
 				onClick={performAction}
 				disabled={
-					name === "undo"
-						? !undoLength
-						: name === "redo"
-							? !redoLength
-							: false
+					name === "undo" ? !undoLength : name === "redo" ? !redoLength : false
 				}
 			>
 				{ICONS[name]}

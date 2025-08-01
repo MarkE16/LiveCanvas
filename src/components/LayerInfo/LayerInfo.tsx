@@ -26,7 +26,6 @@ type LayerInfoProps = Readonly<
 	Layer & {
 		canMoveUp: boolean;
 		canMoveDown: boolean;
-		idx: number;
 	}
 >;
 
@@ -38,8 +37,7 @@ function LayerInfo({
 	active,
 	hidden,
 	canMoveUp,
-	canMoveDown,
-	idx
+	canMoveDown
 }: LayerInfoProps): ReactNode {
 	const {
 		toggleLayer,

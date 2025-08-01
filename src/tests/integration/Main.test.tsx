@@ -8,7 +8,7 @@ import {
 	vi,
 	afterEach
 } from "vitest";
-import { screen, fireEvent, act } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../test-utils";
 import type { Color } from "react-aria-components";
 import { parseColor } from "react-aria-components";
@@ -21,9 +21,6 @@ type MockProps = PropsWithChildren & {
 };
 
 const MOCK_COLOR = parseColor("#ff0000");
-
-const stripUnits = (values: string[], unit: string) =>
-	values.map((value) => Number(value.replace(unit, "")));
 
 vi.mock("react-aria-components", async (importOriginal) => {
 	const original = (await importOriginal()) as NonNullable<

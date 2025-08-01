@@ -23,7 +23,9 @@ function useStoreEffect<T>(
 	}
 
 	useEffect(() => {
-		const unsubscribe = store.subscribe(selector, effect, { equalityFn: shallow });
+		const unsubscribe = store.subscribe(selector, effect, {
+			equalityFn: shallow
+		});
 
 		return unsubscribe;
 	}, [store, selector, effect]);

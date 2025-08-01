@@ -1,6 +1,8 @@
 import type { StateCreator } from "zustand";
 import type { SliceStores, HistoryAction, HistoryStore } from "@/types";
 
+const HISTORY_ENTRY_LIMIT = 20;
+
 export const createHistorySlice: StateCreator<
 	SliceStores,
 	[],
@@ -83,13 +85,13 @@ export const createHistorySlice: StateCreator<
 			return;
 		}
 		set((state) => ({
-			undoStack: [action, ...state.undoStack],
+			undoStack: [action, ...state.undoStack].slice(0, HISTORY_ENTRY_LIMIT),
 			redoStack: []
 		}));
 	}
 
 	function undo() {
-		const { undoStack, redoStack, changeElementProperties } = get();
+		const { undoStack, redoStack } = get();
 
 		if (!undoStack.length) return; // Nothing to undo
 
@@ -104,7 +106,7 @@ export const createHistorySlice: StateCreator<
 	}
 
 	function redo() {
-		const { redoStack, undoStack, changeElementProperties } = get();
+		const { redoStack, undoStack } = get();
 		if (!redoStack.length) return; // Nothing to redo
 
 		const lastAction = redoStack[0];

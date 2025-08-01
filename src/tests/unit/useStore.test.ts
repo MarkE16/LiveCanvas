@@ -6,7 +6,6 @@ import { renderHook } from "@testing-library/react";
 import useStore from "../../state/hooks/useStore";
 import type { CanvasElement, HistoryAction, SliceStores } from "../../types";
 import { MODES } from "../../state/store";
-import { getCanvasPosition } from "../../lib/utils";
 
 const exampleStore: SliceStores = {
 	background: "white",

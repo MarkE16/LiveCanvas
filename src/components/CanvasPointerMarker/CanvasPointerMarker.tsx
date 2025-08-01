@@ -1,7 +1,6 @@
 // Lib
 import { useState, useEffect, useRef } from "react";
 import useStore from "@/state/hooks/useStore";
-import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
 import * as Utils from "@/lib/utils";
 
@@ -30,7 +29,6 @@ function CanvasPointerMarker({
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 
-	const ERASER_RADIUS = 7;
 	const POINTER_SIZE = strokeWidth * scale;
 
 	useEffect(() => {

@@ -8,8 +8,7 @@ import type {
 	Coordinates,
 	HistoryAction,
 	SavedCanvasProperties,
-	CanvasElementType,
-	RectProperties
+	CanvasElementType
 } from "../types";
 
 export type CanvasElementsStore = {

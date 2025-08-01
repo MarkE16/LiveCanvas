@@ -61,7 +61,7 @@ function useCanvasRedrawListener(
 
 		return () =>
 			document.removeEventListener("canvas:redraw", handleCanvasRedraw);
-	}, [handleCanvasRedraw]);
+	}, [handleCanvasRedraw, debounce, handleCanvasRedrawDebounced]);
 }
 
 export default useCanvasRedrawListener;

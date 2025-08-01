@@ -37,7 +37,7 @@ function Main(): ReactNode {
 						.sort((a, b) => b[1].position - a[1].position)
 						.map(([id, { name }], i) => ({
 							name,
-							id: name,
+							id,
 							active: i === 0,
 							hidden: false
 						}))

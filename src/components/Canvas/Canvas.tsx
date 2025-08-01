@@ -158,7 +158,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
 		// Calculate the position of the mouse relative to the canvas.
-		let { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
 		ctx.globalCompositeOperation =
 			mode === "eraser" ? "destination-out" : "source-over";

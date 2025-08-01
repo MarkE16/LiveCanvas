@@ -1,6 +1,5 @@
 import type { StateCreator } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { parseColor } from "react-aria-components";
 import type {
 	Mode,
 	Layer,
@@ -9,7 +8,6 @@ import type {
 	CanvasStore,
 	SavedCanvasProperties,
 	Shape,
-	RectProperties,
 	SliceStores
 } from "@/types";
 import * as Utils from "@/lib/utils";
@@ -229,6 +227,7 @@ export const createCanvasSlice: StateCreator<
 	 * @param width The width of the text container.
 	 * @param ctx The 2D context of the canvas.
 	 */
+	//eslint-disable-next-line @typescript-eslint/no-unused-vars
 	function generateTextLines(
 		text: string,
 		width: number,
@@ -272,7 +271,6 @@ export const createCanvasSlice: StateCreator<
 	}
 
 	async function prepareForExport(quality: number = 1): Promise<Blob> {
-		const elements = get().elements;
 		const accountForDPI = true; // Consider DPI for better quality exports
 
 		const substituteCanvas = document.createElement("canvas");
@@ -319,13 +317,7 @@ export const createCanvasSlice: StateCreator<
 
 	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
 		let elements = get().elements;
-		const {
-			background,
-			layers,
-			dpi,
-			width: canvasWidth,
-			height: canvasHeight
-		} = get();
+		const { background, layers, dpi, width: canvasWidth } = get();
 
 		if (layers.length === 0) {
 			throw new Error("No layers available to draw on the canvas.");

@@ -10,7 +10,6 @@ import type { ReactNode, ChangeEvent, MouseEvent, ReactElement } from "react";
 import type { Shape } from "@/types";
 
 // Components
-import ColorPicker from "@/components/ColorPicker/ColorPicker";
 import ShapeOption from "@/components/ShapeOption/ShapeOption";
 
 // Icons
@@ -18,9 +17,7 @@ import Square from "@/components/icons/Square/Square";
 import Circle from "@/components/icons/Circle/Circle";
 import Triangle from "../icons/Triangle/Triangle";
 import Brush from "../icons/Brush/Brush";
-import Tooltip from "../Tooltip/Tooltip";
 
-const MemoizedColorPicker = memo(ColorPicker);
 const MemoizedShapeOption = memo(ShapeOption);
 
 const SHAPE_ICONS: Record<Shape, ReactElement> = {
@@ -148,25 +145,6 @@ function DrawingToolbar(): ReactNode {
 				value={opacity}
 				onChange={onOpacityChange}
 			/>
-		</Fragment>
-	);
-
-	const renderedShapeSettings = (
-		<Fragment key="settings_Shapes">
-			{/* <MemoizedColorPicker
-				label="Fill"
-				__for="fill"
-				value={focusedElements[0]?.fill}
-			/> */}
-			{/* <ColorField
-				label="Border Width"
-				value={
-					focusedElements.length === 0
-						? "1"
-						: focusedElements[0].borderWidth.toString()
-				}
-				onChange={onBorderWidthChange}
-			/> */}
 		</Fragment>
 	);
 
