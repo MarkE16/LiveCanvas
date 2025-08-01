@@ -16,8 +16,6 @@ describe("Navbar functionality", () => {
 	let originalRequestFullscreen: typeof HTMLElement.prototype.requestFullscreen;
 	let originalExitFullscreen: typeof document.exitFullscreen;
 	const fullscreenElementMock = vi.fn().mockReturnValue(null);
-	const canvas = document.createElement("canvas");
-	canvas.setAttribute("data-dpi", "1");
 
 	beforeAll(() => {
 		Object.defineProperty(document, "fullscreenElement", {
@@ -90,12 +88,12 @@ describe("Navbar functionality", () => {
 	});
 
 	it("should show an error if failed to save", async () => {
-		renderWithProviders(<Navbar />);
+		renderWithProviders(<Navbar />, {
+			preloadedState: { layers: [] }
+		});
 
 		const alertSpy = vi.spyOn(window, "alert");
-		const error = new Error(
-			"Cannot export canvas: no references found. This is a bug."
-		);
+		const error = new Error("No layers to save. This is a bug.");
 
 		const fileTab = screen.getByRole("menuitem", { name: "File" });
 

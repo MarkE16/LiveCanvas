@@ -10,7 +10,6 @@ export type CanvasState = {
 	color: string;
 	opacity: number;
 	strokeWidth: number;
-	selection: RectProperties | null;
 	layers: Layer[];
 	currentLayer: number;
 	scale: number;

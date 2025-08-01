@@ -50,7 +50,7 @@ export const createCanvasSlice: StateCreator<
 	}
 
 	function changeStrokeWidth(payload: number) {
-		set({ strokeWidth: payload });
+		set({ strokeWidth: Math.max(Math.min(payload, 100), 1) });
 	}
 
 	function changeDPI(payload: number) {
@@ -162,21 +162,6 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		return layers[currentLayer];
-	}
-
-	function updateSelectionRect(payload: Partial<RectProperties> | null) {
-		if (!payload) {
-			set({ selection: null });
-		} else {
-			set((state) => ({
-				selection: {
-					x: payload.x ?? state.selection?.x ?? 0,
-					y: payload.y ?? state.selection?.y ?? 0,
-					width: payload.width ?? state.selection?.width ?? 0,
-					height: payload.height ?? state.selection?.height ?? 0
-				}
-			}));
-		}
 	}
 
 	function increaseScale() {
@@ -342,6 +327,10 @@ export const createCanvasSlice: StateCreator<
 			height: canvasHeight
 		} = get();
 
+		if (layers.length === 0) {
+			throw new Error("No layers available to draw on the canvas.");
+		}
+
 		const ctx = canvas.getContext("2d");
 		if (!ctx) {
 			throw new Error("Failed to get 2D context from canvas when drawing.");
@@ -485,7 +474,6 @@ export const createCanvasSlice: StateCreator<
 		opacity: 1,
 		strokeWidth: 5,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
-		selection: null,
 		currentLayer: 0,
 		scale: 1,
 		dpi: 1,
@@ -509,7 +497,6 @@ export const createCanvasSlice: StateCreator<
 		removeLayer,
 		setLayers,
 		getActiveLayer,
-		updateSelectionRect,
 		increaseScale,
 		decreaseScale,
 		setPosition,

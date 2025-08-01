@@ -17,13 +17,8 @@ export default class LayersStore extends BaseStore {
 	 * @param layers Layers to add to the store.
 	 * @returns Promise of void
 	 */
-	public static addLayers(layers: Layer[]) {
-		return this.add<LayerStoreObject>(
-			layers.map((layer, i) => ({
-				...layer,
-				position: i // Ensure position is set based on index
-			}))
-		);
+	public static upsertLayers(layers: LayerStoreObject[]) {
+		return this.add<LayerStoreObject>(layers);
 	}
 
 	/**

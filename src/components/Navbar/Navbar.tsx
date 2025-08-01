@@ -43,10 +43,19 @@ function Navbar(): ReactNode {
 		try {
 			const { layers, elements } = await prepareForSave();
 
+			if (layers.length === 0) {
+				throw new Error("No layers to save. This is a bug.");
+			}
+
 			const promises = [];
 
 			promises.push(
-				LayersStore.addLayers(layers),
+				LayersStore.upsertLayers(
+					layers.map((layer, i) => ({
+						...layer,
+						position: i
+					}))
+				),
 				ElementsStore.addElements(elements)
 			);
 

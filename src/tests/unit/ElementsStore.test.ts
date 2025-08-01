@@ -11,12 +11,17 @@ import ElementsStore from "@/state/stores/ElementsStore";
 import { CanvasElement } from "@/types";
 
 describe("ElementsStore functionality", () => {
-	const elements: Omit<CanvasElement, "focused">[] = [
+	const elements: CanvasElement[] = [
 		{
 			id: "123",
 			layerId: "1234-5678-9012",
 			type: "circle",
 			color: "#000000",
+			inverted: false,
+			path: [],
+			opacity: 1,
+			strokeWidth: 5,
+			drawType: 'fill',
 			width: 100,
 			height: 100,
 			x: 100,
@@ -27,6 +32,11 @@ describe("ElementsStore functionality", () => {
 			layerId: "1234-5678-9012",
 			type: "rectangle",
 			color: "#000000",
+			inverted: false,
+			path: [],
+			opacity: 1,
+			strokeWidth: 5,
+			drawType: 'fill',
 			width: 50,
 			height: 50,
 			x: 50,
@@ -57,12 +67,17 @@ describe("ElementsStore functionality", () => {
 	});
 
 	it("should add items", async () => {
-		const newElements: Omit<CanvasElement, "focused">[] = [
+		const newElements: CanvasElement[] = [
 			{
 				id: "246",
 				layerId: "1234-5678-9012",
 				type: "circle",
 				color: "#000000",
+				inverted: false,
+				path: [],
+				opacity: 1,
+				strokeWidth: 5,
+				drawType: 'fill',
 				width: 100,
 				height: 100,
 				x: 100,
@@ -73,6 +88,11 @@ describe("ElementsStore functionality", () => {
 				layerId: "1234-5678-9012",
 				type: "rectangle",
 				color: "#000000",
+				inverted: false,
+				path: [],
+				opacity: 1,
+				strokeWidth: 5,
+				drawType: 'fill',
 				width: 50,
 				height: 50,
 				x: 50,

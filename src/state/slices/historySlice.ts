@@ -76,6 +76,12 @@ export const createHistorySlice: StateCreator<
 	}
 
 	function pushHistory(action: HistoryAction) {
+		const totalElements = get().elements.length;
+		if (action.type === "move_element" && totalElements === 0) {
+			// Do not push history for move_element if there are no elements.
+			// Silently ignore the action.
+			return;
+		}
 		set((state) => ({
 			undoStack: [action, ...state.undoStack],
 			redoStack: []
