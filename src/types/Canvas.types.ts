@@ -20,7 +20,6 @@ export type CanvasState = {
 
 export type Mode =
 	| "brush"
-	| "select"
 	| "eraser"
 	| "shapes"
 	| "text"

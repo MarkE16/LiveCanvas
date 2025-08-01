@@ -33,7 +33,6 @@ type ToolbarButtonProps = Readonly<
 const ICONS: Record<Mode, ReactNode> = {
 	move: <Move />,
 	brush: <Brush />,
-	select: <Square dashed />,
 	eraser: <Eraser />,
 	shapes: <Shapes />,
 	text: <Text />,

@@ -7,8 +7,8 @@ import useStore from "@/state/hooks/useStore";
 import * as Utils from "@/lib/utils";
 
 // Types
-import type { RefObject, MouseEvent as ReactMouseEvent } from "react";
-import { type Coordinates, RectProperties, CanvasElementPath } from "@/types";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { type Coordinates, CanvasElementPath } from "@/types";
 import useThrottle from "@/state/hooks/useThrottle";
 import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 
@@ -68,13 +68,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		x: 0,
 		y: 0
 	});
-	const selectRect = useRef<RectProperties>({
-		x: 0,
-		y: 0,
-		width: 0,
-		height: 0
-	});
-	const isClipped = useRef<boolean>(false);
 
 	// Handler for when the mouse is pressed down on the canvas.
 	// This should initiate the drawing process.
@@ -167,36 +160,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		// Calculate the position of the mouse relative to the canvas.
 		let { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
 
-		// const { x: startRectX, y: startRectY } = Utils.getCanvasPosition(
-		// 	selectX + left,
-		// 	selectY + top,
-		// 	activeLayer
-		// );
-		// const { x: endRectX, y: endRectY } = Utils.getCanvasPosition(
-		// 	selectX + selectWidth + left,
-		// 	selectY + selectHeight + top,
-		// 	activeLayer
-		// );
-		// const rectWidth = endRectX - startRectX;
-		// const rectHeight = endRectY - startRectY;
-
-		// if (selectRect.current) {
-		// 	// If the user is drawing a selection rectangle,
-		// 	// check if the mouse is within the rectangle.
-		// 	// Otherwise, we should not draw.
-		// 	if (e.clientX - left < selectX) {
-		// 		x = startRectX + strokeWidth.current * dpi;
-		// 	} else {
-		// 		x = Math.min(x, startRectX + rectWidth - strokeWidth.current * dpi);
-		// 	}
-
-		// 	if (e.clientY - top < selectY) {
-		// 		y = startRectY + strokeWidth.current * dpi;
-		// 	} else {
-		// 		y = Math.min(y, startRectY + rectHeight - strokeWidth.current * dpi);
-		// 	}
-		// }
-
 		ctx.globalCompositeOperation =
 			mode === "eraser" ? "destination-out" : "source-over";
 		ctx.fillStyle = color.current;
@@ -209,25 +172,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		}
 
 		switch (mode) {
-			case "select": {
-				document.dispatchEvent(new CustomEvent("canvas:redraw"));
-
-				ctx.save();
-				ctx.strokeStyle = "rgba(0, 0, 255, 1)";
-				ctx.lineWidth = 2;
-
-				ctx.setLineDash([5, 5]);
-				ctx.strokeRect(
-					initialPosition.current.x,
-					initialPosition.current.y,
-					x - initialPosition.current.x,
-					y - initialPosition.current.y
-				);
-
-				ctx.clip();
-				ctx.restore();
-				break;
-			}
 			case "brush":
 			case "eraser": {
 				if (!onCanvas) return;
