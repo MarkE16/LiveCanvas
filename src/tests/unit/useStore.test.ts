@@ -639,6 +639,52 @@ describe("useStore functionality", () => {
 			expect(result.result.current.undoStack).toEqual([]);
 			expect(result.result.current.redoStack).toEqual([]);
 		});
+
+		it("should call the appropriate functions when going through history of adding elements", () => {
+			const elementPayload: Partial<CanvasElement> = {
+				type: "rectangle",
+				x: 10,
+				y: 10,
+				width: 100,
+				height: 100,
+				color: "#000000",
+				layerId: "1234-5678-9123-4567"
+			};
+			let returnedElement: CanvasElement | null = null;
+
+			act(() => {
+				// We need to manually create the element first before pushing to history.
+				returnedElement = result.result.current.createElement(
+					"rectangle",
+					elementPayload
+				);
+				result.result.current.pushHistory({
+					type: "add_element",
+					properties: returnedElement
+				});
+			});
+
+			const createSpy = vi.spyOn(result.result.current, "createElement");
+			const deleteSpy = vi.spyOn(result.result.current, "deleteElement");
+
+			// Let's undo.
+			act(() => {
+				result.result.current.undo();
+			});
+			expect(deleteSpy).toHaveBeenCalledTimes(1);
+			expect(createSpy).not.toHaveBeenCalled();
+
+			// Now let's redo.
+			act(() => {
+				result.result.current.redo();
+			});
+
+			//ts-ignore
+			const { type, ...rest } = returnedElement || ({} as CanvasElement);
+
+			expect(createSpy).toHaveBeenCalledWith("rectangle", rest);
+			expect(deleteSpy).toHaveBeenCalledTimes(1);
+		});
 	});
 
 	describe("Element store functionality", () => {
