@@ -679,7 +679,7 @@ describe("useStore functionality", () => {
 				result.result.current.redo();
 			});
 
-			//ts-ignore
+			//eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const { type, ...rest } = returnedElement || ({} as CanvasElement);
 
 			expect(createSpy).toHaveBeenCalledWith("rectangle", rest);
