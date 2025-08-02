@@ -12,7 +12,6 @@ import { render, renderHook } from "@testing-library/react";
 import { StoreProvider } from "@/components/StoreContext/StoreContext";
 
 import { initializeStore } from "@/state/store";
-import { LayerReferencesProvider } from "@/components/LayerReferencesProvider/LayerReferencesProvider";
 
 type ExtendedRenderOptions = Omit<RenderOptions, "queries"> & {
 	preloadedState?: Partial<SliceStores>;
@@ -40,9 +39,7 @@ export function renderWithProviders(
 	}: ExtendedRenderOptions = {}
 ): RenderResult {
 	const Wrapper = ({ children }: PropsWithChildren) => (
-		<LayerReferencesProvider>
-			<StoreProvider store={store}>{children}</StoreProvider>
-		</LayerReferencesProvider>
+		<StoreProvider store={store}>{children}</StoreProvider>
 	);
 
 	return render(ui, { wrapper: Wrapper, ...renderOptions });
@@ -63,9 +60,7 @@ export function renderHookWithProviders<Result, Props>(
 	}: ExtendedRenderHookOptions<Props> = {}
 ): RenderHookResult<Result, Props> {
 	const Wrapper = ({ children }: PropsWithChildren) => (
-		<LayerReferencesProvider>
-			<StoreProvider store={store}>{children}</StoreProvider>
-		</LayerReferencesProvider>
+		<StoreProvider store={store}>{children}</StoreProvider>
 	);
 
 	return renderHook(hook, { wrapper: Wrapper, ...renderOptions });

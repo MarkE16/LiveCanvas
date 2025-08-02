@@ -2,7 +2,6 @@
 import { useState, memo } from "react";
 import clsx from "clsx";
 import useStore from "@/state/hooks/useStore";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/react/shallow";
 import LayersStore from "@/state/stores/LayersStore";
 
@@ -21,12 +20,12 @@ import type { Layer } from "@/types";
 // Components
 import LayerPreview from "@/components/LayerPreview/LayerPreview";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import ElementsStore from "@/state/stores/ElementsStore";
 
 type LayerInfoProps = Readonly<
 	Layer & {
 		canMoveUp: boolean;
 		canMoveDown: boolean;
-		idx: number;
 	}
 >;
 
@@ -38,8 +37,7 @@ function LayerInfo({
 	active,
 	hidden,
 	canMoveUp,
-	canMoveDown,
-	idx
+	canMoveDown
 }: LayerInfoProps): ReactNode {
 	const {
 		toggleLayer,
@@ -60,7 +58,6 @@ function LayerInfo({
 			deleteElement: state.deleteElement
 		}))
 	);
-	const { setActiveIndex } = useLayerReferences();
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [editedName, setEditedName] = useState<string>(name);
 	const editingTooltipText =
@@ -72,10 +69,14 @@ function LayerInfo({
 
 	const onToggle = () => {
 		toggleLayer(id);
-		setActiveIndex(idx);
 	};
 
-	const onToggleVisibility = () => toggleVisibility(id);
+	const onToggleVisibility = () => {
+		toggleVisibility(id);
+		document.dispatchEvent(
+			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
+		);
+	};
 
 	const onDelete = () => {
 		if (!window.confirm("Are you sure you want to delete " + name + "?"))
@@ -85,7 +86,9 @@ function LayerInfo({
 
 		LayersStore.removeLayer([id]);
 
-		deleteElement((element) => element.layerId === id);
+		const deletedIds = deleteElement((element) => element.layerId === id);
+
+		ElementsStore.removeElement(deletedIds);
 	};
 
 	const onMoveLayer = (dir: "up" | "down") => {
@@ -94,6 +97,9 @@ function LayerInfo({
 		} else {
 			moveLayerDown(id);
 		}
+		document.dispatchEvent(
+			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
+		);
 	};
 
 	const onRename = () => {

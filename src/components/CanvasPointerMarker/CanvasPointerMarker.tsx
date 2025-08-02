@@ -1,7 +1,6 @@
 // Lib
 import { useState, useEffect, useRef } from "react";
 import useStore from "@/state/hooks/useStore";
-import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import { useShallow } from "zustand/react/shallow";
 import * as Utils from "@/lib/utils";
 
@@ -18,23 +17,19 @@ function CanvasPointerMarker({
 	canvasSpaceReference,
 	shiftKey
 }: CanvasPointerMarker): ReactNode {
-	const { mode, scale, drawStrength, eraserStrength, deleteElement } = useStore(
+	const { mode, scale, strokeWidth, deleteElement } = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			scale: state.scale,
-			drawStrength: state.drawStrength,
-			eraserStrength: state.eraserStrength,
+			strokeWidth: state.strokeWidth,
 			deleteElement: state.deleteElement
 		}))
 	);
-	const isMovingElement = useStoreSubscription((state) => state.elementMoving);
 	const ref = useRef<HTMLDivElement>(null);
 	const [position, setPosition] = useState<Coordinates>({ x: 0, y: 0 });
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 
-	const ERASER_RADIUS = 7;
-	const POINTER_SIZE =
-		(mode === "draw" ? drawStrength : ERASER_RADIUS * eraserStrength) * scale;
+	const POINTER_SIZE = strokeWidth * scale;
 
 	useEffect(() => {
 		const canvasSpace = canvasSpaceReference.current;
@@ -106,8 +101,7 @@ function CanvasPointerMarker({
 				const node = elements[i];
 				if (
 					Utils.isRectIntersecting(m, node) &&
-					!isMovingElement.current &&
-					mode === "erase" &&
+					mode === "eraser" &&
 					e.buttons === 1
 				) {
 					deleteElement((element) => element.id === node.id);
@@ -120,7 +114,7 @@ function CanvasPointerMarker({
 		return () => {
 			canvasSpace.removeEventListener("mousemove", isIntersecting);
 		};
-	}, [deleteElement, mode, canvasSpaceReference, isMovingElement]);
+	}, [deleteElement, mode, canvasSpaceReference]);
 
 	return (
 		<div
@@ -129,7 +123,7 @@ function CanvasPointerMarker({
 			data-testid="canvas-pointer-marker"
 			style={{
 				// Remove pointer events so the pointer doesn't interfere with the canvas.
-				borderRadius: mode === "draw" ? "50%" : "0%",
+				borderRadius: "50%",
 				left: -POINTER_SIZE,
 				top: -POINTER_SIZE,
 				display: isVisible && !shiftKey ? "block" : "none",

@@ -1,21 +1,19 @@
 import type { StateCreator } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { parseColor } from "react-aria-components";
 import type {
 	Mode,
 	Layer,
 	Coordinates,
 	Dimensions,
 	CanvasStore,
-	HistoryStore,
-	CanvasElementsStore,
 	SavedCanvasProperties,
-	Shape
+	Shape,
+	SliceStores
 } from "@/types";
 import * as Utils from "@/lib/utils";
 
 export const createCanvasSlice: StateCreator<
-	CanvasStore & HistoryStore & CanvasElementsStore,
+	SliceStores,
 	[],
 	[],
 	CanvasStore
@@ -28,26 +26,12 @@ export const createCanvasSlice: StateCreator<
 	}
 
 	function changeColor(payload: string) {
-		const space = parseColor(payload).getColorSpace();
-
-		if (!space.includes("hsl")) {
-			throw new Error(
-				`Invalid color format passed into state. Pass in a valid HSL color string, not ${space}.`
-			);
-		}
-
 		set({ color: payload });
 	}
 
-	function changeColorAlpha(payload: number) {
-		set((state) => {
-			const color = state.color;
-			const newColorString =
-				color.substring(0, color.lastIndexOf(",") + 1) +
-				payload.toString() +
-				")";
-
-			return { color: newColorString };
+	function changeOpacity(payload: number) {
+		set({
+			opacity: Math.max(Math.min(payload, 1), 0)
 		});
 	}
 
@@ -59,16 +43,12 @@ export const createCanvasSlice: StateCreator<
 		set({ shape: payload });
 	}
 
-	function changeDrawStrength(payload: number) {
-		set({
-			drawStrength: Math.max(1, Math.min(15, payload))
-		});
+	function changeShapeMode(payload: "fill" | "stroke") {
+		set({ shapeMode: payload });
 	}
 
-	function changeEraserStrength(payload: number) {
-		set({
-			eraserStrength: Math.max(3, Math.min(10, payload))
-		});
+	function changeStrokeWidth(payload: number) {
+		set({ strokeWidth: Math.max(Math.min(payload, 100), 1) });
 	}
 
 	function changeDPI(payload: number) {
@@ -91,14 +71,18 @@ export const createCanvasSlice: StateCreator<
 
 	function toggleLayer(payload: string) {
 		const layers = get().layers;
-		const newLayers = layers.map((layer) => {
-			if (layer.id === payload || layer.active) {
-				layer.active = !layer.active;
+		let nextActiveLayerIndex = 0;
+		const newLayers = layers.map((layer, i) => {
+			if (layer.id === payload) {
+				nextActiveLayerIndex = i;
 			}
-			return layer;
+			return {
+				...layer,
+				active: layer.id === payload
+			};
 		});
 
-		set({ layers: newLayers });
+		set({ layers: newLayers, currentLayer: nextActiveLayerIndex });
 	}
 
 	function toggleLayerVisibility(payload: string) {
@@ -146,20 +130,36 @@ export const createCanvasSlice: StateCreator<
 				return state;
 			}
 
-			const pendingLayer = state.layers.find((layer) => layer.id === payload)!;
+			let activeLayerIndex = 0;
+			const pendingLayer = state.layers.find((layer, i) => {
+				if (layer.id === payload) {
+					activeLayerIndex = i;
+				}
+				return layer.id === payload;
+			})!;
 			const newLayers = state.layers.filter(
 				(layer) => layer.id !== pendingLayer.id
 			);
 			if (pendingLayer.active) {
 				newLayers[0].active = true;
+				activeLayerIndex = 0;
 			}
 
-			return { layers: newLayers };
+			return { layers: newLayers, currentLayer: activeLayerIndex };
 		});
 	}
 
 	function setLayers(payload: Layer[]) {
 		set({ layers: payload });
+	}
+
+	function getActiveLayer(): Layer {
+		const { layers, currentLayer } = get();
+		if (layers.length === 0) {
+			throw new Error("No layers available to get the active layer.");
+		}
+
+		return layers[currentLayer];
 	}
 
 	function increaseScale() {
@@ -215,71 +215,66 @@ export const createCanvasSlice: StateCreator<
 	 * elements. Therefore, the caller must save the
 	 * layers and elements themselves.
 	 */
-	async function prepareForSave(
-		layerRefs: HTMLCanvasElement[]
-	): Promise<SavedCanvasProperties> {
-		if (!layerRefs.length)
-			throw new Error(
-				"Cannot export canvas: no references found. This is a bug."
-			);
+	async function prepareForSave(): Promise<SavedCanvasProperties> {
+		const { layers, elements } = get();
 
-		const elements = get().elements;
-
-		const layerPromises = layerRefs.map((layer, i) => {
-			if (!layer) {
-				throw new Error("Failed to get canvas when exporting.");
-			}
-			return new Promise<{
-				name: string;
-				image: Blob;
-				position: number;
-				id: string;
-			}>((resolve) => {
-				layer.toBlob((blob) => {
-					if (!blob) throw new Error("Failed to extract blob when exporting.");
-					resolve({
-						name: layer.getAttribute("data-name") ?? "Untitled Layer",
-						image: blob,
-						position: i,
-						id: layer.id
-					});
-				});
-			});
-		});
-		const newElements = elements.map((element) => {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const { focused, ...rest } = element;
-
-			return rest;
-		});
-
-		const newLayers = await Promise.all(layerPromises);
-
-		return { layers: newLayers, elements: newElements };
+		return { layers, elements };
 	}
 
-	async function prepareForExport(
-		layerRefs: HTMLCanvasElement[],
-		quality: number = 1
-	): Promise<Blob> {
-		if (layerRefs.length === 0) {
-			throw new Error("No layers provided when attempting to export.");
-		}
+	/**
+	 * A helper function that returns an array of lines of the given text that fit within the given width.
+	 * @param text The text to split into lines.
+	 * @param width The width of the text container.
+	 * @param ctx The 2D context of the canvas.
+	 */
+	//eslint-disable-next-line @typescript-eslint/no-unused-vars
+	function generateTextLines(
+		text: string,
+		width: number,
+		ctx: CanvasRenderingContext2D
+	): string[] {
+		const lines: string[] = [];
+		let charsLeft = text;
 
-		const elements = get().elements;
+		while (charsLeft.length > 0) {
+			let splitIndex = charsLeft.length;
+
+			// Find the index to split the word at.
+			while (
+				ctx.measureText(charsLeft.slice(0, splitIndex)).width > width &&
+				splitIndex > 0
+			) {
+				splitIndex--;
+			}
+
+			// Require one character.
+			if (splitIndex === 0) {
+				splitIndex = 1;
+			}
+
+			const splitWord = charsLeft.slice(0, splitIndex);
+
+			// "Super long words" can contain new lines,
+			// which can disrupt the word wrapping logic.
+			// Therefore, we need to account for new lines.
+			const hasNewLine = splitWord.indexOf("\n");
+
+			if (hasNewLine !== -1) {
+				lines.push(splitWord.slice(0, hasNewLine));
+				charsLeft = charsLeft.slice(hasNewLine + 1);
+			} else {
+				lines.push(splitWord);
+				charsLeft = charsLeft.slice(splitIndex);
+			}
+		}
+		return lines;
+	}
+
+	async function prepareForExport(quality: number = 1): Promise<Blob> {
 		const accountForDPI = true; // Consider DPI for better quality exports
 
 		const substituteCanvas = document.createElement("canvas");
-		const referenceLayer = layerRefs[0];
-		const { width, height } = referenceLayer;
-		const dpi = Number(referenceLayer.getAttribute("data-dpi"));
-		// const scale = Number(referenceLayer.getAttribute("data-scale"));
-
-		if (!dpi) {
-			throw new Error(
-				"Failed to get DPI from canvas when attempting to export."
-			);
-		}
+		const { width, height, dpi } = get();
 
 		substituteCanvas.width = width;
 		substituteCanvas.height = height;
@@ -297,168 +292,20 @@ export const createCanvasSlice: StateCreator<
 			ctx.scale(dpi, dpi);
 		}
 
-		// Set white background
-		ctx.fillStyle = "white";
-		ctx.fillRect(0, 0, width, height);
-
-		/**
-		 * A helper function that returns an array of lines of the given text that fit within the given width.
-		 * @param text The text to split into lines.
-		 * @param width The width of the text container.
-		 * @param ctx The 2D context of the canvas.
-		 */
-		function generateTextLines(
-			text: string,
-			width: number,
-			ctx: CanvasRenderingContext2D
-		): string[] {
-			const lines: string[] = [];
-			let charsLeft = text;
-
-			while (charsLeft.length > 0) {
-				let splitIndex = charsLeft.length;
-
-				// Find the index to split the word at.
-				while (
-					ctx.measureText(charsLeft.slice(0, splitIndex)).width > width &&
-					splitIndex > 0
-				) {
-					splitIndex--;
-				}
-
-				// Require one character.
-				if (splitIndex === 0) {
-					splitIndex = 1;
-				}
-
-				const splitWord = charsLeft.slice(0, splitIndex);
-
-				// "Super long words" can contain new lines,
-				// which can disrupt the word wrapping logic.
-				// Therefore, we need to account for new lines.
-				const hasNewLine = splitWord.indexOf("\n");
-
-				if (hasNewLine !== -1) {
-					lines.push(splitWord.slice(0, hasNewLine));
-					charsLeft = charsLeft.slice(hasNewLine + 1);
-				} else {
-					lines.push(splitWord);
-					charsLeft = charsLeft.slice(splitIndex);
-				}
-			}
-			return lines;
-		}
-
-		const promises = layerRefs.map((layer) => {
-			return new Promise<void>((resolve) => {
-				// Filter elements by layer ID
-				const layerElements = elements.filter(
-					(element) => element.layerId === layer.id
-				);
-
-				ctx.drawImage(layer, 0, 0);
-
-				// Draw the elements
-				layerElements.forEach((element) => {
-					const { x: eX, y: eY, width: eWidth, height: eHeight } = element;
-
-					const { x: startX, y: startY } = Utils.getCanvasPosition(
-						eX,
-						eY,
-						layer
-					);
-					const { x: endX, y: endY } = Utils.getCanvasPosition(
-						eX + eWidth,
-						eY + eHeight,
-						layer
-					);
-
-					const width = endX - startX;
-					const height = endY - startY;
-
-					ctx.fillStyle = element.fill ?? "";
-					ctx.strokeStyle = element.stroke ?? "";
-
-					ctx.beginPath();
-					switch (element.type) {
-						case "circle": {
-							ctx.ellipse(
-								startX + width / 2,
-								startY + height / 2,
-								width / 2,
-								height / 2,
-								0,
-								0,
-								2 * Math.PI
-							);
-							ctx.fill();
-							ctx.stroke();
-							break;
-						}
-						case "rectangle": {
-							ctx.fillRect(startX, startY, width, height);
-							ctx.strokeRect(startX, startY, width, height);
-							break;
-						}
-						case "triangle": {
-							ctx.moveTo(startX + width / 2, startY);
-							ctx.lineTo(startX + width, startY + height);
-							ctx.lineTo(startX, startY + height);
-							ctx.fill();
-							ctx.stroke();
-							break;
-						}
-						case "text": {
-							const text = element.text;
-							if (!text?.content || !text.size) {
-								throw new Error(
-									`Failed to extract text from element with id ${element.id}.`
-								);
-							}
-
-							ctx.font = `${text.size}px ${text.family}`;
-							ctx.textBaseline = "top";
-							const lines = generateTextLines(text.content, width, ctx);
-							const lineHeight = 1.5;
-							for (let i = 0; i < lines.length; i++) {
-								const line = lines[i];
-								ctx.fillText(
-									line,
-									startX,
-									startY + i * text.size * lineHeight,
-									width
-								);
-								ctx.strokeText(
-									line,
-									startX,
-									startY + i * text.size * lineHeight,
-									width
-								);
-							}
-							break;
-						}
-						default: {
-							ctx.closePath();
-							throw new Error(`Invalid shape ${element.type} when exporting.`);
-						}
-					}
-				});
-				ctx.closePath();
-				resolve();
-			});
-		});
-
-		await Promise.all(promises);
+		drawCanvas(substituteCanvas);
 
 		return new Promise((resolve) => {
-			substituteCanvas.toBlob(
-				(blob) => {
-					if (!blob) throw new Error("Failed to extract blob when exporting.");
-					resolve(blob);
-				},
-				"image/jpeg",
-				quality
-			);
+			requestAnimationFrame(() => {
+				substituteCanvas.toBlob(
+					(blob) => {
+						if (!blob)
+							throw new Error("Failed to extract blob when exporting.");
+						resolve(blob);
+					},
+					"image/png",
+					quality
+				);
+			});
 		});
 	}
 
@@ -468,26 +315,169 @@ export const createCanvasSlice: StateCreator<
 		}));
 	}
 
+	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
+		let elements = get().elements;
+		const { background, layers, dpi, width: canvasWidth } = get();
+
+		if (layers.length === 0) {
+			throw new Error("No layers available to draw on the canvas.");
+		}
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			throw new Error("Failed to get 2D context from canvas when drawing.");
+		}
+
+		const visibilityMap = new Map<string, boolean>();
+		const positionMap = new Map<string, number>();
+
+		for (let i = 0; i < layers.length; i++) {
+			const layer = layers[i];
+			visibilityMap.set(layer.id, layer.hidden);
+			positionMap.set(layer.id, layers.length - 1 - i);
+		}
+		elements = elements.filter((element) => {
+			if (layerId) {
+				return element.layerId === layerId;
+			}
+			return !visibilityMap.get(element.layerId);
+		});
+
+		elements.sort((a, b) => {
+			const aPosition = positionMap.get(a.layerId) ?? 0;
+			const bPosition = positionMap.get(b.layerId) ?? 0;
+			return aPosition - bPosition;
+		});
+
+		const canvasX = 0;
+		const canvasY = 0;
+		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
+
+		const isPreviewCanvas = canvas.width < canvasWidth * dpi;
+
+		if (isPreviewCanvas) {
+			// If the canvas is a preview canvas, scale it down.
+			const scale = canvas.width / (canvasWidth * dpi);
+			// Save the current transform state.
+			ctx.save();
+
+			ctx.scale(scale, scale);
+		}
+
+		console.log("drawing...", layers, elements);
+
+		for (const element of elements) {
+			const { x, y, width, height } = element;
+
+			ctx.fillStyle = element.color;
+			ctx.strokeStyle = element.color;
+			ctx.lineWidth = element.strokeWidth;
+			ctx.globalCompositeOperation =
+				element.type === "eraser" ? "destination-out" : "source-over";
+			ctx.lineCap = "round";
+			ctx.globalAlpha = element.opacity;
+
+			switch (element.type) {
+				case "brush":
+				case "eraser": {
+					for (const point of element.path) {
+						if (point.startingPoint) {
+							ctx.beginPath();
+							ctx.moveTo(point.x, point.y);
+						} else {
+							ctx.lineTo(point.x, point.y);
+							ctx.stroke();
+						}
+					}
+					break;
+				}
+				case "circle": {
+					ctx.beginPath();
+					ctx.ellipse(
+						x + width / 2,
+						y + height / 2,
+						width / 2,
+						height / 2,
+						0,
+						0,
+						2 * Math.PI
+					);
+					ctx.closePath();
+					if (element.drawType === "fill") {
+						ctx.fill();
+					} else {
+						ctx.stroke();
+					}
+					break;
+				}
+				case "rectangle": {
+					if (element.drawType === "fill") {
+						ctx.fillRect(x, y, width, height);
+					} else {
+						ctx.strokeRect(x, y, width, height);
+					}
+					break;
+				}
+
+				case "triangle": {
+					ctx.beginPath();
+					if (element.inverted) {
+						ctx.moveTo(x + width / 2, y + height);
+						ctx.lineTo(x + width, y);
+						ctx.lineTo(x, y);
+					} else {
+						ctx.moveTo(x + width / 2, y);
+						ctx.lineTo(x + width, y + height);
+						ctx.lineTo(x, y + height);
+					}
+					ctx.closePath();
+
+					if (element.drawType === "fill") {
+						ctx.fill();
+					} else {
+						ctx.stroke();
+					}
+					break;
+				}
+			}
+		}
+
+		// Finally, draw the background behind all elements.
+		ctx.fillStyle = background;
+
+		// 'destination-over' changes the way the background is drawn
+		// by drawing behind existing content.
+		ctx.globalCompositeOperation = "destination-over";
+		ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
+
+		if (isPreviewCanvas) {
+			ctx.restore(); // Restore the previous transform state.
+		}
+	}
+
 	return {
 		width: 400,
 		height: 400,
-		mode: "select",
+		mode: "move",
+		background: "white",
 		shape: "rectangle",
-		color: "hsla(0, 0%, 0%, 1)",
-		drawStrength: 5,
-		eraserStrength: 3,
+		shapeMode: "fill",
+		color: "#000000",
+		opacity: 1,
+		strokeWidth: 5,
 		layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
+		currentLayer: 0,
 		scale: 1,
 		dpi: 1,
 		position: { x: 0, y: 0 },
 		referenceWindowEnabled: false,
 		changeDimensions,
 		changeColor,
-		changeColorAlpha,
+		changeOpacity,
 		changeMode,
 		changeShape,
-		changeDrawStrength,
-		changeEraserStrength,
+		changeShapeMode,
+		changeStrokeWidth,
 		changeDPI,
 		createLayer,
 		deleteLayer,
@@ -498,6 +488,7 @@ export const createCanvasSlice: StateCreator<
 		renameLayer,
 		removeLayer,
 		setLayers,
+		getActiveLayer,
 		increaseScale,
 		decreaseScale,
 		setPosition,
@@ -505,6 +496,7 @@ export const createCanvasSlice: StateCreator<
 		changeY,
 		prepareForSave,
 		prepareForExport,
-		toggleReferenceWindow
+		toggleReferenceWindow,
+		drawCanvas
 	};
 };

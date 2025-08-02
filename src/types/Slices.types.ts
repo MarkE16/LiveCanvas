@@ -7,25 +7,25 @@ import type {
 	Layer,
 	Coordinates,
 	HistoryAction,
-	SavedCanvasProperties
+	SavedCanvasProperties,
+	CanvasElementType
 } from "../types";
 
 export type CanvasElementsStore = {
 	elements: CanvasElement[];
 	copiedElements: CanvasElement[];
-	elementMoving: boolean;
-	focusElement: (predicate: (el: CanvasElement) => boolean) => void;
-	unfocusElement: (predicate: (el: CanvasElement) => boolean) => void;
 	createElement: (
-		type: Shape | "text",
-		properties?: Omit<Partial<CanvasElement>, "id">
-	) => string;
+		type: CanvasElementType,
+		properties?: Omit<
+			Partial<CanvasElement>,
+			"id" | "drawType" | "strokeWidth" | "opacity"
+		>
+	) => CanvasElement;
 	changeElementProperties: (
 		callback: (el: CanvasElement) => CanvasElement,
 		predicate: (el: CanvasElement) => boolean
 	) => void;
-	deleteElement: (predicate: (el: CanvasElement) => boolean) => void;
-	updateMovingState: (state: boolean) => void;
+	deleteElement: (predicate: (el: CanvasElement) => boolean) => string[];
 	setElements: (elements: CanvasElement[]) => void;
 	copyElement: (predicate: (el: CanvasElement) => boolean) => void;
 	pasteElement: () => void;
@@ -34,11 +34,11 @@ export type CanvasElementsStore = {
 export type CanvasStore = CanvasState & {
 	changeDimensions: (payload: Partial<Dimensions>) => void;
 	changeColor: (payload: string) => void;
-	changeColorAlpha: (payload: number) => void;
+	changeOpacity: (payload: number) => void;
 	changeMode: (payload: Mode) => void;
 	changeShape: (payload: Shape) => void;
-	changeDrawStrength: (payload: number) => void;
-	changeEraserStrength: (payload: number) => void;
+	changeShapeMode: (payload: "fill" | "stroke") => void;
+	changeStrokeWidth: (payload: number) => void;
 	changeDPI: (payload: number) => void;
 	createLayer: (payload?: { name?: string; id?: string }) => void;
 	deleteLayer: (payload: string) => void;
@@ -49,32 +49,24 @@ export type CanvasStore = CanvasState & {
 	renameLayer: (payload: { id: string; newName: string }) => void;
 	removeLayer: (payload: string) => void;
 	setLayers: (payload: Layer[]) => void;
+	getActiveLayer: () => Layer;
 	increaseScale: () => void;
 	decreaseScale: () => void;
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
 	toggleReferenceWindow: () => void;
-	prepareForSave: (
-		layerRefs: HTMLCanvasElement[]
-	) => Promise<SavedCanvasProperties>;
-	prepareForExport: (
-		layerRefs: HTMLCanvasElement[],
-		quality?: number
-	) => Promise<Blob>;
+	prepareForSave: () => Promise<SavedCanvasProperties>;
+	prepareForExport: (quality?: number) => Promise<Blob>;
+	drawCanvas: (canvas: HTMLCanvasElement, layerId?: string) => void;
 };
 
 export type HistoryStore = {
 	undoStack: HistoryAction[];
 	redoStack: HistoryAction[];
-	push: (action: HistoryAction) => void;
+	pushHistory: (action: HistoryAction) => void;
 	undo: () => void;
 	redo: () => void;
 };
 
 export type SliceStores = CanvasStore & CanvasElementsStore & HistoryStore;
-export type SliceCreators = {
-	canvas: CanvasStore;
-	canvasElements: CanvasElementsStore;
-	history: HistoryStore;
-};

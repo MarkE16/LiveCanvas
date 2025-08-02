@@ -10,8 +10,6 @@ import type { Mode, ToolbarMode } from "@/types";
 import type { ReactNode } from "react";
 
 // Components
-import Select from "@/components/icons/Select/Select";
-import Pen from "@/components/icons/Pen/Pen";
 import Eraser from "@/components/icons/Eraser/Eraser";
 import Shapes from "@/components/icons/Shapes/Shapes";
 import EyeDropper from "@/components/icons/EyeDropper/EyeDropper";
@@ -22,6 +20,8 @@ import Undo from "@/components/icons/Undo/Undo";
 import Redo from "@/components/icons/Redo/Redo";
 import Text from "@/components/icons/Text/Text";
 import Tooltip from "@/components/Tooltip/Tooltip";
+import Hand from "../icons/Hand/Hand";
+import Brush from "../icons/Brush/Brush";
 
 type ToolbarButtonProps = Readonly<
 	ToolbarMode & {
@@ -30,15 +30,15 @@ type ToolbarButtonProps = Readonly<
 >;
 
 const ICONS: Record<Mode, ReactNode> = {
-	select: <Select />,
-	draw: <Pen />,
-	erase: <Eraser />,
+	move: <Move />,
+	brush: <Brush />,
+	eraser: <Eraser />,
 	shapes: <Shapes />,
 	text: <Text />,
 	eye_drop: <EyeDropper />,
 	zoom_in: <ZoomIn />,
 	zoom_out: <ZoomOut />,
-	move: <Move />,
+	pan: <Hand />,
 	undo: <Undo />,
 	redo: <Redo />
 };
@@ -48,13 +48,17 @@ function ToolbarButton({
 	shortcut,
 	active
 }: ToolbarButtonProps): ReactNode {
-	const { changeMode, undoStack, redoStack, undo, redo } = useStore(
+	const { changeMode, undo, redo } = useStore(
 		useShallow((state) => ({
 			changeMode: state.changeMode,
-			undoStack: state.undoStack,
-			redoStack: state.redoStack,
 			undo: state.undo,
 			redo: state.redo
+		}))
+	);
+	const { undoLength, redoLength } = useStore(
+		useShallow((state) => ({
+			undoLength: state.undoStack.length,
+			redoLength: state.redoStack.length
 		}))
 	);
 	const tooltip =
@@ -77,9 +81,9 @@ function ToolbarButton({
 		function handleShortcut(e: KeyboardEvent) {
 			let chosenShortcut = "";
 
-			if (e.ctrlKey) chosenShortcut += "ctrl +";
-			if (e.shiftKey) chosenShortcut += "shift +";
-			if (e.altKey) chosenShortcut += "alt +";
+			if (e.ctrlKey) chosenShortcut += "ctrl+";
+			if (e.shiftKey) chosenShortcut += "shift+";
+			if (e.altKey) chosenShortcut += "alt+";
 
 			// Handle the special case of "+" and "_" for zooming in and out
 			if (e.key === "+" || e.key === "_") {
@@ -87,6 +91,8 @@ function ToolbarButton({
 			} else {
 				chosenShortcut += e.key.toLowerCase();
 			}
+
+			console.log(chosenShortcut, shortcut);
 
 			if (chosenShortcut === shortcut) {
 				performAction();
@@ -120,11 +126,7 @@ function ToolbarButton({
 				data-testid={`tool-${name}`}
 				onClick={performAction}
 				disabled={
-					name === "undo"
-						? !undoStack.length
-						: name === "redo"
-							? !redoStack.length
-							: false
+					name === "undo" ? !undoLength : name === "redo" ? !redoLength : false
 				}
 			>
 				{ICONS[name]}

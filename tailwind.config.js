@@ -47,5 +47,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("@savvywombat/tailwindcss-grid-areas")]
+	plugins: []
 };

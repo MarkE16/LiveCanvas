@@ -3,13 +3,13 @@ import { SHAPES } from "@/state/store";
 import { memo, Fragment } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
+import clsx from "clsx";
 
 // Type
 import type { ReactNode, ChangeEvent, MouseEvent, ReactElement } from "react";
 import type { Shape } from "@/types";
 
 // Components
-import ColorPicker from "@/components/ColorPicker/ColorPicker";
 import ShapeOption from "@/components/ShapeOption/ShapeOption";
 
 // Icons
@@ -18,7 +18,6 @@ import Circle from "@/components/icons/Circle/Circle";
 import Triangle from "../icons/Triangle/Triangle";
 import Brush from "../icons/Brush/Brush";
 
-const MemoizedColorPicker = memo(ColorPicker);
 const MemoizedShapeOption = memo(ShapeOption);
 
 const SHAPE_ICONS: Record<Shape, ReactElement> = {
@@ -31,75 +30,90 @@ function DrawingToolbar(): ReactNode {
 	const {
 		mode,
 		shape,
-		drawStrength,
-		eraserStrength,
-		changeDrawStrength,
-		changeEraserStrength,
-		changeColorAlpha
+		opacity,
+		shapeMode,
+		strokeWidth,
+		changeStrokeWidth,
+		changeOpacity,
+		changeShapeMode
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
 			shape: state.shape,
-			drawStrength: state.drawStrength,
-			eraserStrength: state.eraserStrength,
-			changeDrawStrength: state.changeDrawStrength,
-			changeEraserStrength: state.changeEraserStrength,
-			changeColorAlpha: state.changeColorAlpha
+			opacity: state.opacity,
+			shapeMode: state.shapeMode,
+			strokeWidth: state.strokeWidth,
+			changeStrokeWidth: state.changeStrokeWidth,
+			changeOpacity: state.changeOpacity,
+			changeShapeMode: state.changeShapeMode
 		}))
 	);
-	const elements = useStore(
-		(state) => state.elements,
-		(a, b) =>
-			a.length === b.length &&
-			a.every(
-				(el, i) =>
-					el.focused === b[i].focused &&
-					el.fill === b[i].fill &&
-					el.stroke === b[i].stroke
-			)
-	);
-	const focusedElements = elements.filter((element) => element.focused);
 
-	const strengthSettings =
-		mode === "draw"
-			? {
-					value: drawStrength,
-					min: 1,
-					max: 15
-				}
-			: {
-					value: eraserStrength,
-					min: 3,
-					max: 10
-				};
+	const strengthSettings = {
+		value: strokeWidth,
+		min: 1,
+		max: 100
+	};
 
 	const handleStrengthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const strength = Number(e.target.value);
 
-		if (mode === "draw") {
-			changeDrawStrength(strength);
-		} else {
-			changeEraserStrength(strength);
-		}
+		changeStrokeWidth(strength);
 	};
 
-	const onBrushChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const onOpacityChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const value = Number(e.target.value);
-		changeColorAlpha(value);
+		changeOpacity(value);
 	};
 
-	const renderedShapes = SHAPES.map((s) => (
-		<MemoizedShapeOption
-			key={s}
-			icon={SHAPE_ICONS[s]}
-			name={s}
-			isActive={shape === s}
-		/>
-	));
+	const renderedShapes = (
+		<Fragment key="settings_Shapes">
+			{SHAPES.map((s) => (
+				<MemoizedShapeOption
+					key={s}
+					icon={SHAPE_ICONS[s]}
+					name={s}
+					isActive={shape === s}
+				/>
+			))}
+		</Fragment>
+	);
+
+	const renderedShapeMode = (
+		<div
+			className="w-[110px] flex justify-between"
+			key="settings_ShapeMode"
+		>
+			<button
+				onClick={() => changeShapeMode("fill")}
+				className={clsx(
+					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					{
+						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
+							shapeMode === "fill"
+					}
+				)}
+			>
+				Fill
+			</button>
+			<button
+				onClick={() => changeShapeMode("stroke")}
+				className={clsx(
+					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
+					{
+						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
+							shapeMode === "stroke"
+					}
+				)}
+			>
+				Stroke
+			</button>
+		</div>
+	);
 
 	const renderedStrength = (
 		<Fragment key="settings_Strength">
-			Strength:{" "}
+			<span className="text-sm">Stroke Width</span>
 			<input
 				name={`${mode}_strength`.toUpperCase()}
 				type="range"
@@ -110,82 +124,65 @@ function DrawingToolbar(): ReactNode {
 				onChange={handleStrengthChange}
 				data-testid="strength-range"
 			/>
-			<label data-testid="strength-value">{strengthSettings.value}</label>
+			<span
+				data-testid="strength-value"
+				className="text-sm"
+			>
+				{strengthSettings.value}
+			</span>
 		</Fragment>
 	);
 
-	const renderedBrush = (
+	const renderedOpacity = (
 		<Fragment key="settings_Brush">
 			<Brush />
 			<input
 				type="range"
 				id="brush-size"
-				defaultValue={1}
 				min={0.01}
 				max={1}
 				step={0.01}
-				onChange={onBrushChange}
+				value={opacity}
+				onChange={onOpacityChange}
 			/>
-		</Fragment>
-	);
-
-	const renderedShapeSettings = (
-		<Fragment key="settings_Shapes">
-			<MemoizedColorPicker
-				label="Fill"
-				__for="fill"
-				value={focusedElements[0]?.fill}
-			/>
-			<MemoizedColorPicker
-				label="Border"
-				__for="stroke"
-				value={focusedElements[0]?.stroke}
-			/>
-			{/* <ColorField
-				label="Border Width"
-				value={
-					focusedElements.length === 0
-						? "1"
-						: focusedElements[0].borderWidth.toString()
-				}
-				onChange={onBorderWidthChange}
-			/> */}
 		</Fragment>
 	);
 
 	const additionalSettings: ReactNode[] = [];
 
-	if (mode === "draw") {
-		additionalSettings.push(renderedStrength, renderedBrush);
-	} else if (mode === "erase") {
+	if (mode === "brush") {
+		additionalSettings.push(renderedStrength, renderedOpacity);
+	} else if (mode === "eraser") {
 		additionalSettings.push(renderedStrength);
 	} else if (mode === "shapes") {
-		additionalSettings.push(<>{renderedShapes}</>);
-	}
-
-	if (focusedElements.length > 0) {
-		additionalSettings.push(renderedShapeSettings);
+		additionalSettings.push(
+			renderedShapes,
+			renderedShapeMode,
+			renderedStrength,
+			renderedOpacity
+		);
 	}
 
 	// Now insert a break between each setting.
-	additionalSettings.forEach((_, index) => {
-		if (index % 2 !== 0) {
+	for (let i = 0; i < additionalSettings.length; i++) {
+		if (i % 2 !== 0) {
 			additionalSettings.splice(
-				index,
+				i,
 				0,
 				<span
-					key={`break-${index}`}
+					key={`break-${i}`}
 					className="mx-[15px] border-l border-[rgb(99,99,99)] h-[30px]"
 				/>
 			);
+			i++; // Skip the next index since we just added a break
 		}
-	});
+	}
 
 	const stopPropagation = (e: MouseEvent) => e.stopPropagation();
 
 	return (
 		<div
-			className="flex items-center justify-center absolute top-[10px] w-[80%] min-w-0 min-h-[46px] rounded-[25px] bg-[#303744] shadow-[0_0_10px_rgba(0,0,0,0.5)] p-[0.5em_1.5em] overflow-auto z-[100] pointer-events-none [&>*]:pointer-events-auto"
+			className="flex items-center justify-center text-center absolute top-[10px] w-[80%] min-w-0 min-h-[46px] rounded-[25px] bg-[#303744] shadow-[0_0_10px_rgba(0,0,0,0.5)] p-[0.5em_1.5em] overflow-auto z-[100] pointer-events-none [&>*]:pointer-events-auto"
 			data-testid="drawing-toolbar"
 			role="toolbar"
 			onMouseDown={stopPropagation}

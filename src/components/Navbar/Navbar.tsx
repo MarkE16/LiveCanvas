@@ -1,7 +1,6 @@
 // Lib
 import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
 import { useRef, useCallback, useEffect } from "react";
-import useLayerReferences from "@/state/hooks/useLayerReferences";
 import { useShallow } from "zustand/shallow";
 import useStore from "@/state/hooks/useStore";
 import LayersStore from "@/state/stores/LayersStore";
@@ -29,7 +28,6 @@ function Navbar(): ReactNode {
 		}))
 	);
 	const downloadRef = useRef<HTMLAnchorElement>(null);
-	const { references } = useLayerReferences();
 
 	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
 
@@ -43,13 +41,21 @@ function Navbar(): ReactNode {
 
 	const handleSaveFile = useCallback(async () => {
 		try {
-			console.log(references.current);
-			const { layers, elements } = await prepareForSave(references.current);
+			const { layers, elements } = await prepareForSave();
+
+			if (layers.length === 0) {
+				throw new Error("No layers to save. This is a bug.");
+			}
 
 			const promises = [];
 
 			promises.push(
-				LayersStore.addLayers(layers),
+				LayersStore.upsertLayers(
+					layers.map((layer, i) => ({
+						...layer,
+						position: i
+					}))
+				),
 				ElementsStore.addElements(elements)
 			);
 
@@ -59,13 +65,13 @@ function Navbar(): ReactNode {
 		} catch (e) {
 			alert("Error saving file. Reason: " + (e as Error).message);
 		}
-	}, [references, prepareForSave]);
+	}, [prepareForSave]);
 
 	const handleExportFile = async () => {
 		if (!downloadRef.current) throw new Error("Download ref not found");
 
 		try {
-			const blob = await prepareForExport(references.current);
+			const blob = await prepareForExport();
 
 			const url = URL.createObjectURL(blob);
 

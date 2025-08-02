@@ -3,12 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 export type CanvasState = {
 	width: number;
 	height: number;
+	background: string;
 	mode: Mode;
 	shape: Shape;
+	shapeMode: "fill" | "stroke";
 	color: string;
-	drawStrength: number;
-	eraserStrength: number;
+	opacity: number;
+	strokeWidth: number;
 	layers: Layer[];
+	currentLayer: number;
 	scale: number;
 	dpi: number;
 	position: Coordinates;
@@ -16,17 +19,20 @@ export type CanvasState = {
 };
 
 export type Mode =
-	| "select"
-	| "draw"
-	| "erase"
+	| "brush"
+	| "eraser"
 	| "shapes"
 	| "text"
 	| "eye_drop"
 	| "zoom_in"
 	| "zoom_out"
 	| "move"
+	| "pan"
 	| "undo"
 	| "redo";
+
+export type RectProperties = Dimensions & Coordinates;
+
 export type Shape = "rectangle" | "circle" | "triangle";
 export type Coordinates = {
 	x: number;
@@ -51,12 +57,20 @@ export type Modes = ToolbarMode[];
 
 export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 
-export type CanvasElementType = Shape | "text";
+export type CanvasElementType =
+	| Shape
+	| "text"
+	| Extract<Mode, "brush" | "eraser">;
 
 export type FontProperties = {
 	size: number;
 	family: string;
 	content: string;
+};
+
+export type CanvasElementPath = Coordinates & {
+	// Indicates if the path is the starting point of the element.
+	startingPoint: boolean;
 };
 
 export type CanvasElement = {
@@ -65,12 +79,17 @@ export type CanvasElement = {
 	width: number;
 	height: number;
 	type: CanvasElementType;
-	fill: string;
-	stroke: string;
+	color: string;
 	id: string;
 	text?: FontProperties;
+	path: CanvasElementPath[];
 	layerId: string;
-	focused: boolean;
+	drawType: "fill" | "stroke";
+	strokeWidth: number;
+	opacity: number;
+	// Inverted means if the current y coordinate is less
+	// than the initial y coordinate (the coordinate when the mouse was pressed)
+	inverted: boolean;
 	// More properties later...
 };
 
@@ -80,11 +99,6 @@ export type Dimensions = {
 };
 
 export type SavedCanvasProperties = {
-	layers: {
-		name: string;
-		image: Blob;
-		position: number;
-		id: string;
-	}[];
+	layers: Layer[];
 	elements: Omit<CanvasElement, "focused">[];
 };
