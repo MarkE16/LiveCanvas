@@ -215,7 +215,7 @@ export const createCanvasSlice: StateCreator<
 	 * elements. Therefore, the caller must save the
 	 * layers and elements themselves.
 	 */
-	async function prepareForSave(): Promise<SavedCanvasProperties> {
+	function prepareForSave(): SavedCanvasProperties {
 		const { layers, elements } = get();
 
 		return { layers, elements };
@@ -270,7 +270,7 @@ export const createCanvasSlice: StateCreator<
 		return lines;
 	}
 
-	async function prepareForExport(quality: number = 1): Promise<Blob> {
+	function prepareForExport(quality: number = 1): Promise<Blob> {
 		const accountForDPI = true; // Consider DPI for better quality exports
 
 		const substituteCanvas = document.createElement("canvas");
@@ -317,7 +317,7 @@ export const createCanvasSlice: StateCreator<
 
 	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
 		let elements = get().elements;
-		const { background, layers, dpi, width: canvasWidth } = get();
+		const { background, layers, dpi, width: canvasWidth, height: canvasHeight } = get();
 
 		if (layers.length === 0) {
 			throw new Error("No layers available to draw on the canvas.");
@@ -357,14 +357,13 @@ export const createCanvasSlice: StateCreator<
 
 		if (isPreviewCanvas) {
 			// If the canvas is a preview canvas, scale it down.
-			const scale = canvas.width / (canvasWidth * dpi);
+			const scaleX = canvas.width / (canvasWidth * dpi);
+			const scaleY = canvas.height / (canvasHeight * dpi);
 			// Save the current transform state.
 			ctx.save();
 
-			ctx.scale(scale, scale);
+			ctx.scale(scaleX, scaleY);
 		}
-
-		console.log("drawing...", layers, elements);
 
 		for (const element of elements) {
 			const { x, y, width, height } = element;
@@ -442,6 +441,9 @@ export const createCanvasSlice: StateCreator<
 			}
 		}
 
+		if (isPreviewCanvas) {
+			ctx.restore(); // Restore the previous transform state.
+		}
 		// Finally, draw the background behind all elements.
 		ctx.fillStyle = background;
 
@@ -450,16 +452,13 @@ export const createCanvasSlice: StateCreator<
 		ctx.globalCompositeOperation = "destination-over";
 		ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
 
-		if (isPreviewCanvas) {
-			ctx.restore(); // Restore the previous transform state.
-		}
 	}
 
 	return {
 		width: 400,
 		height: 400,
 		mode: "move",
-		background: "white",
+		background: "#ffffff",
 		shape: "rectangle",
 		shapeMode: "fill",
 		color: "#000000",

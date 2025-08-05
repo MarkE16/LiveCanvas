@@ -41,7 +41,7 @@ function Navbar(): ReactNode {
 
 	const handleSaveFile = useCallback(async () => {
 		try {
-			const { layers, elements } = await prepareForSave();
+			const { layers, elements } = prepareForSave();
 
 			if (layers.length === 0) {
 				throw new Error("No layers to save. This is a bug.");
