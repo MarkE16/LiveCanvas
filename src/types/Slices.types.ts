@@ -56,7 +56,7 @@ export type CanvasStore = CanvasState & {
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
 	toggleReferenceWindow: () => void;
-	prepareForSave: () => Promise<SavedCanvasProperties>;
+  prepareForSave: () => SavedCanvasProperties;
 	prepareForExport: (quality?: number) => Promise<Blob>;
 	drawCanvas: (canvas: HTMLCanvasElement, layerId?: string) => void;
 };

@@ -8,7 +8,7 @@ import type { CanvasElement, HistoryAction, SliceStores } from "../../types";
 import { MODES } from "../../state/store";
 
 const exampleStore: SliceStores = {
-	background: "white",
+	background: "#ffffff",
 	width: 400,
 	height: 400,
 	shape: "rectangle",
@@ -402,7 +402,7 @@ describe("useStore functionality", () => {
 				result.result.current.setLayers(layers);
 				result.result.current.setElements(elements);
 			});
-			expect(result.result.current.prepareForSave()).resolves.toEqual(expected);
+			expect(result.result.current.prepareForSave()).toEqual(expected);
 		});
 
 		it("should return a blob for exporting", () => {
@@ -547,7 +547,7 @@ describe("useStore functionality", () => {
 			act(() => {
 				result.result.current.setLayers([]);
 			});
-			expect(() => result.result.current.prepareForExport()).rejects.toThrow();
+			expect(() => result.result.current.prepareForExport()).toThrow();
 		});
 	});
 
