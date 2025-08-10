@@ -14,21 +14,30 @@ function NavbarFileSaveStatus({ status }: NavbarFileSaveStatusProps) {
 	if (status === "saving") {
 		return (
 			<Tooltip text="Saving file...">
-				<CloudUpload className="text-gray-400" />
+				<CloudUpload
+					className="text-gray-400"
+					aria-label="saving-indicator"
+				/>
 			</Tooltip>
 		);
 	}
 	if (status === "saved") {
 		return (
 			<Tooltip text="File saved!">
-				<Checkmark className="text-green-500" />
+				<Checkmark
+					className="text-green-500"
+					aria-label="saved-indicator"
+				/>
 			</Tooltip>
 		);
 	}
 
 	return (
 		<Tooltip text="Error saving file. See console for details.">
-			<Close className="text-red-500" />
+			<Close
+				className="text-red-500"
+				aria-label="save-failed-indicator"
+			/>
 		</Tooltip>
 	);
 }
