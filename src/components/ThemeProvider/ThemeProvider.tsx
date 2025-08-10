@@ -1,3 +1,4 @@
+import { getCookie } from "@/lib/utils";
 import {
 	ReactNode,
 	createContext,
@@ -34,7 +35,8 @@ function ThemeProvider({
 		if (typeof window === "undefined") {
 			return initialTheme;
 		}
-		const storedTheme = window.localStorage.getItem(key);
+
+		const storedTheme = getCookie(key);
 		if (storedTheme) {
 			return storedTheme as Theme;
 		}
@@ -43,6 +45,8 @@ function ThemeProvider({
 
 	useEffect(() => {
 		const root = document.documentElement;
+
+		root.classList.remove("light", "dark", "system");
 
 		if (theme === "system") {
 			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -62,7 +66,7 @@ function ThemeProvider({
 
 	const updateTheme = useCallback(
 		(theme: Theme) => {
-			window.localStorage.setItem(key, theme);
+			document.cookie = `${key}=${theme}; path=/; max-age=31536000; secure; samesite=strict`;
 			setTheme(theme);
 		},
 		[key]

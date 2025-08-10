@@ -45,6 +45,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"compression": "^1.7.4",
+		"cookie-parser": "^1.4.7",
 		"cross-env": "^7.0.3",
 		"dotenv": "^16.4.7",
 		"eslint": "^8.47.0",
