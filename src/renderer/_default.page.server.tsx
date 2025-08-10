@@ -1,6 +1,11 @@
 export { render };
 // See https://vite-plugin-ssr.com/data-fetching
-export const passToClient = ["pageProps", "urlPathname", "zustandState"];
+export const passToClient = [
+	"pageProps",
+	"urlPathname",
+	"zustandState",
+	"theme"
+];
 
 import { PageShell } from "./PageShell";
 import { escapeInject } from "vite-plugin-ssr/server";
@@ -9,9 +14,10 @@ import type { PageContextServer } from "./types";
 import { renderToStream } from "react-streaming/server";
 import { initializeStore } from "@/state/store";
 import type { SliceStores } from "@/types";
+import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
 
 async function render(pageContext: PageContextServer) {
-	const { Page, pageProps } = pageContext;
+	const { Page, pageProps, theme } = pageContext;
 	// This render() hook only supports SSR, see https://vite-plugin-ssr.com/render-modes for how to modify render() to support SPA
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
@@ -27,9 +33,11 @@ async function render(pageContext: PageContextServer) {
 	pageContext.zustandState = stateWithoutFunctions;
 
 	const html = await renderToStream(
-		<PageShell pageContext={pageContext}>
-			<Page {...pageProps} />
-		</PageShell>
+		<ThemeProvider initialTheme={theme}>
+			<PageShell pageContext={pageContext}>
+				<Page {...pageProps} />
+			</PageShell>
+		</ThemeProvider>
 	);
 
 	// See https://vite-plugin-ssr.com/head
@@ -50,7 +58,7 @@ async function render(pageContext: PageContextServer) {
         <meta name="description" content="${desc}" />
         <title>${title}</title>
       </head>
-      <body>
+      <body class="${theme === "dark" ? "dark" : ""}">
         <div id="entry">${html as unknown as ReadableStream}</div>
       </body>
     </html>`;

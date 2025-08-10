@@ -83,7 +83,7 @@ describe("Navbar functionality", () => {
 		await userEvent.click(saveFileOption);
 
 		await vi.waitFor(() => {
-			expect(alertSpy).toHaveBeenCalledWith("Saved!");
+			expect(screen.getByLabelText("saved-indicator")).toBeInTheDocument();
 		});
 	});
 
@@ -116,7 +116,7 @@ describe("Navbar functionality", () => {
 		fireEvent.keyDown(document, { key: "s", ctrlKey: true });
 
 		await vi.waitFor(() => {
-			expect(alertSpy).toHaveBeenCalledWith("Saved!");
+			expect(screen.getByLabelText("saved-indicator")).toBeInTheDocument();
 		});
 	});
 

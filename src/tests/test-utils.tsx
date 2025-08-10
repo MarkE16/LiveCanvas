@@ -12,6 +12,7 @@ import { render, renderHook } from "@testing-library/react";
 import { StoreProvider } from "@/components/StoreContext/StoreContext";
 
 import { initializeStore } from "@/state/store";
+import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
 
 type ExtendedRenderOptions = Omit<RenderOptions, "queries"> & {
 	preloadedState?: Partial<SliceStores>;
@@ -39,7 +40,9 @@ export function renderWithProviders(
 	}: ExtendedRenderOptions = {}
 ): RenderResult {
 	const Wrapper = ({ children }: PropsWithChildren) => (
-		<StoreProvider store={store}>{children}</StoreProvider>
+		<ThemeProvider>
+			<StoreProvider store={store}>{children}</StoreProvider>
+		</ThemeProvider>
 	);
 
 	return render(ui, { wrapper: Wrapper, ...renderOptions });
@@ -60,7 +63,9 @@ export function renderHookWithProviders<Result, Props>(
 	}: ExtendedRenderHookOptions<Props> = {}
 ): RenderHookResult<Result, Props> {
 	const Wrapper = ({ children }: PropsWithChildren) => (
-		<StoreProvider store={store}>{children}</StoreProvider>
+		<ThemeProvider>
+			<StoreProvider store={store}>{children}</StoreProvider>
+		</ThemeProvider>
 	);
 
 	return renderHook(hook, { wrapper: Wrapper, ...renderOptions });

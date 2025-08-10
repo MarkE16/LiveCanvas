@@ -190,6 +190,11 @@ function debounce<T, A extends unknown[]>(
 		}, ms);
 	};
 }
+  
+function getCookie(name: string): string | null {
+	const match = document.cookie.match(/(^| )${name}=([^;]+)/);
+	return match ? decodeURIComponent(match[2]) : null;
+}
 
 export {
 	capitalize,
@@ -198,5 +203,6 @@ export {
 	getCanvasPosition,
 	navigateTo,
 	isRectIntersecting,
-	debounce
+	debounce,
+	getCookie
 };

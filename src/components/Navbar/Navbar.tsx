@@ -1,6 +1,6 @@
 // Lib
 import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import useStore from "@/state/hooks/useStore";
 import LayersStore from "@/state/stores/LayersStore";
@@ -11,13 +11,21 @@ import Fullscreen from "@/components/icons/Fullscreen/Fullscreen";
 import Image from "@/components/icons/Image/Image";
 import Export from "@/components/icons/Export/Export";
 import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
+import Close from "@/components/icons/Close/Close";
 
 // Types
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 
 // Components
-import * as Menubar from "@radix-ui/react-menubar";
-import Tooltip from "../Tooltip/Tooltip";
+import {
+	Menubar,
+	MenubarContent,
+	MenubarItem,
+	MenubarTrigger,
+	MenubarMenu,
+	MenubarPortal
+} from "@/components/ui/menubar";
+import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
 
 function Navbar(): ReactNode {
 	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
@@ -28,7 +36,9 @@ function Navbar(): ReactNode {
 		}))
 	);
 	const downloadRef = useRef<HTMLAnchorElement>(null);
-
+	const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">(
+		"saved"
+	);
 	const menuTabs = ["File", "Edit", "View", "Filter", "Admin"];
 
 	type MenuOptions = {
@@ -41,6 +51,7 @@ function Navbar(): ReactNode {
 
 	const handleSaveFile = useCallback(async () => {
 		try {
+		  setSaveStatus("saving");
 			const { layers, elements } = prepareForSave();
 
 			if (layers.length === 0) {
@@ -61,7 +72,7 @@ function Navbar(): ReactNode {
 
 			await Promise.all(promises);
 
-			alert("Saved!");
+			setSaveStatus("saved");
 		} catch (e) {
 			alert("Error saving file. Reason: " + (e as Error).message);
 		}
@@ -148,54 +159,55 @@ function Navbar(): ReactNode {
 					alt="logo"
 				/>
 
-				<Menubar.Root className="flex items-center">
+				<Menubar className="flex items-center mr-2">
 					{menuTabs.map((tab) => {
-						if (!menuOptions[tab]) {
-							return (
-								<Tooltip
-									text="Not available"
-									key={tab}
-								>
-									<span
-										className="mr-[0.8rem] text-[1.1em] font-medium text-[#fdfdfd] border-b-2 border-transparent no-underline bg-transparent cursor-default"
-										key={tab}
-									>
-										{tab}
+						const options = menuOptions[tab];
+						let content;
+						if (!options || options.length === 0) {
+							content = (
+								<MenubarItem>
+									<span className="mr-[2px]">
+										<Close />
 									</span>
-								</Tooltip>
+									No options available
+								</MenubarItem>
 							);
+						} else {
+							content = options.map((option) => {
+								return (
+									<MenubarItem
+										key={option.text}
+										onClick={option.action}
+									>
+										{option.icon && (
+											<span className="mr-[2px]">
+												<option.icon />
+											</span>
+										)}
+										{option.text}
+									</MenubarItem>
+								);
+							});
 						}
-
 						return (
-							<Menubar.Menu key={tab}>
-								<Menubar.Trigger className="mr-[0.8rem] text-[1.1em] font-medium text-[#fdfdfd] cursor-pointer">
+							<MenubarMenu key={tab}>
+								<MenubarTrigger className="text-[1.1em] font-medium text-[#fdfdfd] cursor-pointer">
 									{tab}
-								</Menubar.Trigger>
-								<Menubar.Portal>
-									<Menubar.Content
+								</MenubarTrigger>
+								<MenubarPortal>
+									<MenubarContent
 										className="z-[1000] min-w-[200px] bg-[#242424] rounded-md border border-[#3e3e3e] p-[5px] shadow-[0px_10px_38px_-10px_rgba(22,23,24,0.35),0px_10px_20px_-15px_rgba(22,23,24,0.2)]"
 										align="start"
 									>
-										{menuOptions[tab].map((option) => (
-											<Menubar.Item
-												key={option.text}
-												className="font-normal text-sm leading-none text-[#fdfdfd] rounded py-[10px] px-[10px] flex items-center h-[25px] relative select-none data-[highlighted]:bg-gradient-to-r data-[highlighted]:from-[#d1836a] data-[highlighted]:to-[#d1836a] data-[highlighted]:text-white data-[disabled]:text-gray-500 data-[disabled]:pointer-events-none"
-												onClick={option.action}
-											>
-												{option.icon && (
-													<span className="text-lg mr-[10px]">
-														<option.icon />
-													</span>
-												)}
-												{option.text}
-											</Menubar.Item>
-										))}
-									</Menubar.Content>
-								</Menubar.Portal>
-							</Menubar.Menu>
+										{content}
+									</MenubarContent>
+								</MenubarPortal>
+							</MenubarMenu>
 						);
 					})}
-				</Menubar.Root>
+				</Menubar>
+
+				<NavbarFileSaveStatus status={saveStatus} />
 			</nav>
 
 			<a
