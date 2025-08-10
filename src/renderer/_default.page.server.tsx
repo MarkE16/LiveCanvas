@@ -9,6 +9,7 @@ import type { PageContextServer } from "./types";
 import { renderToStream } from "react-streaming/server";
 import { initializeStore } from "@/state/store";
 import type { SliceStores } from "@/types";
+import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
 
 async function render(pageContext: PageContextServer) {
 	const { Page, pageProps } = pageContext;
@@ -27,9 +28,11 @@ async function render(pageContext: PageContextServer) {
 	pageContext.zustandState = stateWithoutFunctions;
 
 	const html = await renderToStream(
-		<PageShell pageContext={pageContext}>
-			<Page {...pageProps} />
-		</PageShell>
+		<ThemeProvider>
+			<PageShell pageContext={pageContext}>
+				<Page {...pageProps} />
+			</PageShell>
+		</ThemeProvider>
 	);
 
 	// See https://vite-plugin-ssr.com/head

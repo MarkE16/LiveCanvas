@@ -2,6 +2,7 @@ export { render };
 
 import { hydrateRoot } from "react-dom/client";
 import { PageShell } from "./PageShell";
+import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
 import type { PageContextClient } from "./types";
 import "./index.css";
 
@@ -17,9 +18,11 @@ async function render(pageContext: PageContextClient) {
 
 	hydrateRoot(
 		root,
-		<PageShell pageContext={pageContext}>
-			<Page {...pageProps} />
-		</PageShell>
+		<ThemeProvider>
+			<PageShell pageContext={pageContext}>
+				<Page {...pageProps} />
+			</PageShell>
+		</ThemeProvider>
 	);
 }
 
