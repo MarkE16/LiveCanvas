@@ -190,10 +190,35 @@ function debounce<T, A extends unknown[]>(
 		}, ms);
 	};
 }
-  
+
+/**
+ * Retrieves the value of a cookie by its name.
+ * @param name The cookie name.
+ * @returns The value of the cookie, or null if the cookie does not exist.
+ */
 function getCookie(name: string): string | null {
 	const match = document.cookie.match(/(^| )${name}=([^;]+)/);
 	return match ? decodeURIComponent(match[2]) : null;
+}
+
+type OperatingSystem = "Windows" | "MacOS" | "Linux";
+
+/**
+ * Detects the operating system of the user based on the user agent string.
+ * @returns The operating system.
+ */
+function detectOperatingSystem(): OperatingSystem {
+  if (typeof window === "undefined") {
+   return "Windows"; // Default to Windows if not in a browser environment 
+  }
+	const userAgent = window.navigator.userAgent;
+
+	if (userAgent.indexOf("Win") !== -1) return "Windows";
+	if (userAgent.indexOf("Mac") !== -1) return "MacOS";
+	if (userAgent.indexOf("X11") !== -1 || userAgent.indexOf("Linux") !== -1)
+		return "Linux";
+
+	throw new Error(`Unsupported operating system detected: ${userAgent}`);
 }
 
 export {
@@ -204,5 +229,6 @@ export {
 	navigateTo,
 	isRectIntersecting,
 	debounce,
-	getCookie
+	getCookie,
+	detectOperatingSystem,
 };
