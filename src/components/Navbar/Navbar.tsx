@@ -29,6 +29,7 @@ import {
 import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
 import ZoomIn from "../icons/ZoomIn/ZoomIn";
 import { detectOperatingSystem } from "@/lib/utils";
+import ZoomOut from "../icons/ZoomOut/ZoomOut";
 
 function Navbar(): ReactNode {
 	const {
@@ -144,7 +145,7 @@ function Navbar(): ReactNode {
 			{
 				text: "Zoom Out",
 				action: decreaseScale,
-				icon: ZoomIn,
+				icon: ZoomOut,
 				shortcut: "Minus"
 			},
 			{
