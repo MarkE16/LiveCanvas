@@ -23,16 +23,27 @@ import {
 	MenubarItem,
 	MenubarTrigger,
 	MenubarMenu,
-	MenubarPortal
+	MenubarPortal,
+	MenubarShortcut
 } from "@/components/ui/menubar";
 import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
+import ZoomIn from "../icons/ZoomIn/ZoomIn";
+import { detectOperatingSystem } from "@/lib/utils";
 
 function Navbar(): ReactNode {
-	const { prepareForExport, prepareForSave, toggleReferenceWindow } = useStore(
+	const {
+		prepareForExport,
+		prepareForSave,
+		toggleReferenceWindow,
+		increaseScale,
+		decreaseScale
+	} = useStore(
 		useShallow((state) => ({
 			prepareForExport: state.prepareForExport,
 			prepareForSave: state.prepareForSave,
-			toggleReferenceWindow: state.toggleReferenceWindow
+			toggleReferenceWindow: state.toggleReferenceWindow,
+			increaseScale: state.increaseScale,
+			decreaseScale: state.decreaseScale
 		}))
 	);
 	const downloadRef = useRef<HTMLAnchorElement>(null);
@@ -46,12 +57,13 @@ function Navbar(): ReactNode {
 			text: string;
 			action: (() => void) | (() => Promise<void>);
 			icon?: (props: ComponentProps<"svg">) => ReactElement;
+			shortcut?: string;
 		}[];
 	};
 
 	const handleSaveFile = useCallback(async () => {
 		try {
-		  setSaveStatus("saving");
+			setSaveStatus("saving");
 			const { layers, elements } = prepareForSave();
 
 			if (layers.length === 0) {
@@ -113,7 +125,8 @@ function Navbar(): ReactNode {
 			{
 				text: "Save File",
 				action: handleSaveFile,
-				icon: FloppyDisk
+				icon: FloppyDisk,
+				shortcut: "S"
 			},
 			{
 				text: "Export File",
@@ -122,6 +135,18 @@ function Navbar(): ReactNode {
 			}
 		],
 		View: [
+			{
+				text: "Zoom In",
+				action: increaseScale,
+				icon: ZoomIn,
+				shortcut: "Plus"
+			},
+			{
+				text: "Zoom Out",
+				action: decreaseScale,
+				icon: ZoomIn,
+				shortcut: "Minus"
+			},
 			{
 				text: "Reference Window",
 				action: toggleReferenceWindow,
@@ -173,6 +198,8 @@ function Navbar(): ReactNode {
 								</MenubarItem>
 							);
 						} else {
+							const shortcutKey =
+								detectOperatingSystem() === "MacOS" ? "⌘" : "Ctrl";
 							content = options.map((option) => {
 								return (
 									<MenubarItem
@@ -185,6 +212,11 @@ function Navbar(): ReactNode {
 											</span>
 										)}
 										{option.text}
+										{option.shortcut && (
+											<MenubarShortcut>
+												{shortcutKey}+{option.shortcut}
+											</MenubarShortcut>
+										)}
 									</MenubarItem>
 								);
 							});

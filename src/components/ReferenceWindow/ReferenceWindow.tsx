@@ -69,10 +69,10 @@ function ReferenceWindow(): ReactNode {
 	const controlsPadding = "10px";
 
 	const cn = clsx(
-		"fixed min-w-[300px] max-w-[60vw] max-h-[95%] bg-[rgb(36,36,36)] border border-[rgb(56,55,55)] rounded-[5px] z-[100] overflow-hidden resize",
+		"fixed min-w-[300px] max-w-[60vw] min-h-[40px] max-h-full bg-[rgb(36,36,36)] border border-[rgb(56,55,55)] rounded-[5px] z-[100] overflow-hidden",
 		{
-			"relative border-none top-0 left-0 resize-none max-w-[300px] min-h-full":
-				pinned
+			"relative border-none top-0 left-0 resize-none max-w-[300px]": pinned,
+			resize: !pinned
 		}
 	);
 
@@ -83,6 +83,7 @@ function ReferenceWindow(): ReactNode {
 			ref={windowRef}
 			style={{
 				...styles,
+				height: pinned ? "100vh" : "auto",
 				// Using CSS variable calculations since they're dynamic
 				minHeight: `calc(${headerHeight} + ${controlsHeight} + ${controlsPadding} + 10px)`
 			}}
