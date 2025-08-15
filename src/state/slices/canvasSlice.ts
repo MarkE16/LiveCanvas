@@ -317,7 +317,13 @@ export const createCanvasSlice: StateCreator<
 
 	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
 		let elements = get().elements;
-		const { background, layers, dpi, width: canvasWidth, height: canvasHeight } = get();
+		const {
+			background,
+			layers,
+			dpi,
+			width: canvasWidth,
+			height: canvasHeight
+		} = get();
 
 		if (layers.length === 0) {
 			throw new Error("No layers available to draw on the canvas.");
@@ -451,7 +457,6 @@ export const createCanvasSlice: StateCreator<
 		// by drawing behind existing content.
 		ctx.globalCompositeOperation = "destination-over";
 		ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
-
 	}
 
 	return {
