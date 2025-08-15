@@ -3,7 +3,7 @@ import { SHAPES } from "@/state/store";
 import { memo, Fragment } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
-import clsx from "clsx";
+import cn from "@/lib/tailwind-utils";
 
 // Type
 import type { ReactNode, ChangeEvent, MouseEvent, ReactElement } from "react";
@@ -86,7 +86,7 @@ function DrawingToolbar(): ReactNode {
 		>
 			<button
 				onClick={() => changeShapeMode("fill")}
-				className={clsx(
+				className={cn(
 					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
 					{
 						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":
@@ -98,7 +98,7 @@ function DrawingToolbar(): ReactNode {
 			</button>
 			<button
 				onClick={() => changeShapeMode("stroke")}
-				className={clsx(
+				className={cn(
 					"border-none inline-flex justify-center w-full text-sm items-center bg-transparent h-[30px] mx-[0.5em] px-1 rounded-sm my-0 cursor-pointer transition-colors duration-100 hover:bg-[#505050]",
 					{
 						"bg-[#505050] outline outline-[3px] outline-[#7e83da] outline-offset-[2px]":

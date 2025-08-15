@@ -3,7 +3,7 @@ import { useCallback, useEffect } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 import * as UTILS from "@/lib/utils";
-import clsx from "clsx";
+import cn from "@/lib/tailwind-utils";
 
 // Types
 import type { Mode, ToolbarMode } from "@/types";
@@ -112,7 +112,7 @@ function ToolbarButton({
 			position="right"
 		>
 			<button
-				className={clsx(
+				className={cn(
 					"p-[0.2em] text-2xl text-center cursor-pointer transition-colors duration-100",
 					"inline-flex justify-center",
 					"disabled:text-[#3b3b3b] disabled:cursor-not-allowed disabled:hover:bg-transparent",
