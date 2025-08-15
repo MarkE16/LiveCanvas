@@ -197,7 +197,8 @@ function debounce<T, A extends unknown[]>(
  * @returns The value of the cookie, or null if the cookie does not exist.
  */
 function getCookie(name: string): string | null {
-	const match = document.cookie.match(/(^| )${name}=([^;]+)/);
+  const regexp = new RegExp(`(^| )${name}=([^;]+)`);
+	const match = document.cookie.match(regexp);
 	return match ? decodeURIComponent(match[2]) : null;
 }
 
