@@ -197,7 +197,8 @@ function debounce<T, A extends unknown[]>(
  * @returns The value of the cookie, or null if the cookie does not exist.
  */
 function getCookie(name: string): string | null {
-	const match = document.cookie.match(/(^| )${name}=([^;]+)/);
+	const regexp = new RegExp(`(^| )${name}=([^;]+)`);
+	const match = document.cookie.match(regexp);
 	return match ? decodeURIComponent(match[2]) : null;
 }
 
@@ -208,14 +209,14 @@ type OperatingSystem = "Windows" | "MacOS" | "Linux";
  * @returns The operating system.
  */
 function detectOperatingSystem(): OperatingSystem {
-  if (typeof window === "undefined") {
-   return "Windows"; // Default to Windows if not in a browser environment 
-  }
-	const userAgent = window.navigator.userAgent;
+	if (typeof window === "undefined") {
+		return "Windows"; // Default to Windows if not in a browser environment
+	}
+	const userAgent = window.navigator.userAgent.toLowerCase();
 
-	if (userAgent.indexOf("Win") !== -1) return "Windows";
-	if (userAgent.indexOf("Mac") !== -1) return "MacOS";
-	if (userAgent.indexOf("X11") !== -1 || userAgent.indexOf("Linux") !== -1)
+	if (userAgent.indexOf("win") !== -1) return "Windows";
+	if (userAgent.indexOf("mac") !== -1) return "MacOS";
+	if (userAgent.indexOf("x11") !== -1 || userAgent.indexOf("linux") !== -1)
 		return "Linux";
 
 	throw new Error(`Unsupported operating system detected: ${userAgent}`);
@@ -230,5 +231,5 @@ export {
 	isRectIntersecting,
 	debounce,
 	getCookie,
-	detectOperatingSystem,
+	detectOperatingSystem
 };

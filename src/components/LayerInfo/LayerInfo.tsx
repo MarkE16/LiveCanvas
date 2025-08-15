@@ -1,6 +1,6 @@
 // Lib
 import { useState, memo } from "react";
-import clsx from "clsx";
+import cn from "@/lib/tailwind-utils";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
 import LayersStore from "@/state/stores/LayersStore";
@@ -122,7 +122,7 @@ function LayerInfo({
 	return (
 		<label
 			htmlFor={"layer-" + id}
-			className={clsx(
+			className={cn(
 				"flex items-center w-full max-w-full h-[2.6rem] py-[0.2rem] px-[0.5rem] whitespace-nowrap border border-[rgb(56,55,55)] last:rounded-b-[5px]",
 				"group",
 				{
@@ -212,7 +212,7 @@ function LayerInfo({
 				<div>
 					<Tooltip text={editingTooltipText}>
 						<button
-							className={clsx(
+							className={cn(
 								"hidden bg-transparent text-lg py-0 px-[0.2em] border-none rounded-full transition-opacity disabled:opacity-50 group-hover:inline group-focus:inline hover:bg-[rgba(255,255,255,0.1)]",
 								{
 									block: isEditing

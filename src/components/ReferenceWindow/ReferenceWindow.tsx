@@ -1,6 +1,6 @@
 // Lib
 import { useState, memo, useRef } from "react";
-import clsx from "clsx";
+import cn from "@/lib/tailwind-utils";
 
 // Components
 import ReferenceWindowHeader from "@/components/ReferenceWindowHeader/ReferenceWindowHeader";
@@ -68,7 +68,7 @@ function ReferenceWindow(): ReactNode {
 	const controlsHeight = "70px";
 	const controlsPadding = "10px";
 
-	const cn = clsx(
+	const className = cn(
 		"fixed min-w-[300px] max-w-[60vw] min-h-[40px] max-h-full bg-[rgb(36,36,36)] border border-[rgb(56,55,55)] rounded-[5px] z-[100] overflow-hidden",
 		{
 			"relative border-none top-0 left-0 resize-none max-w-[300px]": pinned,
@@ -78,7 +78,7 @@ function ReferenceWindow(): ReactNode {
 
 	return (
 		<div
-			className={cn}
+			className={className}
 			data-testid="reference-window"
 			ref={windowRef}
 			style={{

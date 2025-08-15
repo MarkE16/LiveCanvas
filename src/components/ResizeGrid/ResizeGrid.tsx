@@ -1,6 +1,6 @@
 // Lib
 import { useCallback, useState, forwardRef } from "react";
-import clsx from "clsx";
+import cn from "@/lib/tailwind-utils";
 
 // Types
 import type { CSSProperties, ReactNode } from "react";
@@ -119,7 +119,7 @@ const ResizeGrid = forwardRef<HTMLDivElement, ResizeGridProps>(
 			<div
 				ref={ref}
 				tabIndex={0}
-				className={clsx("absolute outline-none hover:cursor-move", {
+				className={cn("absolute outline-none hover:cursor-move", {
 					"outline-dotted outline-[#d1836a]": focused
 				})}
 				data-testid="resize-grid"
