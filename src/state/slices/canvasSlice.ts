@@ -355,9 +355,32 @@ export const createCanvasSlice: StateCreator<
 			return aPosition - bPosition;
 		});
 
+		const rect = canvas.getBoundingClientRect();
+
+		canvas.width = rect.width;
+		canvas.height = rect.height;
+
+		console.log("drawing...");
+
 		const canvasX = 0;
 		const canvasY = 0;
 		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
+
+		// Draw the container.
+		// First, skew the origin to the center of the canvas.
+		ctx.translate(canvas.width / 2, canvas.height / 2);
+
+		// Then draw the actual canvas.
+		ctx.beginPath();
+		ctx.rect(-canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
+		ctx.fillStyle = background;
+		ctx.fill();
+
+		// Clip to the canvas area so that drawings outside the canvas are not visible.
+		ctx.clip();
+
+		// Finally, reset the origin back to the top-left corner.
+		ctx.translate(-rect.width / 2, -rect.height / 2);
 
 		const isPreviewCanvas = canvas.width < canvasWidth * dpi;
 
@@ -450,13 +473,14 @@ export const createCanvasSlice: StateCreator<
 		if (isPreviewCanvas) {
 			ctx.restore(); // Restore the previous transform state.
 		}
+
 		// Finally, draw the background behind all elements.
 		ctx.fillStyle = background;
 
 		// 'destination-over' changes the way the background is drawn
 		// by drawing behind existing content.
 		ctx.globalCompositeOperation = "destination-over";
-		ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
+		// ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
 	}
 
 	return {

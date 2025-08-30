@@ -1,7 +1,7 @@
 // Lib
 import ElementsStore from "@/state/stores/ElementsStore";
 import LayersStore from "@/state/stores/LayersStore";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import useStore from "@/state/hooks/useStore";
 import useStoreEffect from "@/state/hooks/useStoreEffect";
 
@@ -22,6 +22,8 @@ function Main(): ReactNode {
 	const refereceWindowEnabled = useStore(
 		(store) => store.referenceWindowEnabled
 	);
+	const [loading, setLoading] = useState<boolean>(true);
+	const firstRender = useRef<boolean>(true);
 
 	useEffect(() => {
 		async function updateLayersAndElements() {
@@ -71,6 +73,10 @@ function Main(): ReactNode {
 					}
 				})
 			);
+			if (firstRender.current) {
+        firstRender.current = false;
+        setLoading(false);
+      }
 		}
 	);
 
@@ -82,7 +88,7 @@ function Main(): ReactNode {
 		>
 			<LeftToolbar />
 
-			<CanvasPane />
+			<CanvasPane loading={loading} />
 
 			{/* Reference window */}
 			{refereceWindowEnabled && <ReferenceWindow />}

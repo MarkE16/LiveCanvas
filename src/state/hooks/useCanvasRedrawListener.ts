@@ -57,10 +57,20 @@ function useCanvasRedrawListener(
 				);
 		}
 
-		document.addEventListener("canvas:redraw", handleCanvasRedraw);
+		function onResize() {
+			const e = new CustomEvent("canvas:redraw", {
+				detail: { noChange: true }
+			});
+			  handleCanvasRedrawDebounced(e);
+		}
 
-		return () =>
+		document.addEventListener("canvas:redraw", handleCanvasRedraw);
+		window.addEventListener("resize", onResize);
+
+		return () => {
 			document.removeEventListener("canvas:redraw", handleCanvasRedraw);
+			window.removeEventListener("resize", onResize);
+		};
 	}, [handleCanvasRedraw, debounce, handleCanvasRedrawDebounced]);
 }
 

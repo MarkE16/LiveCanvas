@@ -18,7 +18,11 @@ const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
 const MemoizedScaleIndicator = memo(ScaleIndicator);
 
-function CanvasPane(): ReactNode {
+type CanvasPaneProps = Readonly<{
+	loading?: boolean;
+}>;
+
+function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 	const {
 		mode,
 		scale,
@@ -287,20 +291,18 @@ function CanvasPane(): ReactNode {
 			)}
 			<MemoizedDrawingToolbar />
 
-			<div
-				className="flex justify-center relative items-center h-full w-full overflow-hidden data-[mode=move]:cursor-grab data-[mode=pan]:cursor-grab data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
-				data-testid="canvas-container"
-				ref={canvasSpaceRef}
-				data-moving={isPanning || isMoving}
-				data-mode={mode}
-			>
-				<MemoizedCanvas
-					isGrabbing={isMoving || isPanning}
-					ref={canvasRef}
-				/>
-			</div>
+			<MemoizedCanvas
+				isGrabbing={isMoving || isPanning}
+				ref={canvasRef}
+			/>
 
-			<MemoizedScaleIndicator scale={scale} />
+			{!loading ? (
+				<MemoizedScaleIndicator scale={scale} />
+			) : (
+				<div className="absolute bottom-2 left-2 p-1.5 bg-slate-600 rounded">
+					Loading...
+				</div>
+			)}
 		</div>
 	);
 }
