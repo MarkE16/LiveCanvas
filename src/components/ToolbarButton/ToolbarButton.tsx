@@ -92,8 +92,6 @@ function ToolbarButton({
 				chosenShortcut += e.key.toLowerCase();
 			}
 
-			console.log(chosenShortcut, shortcut);
-
 			if (chosenShortcut === shortcut) {
 				performAction();
 			}

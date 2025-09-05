@@ -201,7 +201,7 @@ function LayerInfo({
 				) : (
 					<div className="flex flex-col mx-[10px] w-full overflow-hidden">
 						<span
-							className="text-white text-[1em] whitespace-nowrap overflow-hidden text-ellipsis w-full leading-[1.2]"
+							className="text-white font-bold text-[1em] whitespace-nowrap overflow-hidden text-ellipsis w-full leading-[1.2]"
 							aria-label="Layer Name"
 							onDoubleClick={onRename}
 						>

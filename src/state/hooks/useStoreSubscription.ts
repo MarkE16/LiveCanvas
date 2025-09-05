@@ -3,6 +3,7 @@ import { StoreContext } from "../../components/StoreContext/StoreContext";
 
 import type { SliceStores } from "../../types";
 import type { RefObject } from "react";
+import useStoreEffect from "./useStoreEffect";
 
 /**
  * A custom hook that listens for changes to the store and returns the newest state.
@@ -24,13 +25,9 @@ function useStoreSubscription<T>(
 
 	const state = useRef(selector(store.getState()));
 
-	useEffect(() => {
-		const unsubscribe = store.subscribe(selector, (newState) => {
-			state.current = newState;
-		});
-
-		return unsubscribe;
-	}, [store, selector]);
+	useStoreEffect(selector, (newState) => {
+		state.current = newState;
+	});
 
 	return state;
 }

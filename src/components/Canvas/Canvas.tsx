@@ -314,21 +314,15 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		return () => document.removeEventListener("mousemove", onMouseMove);
 	}, [onMouseMove]);
 
-	const transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
-
 	return (
 		<canvas
 			data-testid="canvas-layer"
 			data-mode={mode}
 			className="absolute w-full h-full cursor-inherit z-0 data-[mode=move]:cursor-grab data-[mode=pan]:cursor-grab data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 			ref={canvasRef}
-			// width="100%"
-			// height="100%"
 			onMouseDown={onMouseDown}
 			onMouseUp={onMouseUp}
 			onMouseEnter={onMouseEnter}
-			data-scale={scale}
-			data-dpi={dpi}
 		/>
 	);
 });

@@ -28,11 +28,10 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		scale,
 		changeX,
 		changeY,
-		increaseScale,
-		decreaseScale,
 		changeElementProperties,
 		createElement,
 		getActiveLayer,
+		performZoom,
 		pushHistory
 	} = useStore(
 		useShallow((state) => ({
@@ -40,11 +39,10 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			scale: state.scale,
 			changeX: state.changeX,
 			changeY: state.changeY,
-			increaseScale: state.increaseScale,
-			decreaseScale: state.decreaseScale,
 			changeElementProperties: state.changeElementProperties,
 			createElement: state.createElement,
 			getActiveLayer: state.getActiveLayer,
+			performZoom: state.performZoom,
 			pushHistory: state.pushHistory
 		}))
 	);
@@ -64,14 +62,14 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 	// Effect is getting ugly... Might be a good idea to split
 	// this into multiple effects.
 	useEffect(() => {
-		const canvasSpace = canvasSpaceRef.current;
+		const canvasSpace = canvasRef.current;
 		if (!canvasSpace) return;
 
 		const isClickingOnSpace = (e: MouseEvent) =>
 			e.target === canvasSpace || canvasSpace.contains(e.target as Node);
 
 		function handleMouseDown(e: MouseEvent) {
-			if (e.buttons !== 1 || !canvasSpace) return;
+			if (e.buttons !== 1) return;
 
 			clientPosition.current = { x: e.clientX, y: e.clientY };
 			startMovePosition.current = { x: e.clientX, y: e.clientY };
@@ -108,7 +106,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		}
 
 		function handleMouseMove(e: MouseEvent) {
-			if (e.buttons !== 1 || !isGrabbing || !canvasSpace) return;
+			if (e.buttons !== 1 || !isGrabbing) return;
 
 			const canvas = canvasRef.current;
 			const layer = getActiveLayer();
@@ -146,8 +144,14 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 				// Apply the changes.
 				changeX(dx);
 				changeY(dy);
+				document.dispatchEvent(new CustomEvent("canvas:redraw"));
 			} else if (isMoving) {
 				// Move the shapes for the current layer.
+
+				// divide the dx and dy by the scale to get the correct
+				// 'mouse feel' like movement.
+				dx /= scale;
+				dy /= scale;
 
 				changeElementProperties(
 					(state) => {
@@ -196,47 +200,32 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		function handleKeyDown(e: KeyboardEvent) {
 			setShiftKey(e.shiftKey);
 			setCtrlKey(e.ctrlKey);
-
-			if (e.key === "+") {
-				e.preventDefault();
-				increaseScale();
-			} else if (e.key === "_") {
-				e.preventDefault();
-				decreaseScale();
-			}
-
-			if (e.type === "keyup") {
-				return;
-			}
 		}
 
 		function handleZoom(e: Event) {
 			if (!canvasSpace) return;
 
 			if (e instanceof WheelEvent) {
-				if (!e.shiftKey) return;
-
-				if (e.deltaY > 0) {
-					decreaseScale();
-				} else {
-					increaseScale();
-				}
+				console.log(e.deltaY);
+				performZoom(e.clientX, e.clientY, e.deltaY / 10);
 				// Handle the click event
 			} else if (e instanceof MouseEvent) {
 				if (!isClickingOnSpace(e)) return;
 
 				// Shift key means we are moving. We don't want to zoom in this case.
-				if (e.buttons === 0 && !e.shiftKey) {
+				if (
+					e.buttons === 0 &&
+					!e.shiftKey &&
+					(mode === "zoom_in" || mode === "zoom_out")
+				) {
 					// Left click
-					if (mode === "zoom_in") {
-						increaseScale();
-					} else if (mode === "zoom_out") {
-						decreaseScale();
-					} else {
-						return; // We don't want to zoom if the mode is not zoom
-					}
+					let factor = 25;
+					if (mode === "zoom_in") factor *= -1;
+					performZoom(e.clientX, e.clientY, factor);
 				}
 			}
+
+			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
 
 		document.addEventListener("mousedown", handleMouseDown);
@@ -266,8 +255,6 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		isGrabbing,
 		changeElementProperties,
 		createElement,
-		increaseScale,
-		decreaseScale,
 		changeX,
 		changeY,
 		getActiveLayer,
@@ -275,7 +262,8 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		ctrlKey,
 		currentShape,
 		currentColor,
-		pushHistory
+		pushHistory,
+		performZoom
 	]);
 
 	return (

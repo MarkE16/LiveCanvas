@@ -52,6 +52,7 @@ export type CanvasStore = CanvasState & {
 	getActiveLayer: () => Layer;
 	increaseScale: () => void;
 	decreaseScale: () => void;
+	performZoom: (clientX: number, clientY: number, factor: number) => void;
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;

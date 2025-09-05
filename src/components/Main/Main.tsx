@@ -45,12 +45,7 @@ function Main(): ReactNode {
 						}))
 				);
 			}
-			setElements(
-				elements.map(([, element]) => ({
-					...element,
-					focused: false
-				}))
-			);
+			setElements(elements.map(([, element]) => element));
 		}
 
 		updateLayersAndElements();
@@ -74,9 +69,9 @@ function Main(): ReactNode {
 				})
 			);
 			if (firstRender.current) {
-        firstRender.current = false;
-        setLoading(false);
-      }
+				firstRender.current = false;
+				setLoading(false);
+			}
 		}
 	);
 

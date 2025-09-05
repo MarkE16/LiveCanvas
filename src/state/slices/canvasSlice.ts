@@ -174,6 +174,25 @@ export const createCanvasSlice: StateCreator<
 		}));
 	}
 
+	function performZoom(clientX: number, clientY: number, factor: number) {
+		const { position, scale } = get();
+		const localX = clientX;
+		const localY = clientY;
+
+		const newScale = scale + factor * -0.01;
+
+		const newX = localX - (localX - position.x) * (newScale / scale);
+		const newY = localY - (localY - position.y) * (newScale / scale);
+
+		set({
+			scale: Math.min(Math.max(newScale, 0.1), 3),
+			position: {
+				x: newX,
+				y: newY
+			}
+		});
+	}
+
 	function setPosition(payload: Partial<Coordinates>) {
 		set((state) => ({
 			position: {
@@ -322,7 +341,9 @@ export const createCanvasSlice: StateCreator<
 			layers,
 			dpi,
 			width: canvasWidth,
-			height: canvasHeight
+			height: canvasHeight,
+			position: { x: posX, y: posY },
+			scale
 		} = get();
 
 		if (layers.length === 0) {
@@ -360,12 +381,17 @@ export const createCanvasSlice: StateCreator<
 		canvas.width = rect.width;
 		canvas.height = rect.height;
 
-		console.log("drawing...");
-
 		const canvasX = 0;
 		const canvasY = 0;
+
+		ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any existing transforms
+
 		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
 
+		// Apply scaling and translation for panning and zooming.
+		ctx.setTransform(scale, 0, 0, scale, posX, posY);
+
+		ctx.save();
 		// Draw the container.
 		// First, skew the origin to the center of the canvas.
 		ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -408,15 +434,15 @@ export const createCanvasSlice: StateCreator<
 			switch (element.type) {
 				case "brush":
 				case "eraser": {
+					ctx.beginPath();
 					for (const point of element.path) {
 						if (point.startingPoint) {
-							ctx.beginPath();
 							ctx.moveTo(point.x, point.y);
 						} else {
 							ctx.lineTo(point.x, point.y);
-							ctx.stroke();
 						}
 					}
+					ctx.stroke();
 					break;
 				}
 				case "circle": {
@@ -474,13 +500,7 @@ export const createCanvasSlice: StateCreator<
 			ctx.restore(); // Restore the previous transform state.
 		}
 
-		// Finally, draw the background behind all elements.
-		ctx.fillStyle = background;
-
-		// 'destination-over' changes the way the background is drawn
-		// by drawing behind existing content.
-		ctx.globalCompositeOperation = "destination-over";
-		// ctx.fillRect(canvasX, canvasY, canvas.width, canvas.height);
+		ctx.restore();
 	}
 
 	return {
@@ -519,6 +539,7 @@ export const createCanvasSlice: StateCreator<
 		getActiveLayer,
 		increaseScale,
 		decreaseScale,
+		performZoom,
 		setPosition,
 		changeX,
 		changeY,
