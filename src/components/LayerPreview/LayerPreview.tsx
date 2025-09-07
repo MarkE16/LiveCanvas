@@ -15,7 +15,7 @@ const DEBOUNCE_REDRAW = true;
 function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 	const previewRef = useRef<HTMLCanvasElement>(null);
 
-	useCanvasRedrawListener(previewRef, id, DEBOUNCE_REDRAW);
+	// useCanvasRedrawListener(previewRef, id, DEBOUNCE_REDRAW);
 
 	return (
 		<canvas

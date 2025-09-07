@@ -11,6 +11,14 @@ import type {
 	CanvasElementType
 } from "../types";
 
+export type DrawOptions = Partial<{
+	/* The specific layer to draw. */
+	layerId: string;
+
+	/* Whether to skip certain drawing options (such as positioning the canvas) */
+	export: boolean;
+}>;
+
 export type CanvasElementsStore = {
 	elements: CanvasElement[];
 	copiedElements: CanvasElement[];
@@ -59,7 +67,20 @@ export type CanvasStore = CanvasState & {
 	toggleReferenceWindow: () => void;
 	prepareForSave: () => SavedCanvasProperties;
 	prepareForExport: (quality?: number) => Promise<Blob>;
-	drawCanvas: (canvas: HTMLCanvasElement, layerId?: string) => void;
+	drawCanvas: (canvas: HTMLCanvasElement, options?: DrawOptions) => void;
+	getPointerPosition: (
+		canvas: HTMLCanvasElement,
+		clientX: number,
+		clientY: number
+	) => Coordinates;
+	isCanvasOffscreen: (
+		canvas: HTMLCanvasElement,
+		dx: number,
+		dy: number
+	) => {
+		left: boolean;
+		top: boolean;
+	};
 };
 
 export type HistoryStore = {

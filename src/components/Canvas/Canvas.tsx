@@ -4,7 +4,6 @@ import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
-import * as Utils from "@/lib/utils";
 
 // Types
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -26,33 +25,30 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 ) {
 	const {
 		mode,
-		background,
 		shape,
 		width,
 		height,
 		dpi,
-		scale,
-		position,
 		changeMode,
 		changeColor,
 		createElement,
 		getActiveLayer,
-		pushHistory
+		pushHistory,
+		getPointerPosition
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
-			background: state.background,
 			shape: state.shape,
 			width: state.width,
 			height: state.height,
 			dpi: state.dpi,
-			scale: state.scale,
 			position: state.position,
 			changeMode: state.changeMode,
 			changeColor: state.changeColor,
 			createElement: state.createElement,
 			getActiveLayer: state.getActiveLayer,
-			pushHistory: state.pushHistory
+			pushHistory: state.pushHistory,
+			getPointerPosition: state.getPointerPosition
 		}))
 	);
 	const color = useStoreSubscription((state) => state.color);
@@ -89,27 +85,37 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		ctx.globalAlpha = opacity.current;
 
+		// Clip the drawing to the bounds of the canvas
+		ctx.save();
+		const canvasRect = canvas.getBoundingClientRect();
+		ctx.translate(canvasRect.width / 2, canvasRect.height / 2);
+		ctx.rect(-width / 2, -height / 2, width, height);
+		ctx.clip();
+		ctx.translate(-canvasRect.width / 2, -canvasRect.height / 2);
+
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
+    const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
+		const floorX = Math.floor(x);
+		const floorY = Math.floor(y);
 
 		if (!isDrawing.current) {
-			initialPosition.current = { x, y };
+			initialPosition.current = { x: floorX, y: floorY };
 		}
 		const activeLayer = getActiveLayer();
 		isDrawing.current = !activeLayer.hidden;
 
 		if (mode === "brush" || mode === "eraser") {
 			currentPath2D.current = new Path2D();
-			currentPath2D.current.moveTo(x, y);
+			currentPath2D.current.moveTo(floorX, floorY);
 			// Save the current path.
-			currentPath.current.push({ x, y, startingPoint: true });
+			currentPath.current.push({ x: floorX, y: floorY, startingPoint: true });
 		} else if (mode === "eye_drop" && !isGrabbing) {
 			// `.getImageData()` retreives the x and y coordinates of the pixel
 			// differently if the canvas is scaled. So, we need to multiply the
 			// x and y coordinates by the DPI to get the correct pixel.
 			const pixel = ctx.getImageData(
-				Math.floor(x * dpi),
-				Math.floor(y * dpi),
+				Math.floor(floorX * dpi),
+				Math.floor(floorY * dpi),
 				1,
 				1
 			).data;
@@ -158,7 +164,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		const { x, y } = getPointerPosition(activeLayer, e.clientX, e.clientY);
+		const floorX = Math.floor(x);
+		const floorY = Math.floor(y);
 
 		ctx.globalCompositeOperation =
 			mode === "eraser" ? "destination-out" : "source-over";
@@ -180,10 +188,14 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
 
-				currentPath2D.current.lineTo(x, y);
+				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
 
-				currentPath.current.push({ x, y, startingPoint: false });
+				currentPath.current.push({
+					x: floorX,
+					y: floorY,
+					startingPoint: false
+				});
 				break;
 			}
 
@@ -262,7 +274,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
+		ctx.restore();
+
+		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
 		const { x: initX, y: initY } = initialPosition.current;
 
 		let elementType;

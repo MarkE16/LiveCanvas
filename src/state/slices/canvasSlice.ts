@@ -8,7 +8,8 @@ import type {
 	CanvasStore,
 	SavedCanvasProperties,
 	Shape,
-	SliceStores
+	SliceStores,
+	DrawOptions
 } from "@/types";
 import * as Utils from "@/lib/utils";
 
@@ -290,10 +291,8 @@ export const createCanvasSlice: StateCreator<
 	}
 
 	function prepareForExport(quality: number = 1): Promise<Blob> {
-		const accountForDPI = true; // Consider DPI for better quality exports
-
 		const substituteCanvas = document.createElement("canvas");
-		const { width, height, dpi } = get();
+		const { width, height } = get();
 
 		substituteCanvas.width = width;
 		substituteCanvas.height = height;
@@ -305,13 +304,7 @@ export const createCanvasSlice: StateCreator<
 			);
 		}
 
-		if (accountForDPI) {
-			substituteCanvas.width *= dpi;
-			substituteCanvas.height *= dpi;
-			ctx.scale(dpi, dpi);
-		}
-
-		drawCanvas(substituteCanvas);
+		drawCanvas(substituteCanvas, { export: true });
 
 		return new Promise((resolve) => {
 			requestAnimationFrame(() => {
@@ -334,12 +327,94 @@ export const createCanvasSlice: StateCreator<
 		}));
 	}
 
-	function drawCanvas(canvas: HTMLCanvasElement, layerId?: string) {
+	function getPointerPosition(
+		canvas: HTMLCanvasElement,
+		clientX: number,
+		clientY: number
+	): Coordinates {
+		const { position, scale } = get();
+		const rect = canvas.getBoundingClientRect();
+		const x = (clientX - rect.left - position.x) / scale;
+		const y = (clientY - rect.top - position.y) / scale;
+
+		return { x, y };
+	}
+
+	function isCanvasOffscreen(
+		canvas: HTMLCanvasElement,
+		dx: number,
+		dy: number
+	): {
+		left: boolean;
+		top: boolean;
+	} {
+		const { width: canvasWidth, height: canvasHeight, position, scale } = get();
+		const { x: posX, y: posY } = position;
+
+		const rect = canvas.getBoundingClientRect();
+
+		const canvasLeft = posX + dx;
+		const canvasRight = posX + dx + canvasWidth * scale;
+		const canvasTop = posY + dy;
+		const canvasBottom = posY + dy + canvasHeight * scale;
+		const viewportLeft = 0;
+		const viewportRight = rect.width;
+		const viewportTop = 0;
+		const viewportBottom = rect.height;
+
+		return {
+			left:
+				canvasRight < viewportLeft ||
+				canvasLeft + rect.width / 4 > viewportRight / scale,
+			top:
+				canvasBottom < viewportTop ||
+				canvasTop + rect.height / 4 > viewportBottom / scale
+		};
+	}
+
+	function drawPaperCanvas(
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+		background: string,
+		exporting: boolean = false
+	) {
+		ctx.beginPath();
+		ctx.rect(x, y, width, height);
+
+		if (background === "transparent" && !exporting) {
+			// If the background is transparent, fill with a checkerboard pattern.
+			const pattern = document.createElement("canvas");
+			const pctx = pattern.getContext("2d");
+			if (!pctx) {
+				throw new Error("Failed to get 2D context for pattern.");
+			}
+			pattern.width = 20;
+			pattern.height = 20;
+			pctx.fillStyle = "#ccc";
+			pctx.fillRect(0, 0, 20, 20);
+			pctx.fillStyle = "#fff";
+			pctx.fillRect(0, 0, 10, 10);
+			pctx.fillRect(10, 10, 10, 10);
+			const checkerPattern = ctx.createPattern(pattern, "repeat");
+			if (checkerPattern) {
+				ctx.fillStyle = checkerPattern;
+			} else {
+				ctx.fillStyle = "#fff"; // Fallback to white if pattern creation fails
+			}
+		} else {
+			ctx.fillStyle = background;
+		}
+		ctx.fill();
+	}
+
+	function drawCanvas(canvas: HTMLCanvasElement, options?: DrawOptions) {
 		let elements = get().elements;
 		const {
 			background,
 			layers,
-			dpi,
 			width: canvasWidth,
 			height: canvasHeight,
 			position: { x: posX, y: posY },
@@ -364,8 +439,8 @@ export const createCanvasSlice: StateCreator<
 			positionMap.set(layer.id, layers.length - 1 - i);
 		}
 		elements = elements.filter((element) => {
-			if (layerId) {
-				return element.layerId === layerId;
+			if (options?.layerId) {
+				return element.layerId === options.layerId;
 			}
 			return !visibilityMap.get(element.layerId);
 		});
@@ -376,49 +451,51 @@ export const createCanvasSlice: StateCreator<
 			return aPosition - bPosition;
 		});
 
-		const rect = canvas.getBoundingClientRect();
+		if (!options?.export) {
+			const rect = canvas.getBoundingClientRect();
 
-		canvas.width = rect.width;
-		canvas.height = rect.height;
+			canvas.width = rect.width;
+			canvas.height = rect.height;
 
-		const canvasX = 0;
-		const canvasY = 0;
+			ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any existing transforms
 
-		ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any existing transforms
+			// Apply scaling and translation for panning and zooming.
+			ctx.setTransform(scale, 0, 0, scale, posX, posY);
 
-		ctx.clearRect(canvasX, canvasY, canvas.width, canvas.height);
-
-		// Apply scaling and translation for panning and zooming.
-		ctx.setTransform(scale, 0, 0, scale, posX, posY);
-
-		ctx.save();
-		// Draw the container.
-		// First, skew the origin to the center of the canvas.
-		ctx.translate(canvas.width / 2, canvas.height / 2);
-
-		// Then draw the actual canvas.
-		ctx.beginPath();
-		ctx.rect(-canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight);
-		ctx.fillStyle = background;
-		ctx.fill();
-
-		// Clip to the canvas area so that drawings outside the canvas are not visible.
-		ctx.clip();
-
-		// Finally, reset the origin back to the top-left corner.
-		ctx.translate(-rect.width / 2, -rect.height / 2);
-
-		const isPreviewCanvas = canvas.width < canvasWidth * dpi;
-
-		if (isPreviewCanvas) {
-			// If the canvas is a preview canvas, scale it down.
-			const scaleX = canvas.width / (canvasWidth * dpi);
-			const scaleY = canvas.height / (canvasHeight * dpi);
-			// Save the current transform state.
 			ctx.save();
+			// Draw the container.
+			// First, skew the origin to the center of the canvas.
+			ctx.translate(canvas.width / 2, canvas.height / 2);
+			drawPaperCanvas(
+				ctx,
+				-canvasWidth / 2,
+				-canvasHeight / 2,
+				canvasWidth,
+				canvasHeight,
+				background
+			);
+			// Clip to the canvas area so that drawings outside the canvas are not visible.
+			ctx.clip();
 
-			ctx.scale(scaleX, scaleY);
+			// Finally, reset the origin back to the top-left corner.
+			ctx.translate(-rect.width / 2, -rect.height / 2);
+		} else {
+			// We don't need to apply any transforms when exporting.
+			// Just draw the canvas at its natural size.
+			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
 		}
+
+		// const isPreviewCanvas = canvas.width < canvasWidth * dpi;
+
+		// if (isPreviewCanvas) {
+		// 	// If the canvas is a preview canvas, scale it down.
+		// 	const scaleX = canvas.width / (canvasWidth * dpi);
+		// 	const scaleY = canvas.height / (canvasHeight * dpi);
+		// 	// Save the current transform state.
+		// 	ctx.save();
+
+		// 	ctx.scale(scaleX, scaleY);
+		// }
 
 		for (const element of elements) {
 			const { x, y, width, height } = element;
@@ -496,9 +573,9 @@ export const createCanvasSlice: StateCreator<
 			}
 		}
 
-		if (isPreviewCanvas) {
-			ctx.restore(); // Restore the previous transform state.
-		}
+		// if (isPreviewCanvas) {
+		// 	ctx.restore(); // Restore the previous transform state.
+		// }
 
 		ctx.restore();
 	}
@@ -507,7 +584,8 @@ export const createCanvasSlice: StateCreator<
 		width: 400,
 		height: 400,
 		mode: "move",
-		background: "#ffffff",
+		// background: "#ffffff",
+		background: "transparent",
 		shape: "rectangle",
 		shapeMode: "fill",
 		color: "#000000",
@@ -546,6 +624,8 @@ export const createCanvasSlice: StateCreator<
 		prepareForSave,
 		prepareForExport,
 		toggleReferenceWindow,
+		getPointerPosition,
+		isCanvasOffscreen,
 		drawCanvas
 	};
 };

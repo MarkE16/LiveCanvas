@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useCallback, useEffect, useRef } from "react";
 import useStore from "./useStore";
 import useThrottle from "./useThrottle";
 import useDebounceCallback from "./useDebounceCallback";
@@ -23,7 +23,16 @@ function useCanvasRedrawListener(
 	debounce: boolean = false
 ): void {
 	const drawCanvas = useStore((state) => state.drawCanvas);
-	const drawInProgress = useRef<boolean>(false);
+
+	const draw = useCallback(
+		(canvas: HTMLCanvasElement, layerId?: string) => {
+			drawCanvas(canvas, { layerId });
+			// requestAnimationFrame(() => {
+			// 	draw(canvas, layerId);
+			// });
+		},
+		[drawCanvas]
+	);
 
 	const handleCanvasRedraw = useThrottle((e: CanvasRedrawEvent) => {
 		const noChange = e.detail?.noChange;
@@ -38,15 +47,8 @@ function useCanvasRedrawListener(
 		}
 
 		const canvas = canvasRef.current;
-		if (drawInProgress.current) {
-			return;
-		}
 		if (canvas) {
-			requestAnimationFrame(() => {
-				drawInProgress.current = true;
-				drawCanvas(canvas, layerId);
-				drawInProgress.current = false;
-			});
+			draw(canvas, layerId);
 		}
 	}, 10);
 

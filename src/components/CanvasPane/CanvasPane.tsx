@@ -32,7 +32,8 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		createElement,
 		getActiveLayer,
 		performZoom,
-		pushHistory
+		pushHistory,
+		isCanvasOffscreen
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -43,7 +44,8 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			createElement: state.createElement,
 			getActiveLayer: state.getActiveLayer,
 			performZoom: state.performZoom,
-			pushHistory: state.pushHistory
+			pushHistory: state.pushHistory,
+			isCanvasOffscreen: state.isCanvasOffscreen
 		}))
 	);
 	const currentShape = useStoreSubscription((state) => state.shape);
@@ -115,31 +117,11 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			let dx = e.clientX - clientPosition.current.x;
 			let dy = e.clientY - clientPosition.current.y;
 
-			const {
-				left: sLeft,
-				width: sWidth,
-				height: sHeight,
-				top: sTop
-			} = canvasSpace.getBoundingClientRect();
-
 			if (isPanning && isGrabbing) {
-				const {
-					left: cLeft,
-					top: cTop,
-					width: cWidth,
-					height: cHeight
-				} = canvas.getBoundingClientRect();
+				const { left, top } = isCanvasOffscreen(canvas, dx, dy);
 
-				// Check if the layer is outside the canvas space.
-				// If it is, we don't want to move it.
-				// Note: We add 20 so that we can still see the layer when it's almost outside the canvas space.
-				if (cLeft + dx <= -cWidth + sLeft + 20 || cLeft + dx >= sWidth + 20) {
-					dx = 0; // Set to 0 so that the layer doesn't move.
-				}
-
-				if (cTop + dy <= -cHeight + sTop + 20 || cTop + dy >= sHeight + 20) {
-					dy = 0; // Set to 0 so that the layer doesn't move.
-				}
+				if (left) dx = 0;
+				if (top) dy = 0;
 
 				// Apply the changes.
 				changeX(dx);

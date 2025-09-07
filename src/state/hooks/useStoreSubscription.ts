@@ -4,6 +4,7 @@ import { StoreContext } from "../../components/StoreContext/StoreContext";
 import type { SliceStores } from "../../types";
 import type { RefObject } from "react";
 import useStoreEffect from "./useStoreEffect";
+import useStoreContext from "./useStoreContext";
 
 /**
  * A custom hook that listens for changes to the store and returns the newest state.
@@ -15,13 +16,7 @@ import useStoreEffect from "./useStoreEffect";
 function useStoreSubscription<T>(
 	selector: (state: SliceStores) => T
 ): RefObject<T> {
-	const store = useContext(StoreContext);
-
-	if (!store) {
-		throw new Error(
-			"useStoreSubscription must be used within a StoreProvider."
-		);
-	}
+  const store = useStoreContext();
 
 	const state = useRef(selector(store.getState()));
 
