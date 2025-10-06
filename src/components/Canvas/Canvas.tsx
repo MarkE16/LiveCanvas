@@ -133,13 +133,13 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		// If the left mouse button is not pressed, then we should not draw.
 		// If the layer is hidden, we should not draw.
 		// If the user is grabbing the canvas (for moving), we should not draw.
-		const activeLayer = canvasRef.current;
-		if (!activeLayer) {
+		const canvas = canvasRef.current;
+		if (!canvas) {
 			throw new Error("Canvas Ref is not set. This is a bug.");
 		}
 
 		const onCanvas =
-			e.target === activeLayer || activeLayer.contains(e.target as Node);
+			e.target === canvas || canvas.contains(e.target as Node);
 
 		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
 			return;
@@ -147,12 +147,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		if (mode === "shapes" || !currentPath2D.current) {
 			currentPath2D.current = new Path2D();
 		}
-		const ctx = activeLayer.getContext("2d");
+		const ctx = canvas.getContext("2d");
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = getPointerPosition(activeLayer, e.clientX, e.clientY);
+		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
 		const floorX = Math.floor(x);
 		const floorY = Math.floor(y);
 
@@ -174,6 +174,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
+				console.log("stroked!");
 
 				currentPath.current.push({
 					x: floorX,

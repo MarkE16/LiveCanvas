@@ -129,6 +129,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 				// Apply the changes.
 				changeX(dx);
 				changeY(dy);
+				redrawCanvas();
 			} else if (isMoving) {
 				// Move the shapes for the current layer.
 
@@ -158,9 +159,9 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 					},
 					(element) => element.layerId === layer.id
 				);
+				redrawCanvas();
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
-			redrawCanvas();
 		}
 
 		function handleMouseUp(e: MouseEvent) {

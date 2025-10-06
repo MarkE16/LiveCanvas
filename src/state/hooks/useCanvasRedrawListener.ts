@@ -32,7 +32,7 @@ function useCanvasRedrawListener(
 			// 	draw(canvas, layerId);
 			// });
 		},
-		[drawCanvas]
+		[drawCanvas, exporting]
 	);
 
 	const handleCanvasRedraw = useThrottle((e: CanvasRedrawEvent) => {
@@ -69,10 +69,12 @@ function useCanvasRedrawListener(
 		}
 
 		function onResize() {
+			// TODO: When resizing, drawing the canvas should not keep the canvas 'centered'. It should stay in place.
+			// This needs to be revisited later.
 			const e = new CustomEvent("canvas:redraw", {
 				detail: { noChange: true }
 			});
-			handleCanvasRedrawDebounced(e);
+			handleCanvasRedraw(e);
 		}
 
 		document.addEventListener("canvas:redraw", handleCanvasRedraw);

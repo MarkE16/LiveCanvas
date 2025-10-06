@@ -21,6 +21,7 @@ import type { Layer } from "@/types";
 import LayerPreview from "@/components/LayerPreview/LayerPreview";
 import Tooltip from "@/components/Tooltip/Tooltip";
 import ElementsStore from "@/state/stores/ElementsStore";
+import { redrawCanvas } from "@/lib/utils";
 
 type LayerInfoProps = Readonly<
 	Layer & {
@@ -73,9 +74,7 @@ function LayerInfo({
 
 	const onToggleVisibility = () => {
 		toggleVisibility(id);
-		document.dispatchEvent(
-			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
-		);
+		redrawCanvas(true);
 	};
 
 	const onDelete = () => {
@@ -97,9 +96,7 @@ function LayerInfo({
 		} else {
 			moveLayerDown(id);
 		}
-		document.dispatchEvent(
-			new CustomEvent("canvas:redraw", { detail: { noChange: true } })
-		);
+		redrawCanvas(true);
 	};
 
 	const onRename = () => {

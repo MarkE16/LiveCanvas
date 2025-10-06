@@ -3,7 +3,6 @@ import ElementsStore from "@/state/stores/ElementsStore";
 import LayersStore from "@/state/stores/LayersStore";
 import { useEffect, useState } from "react";
 import useStore from "@/state/hooks/useStore";
-import useStoreEffect from "@/state/hooks/useStoreEffect";
 
 // Types
 import type { ReactNode } from "react";
@@ -53,31 +52,11 @@ function Main(): ReactNode {
 		updateLayersAndElements();
 	}, [setElements, setLayers]);
 
-	// useStoreEffect(
-	// 	(state) => ({ layers: state.layers, elements: state.elements }),
-	// 	(current, previous) => {
-	// 		const changeInLayerToggle =
-	// 			current.layers.length === previous.layers.length &&
-	// 			current.layers.some(
-	// 				(layer, index) => layer.active !== previous.layers[index].active
-	// 			);
-	// 		const layerAdded = current.layers.length > previous.layers.length;
-
-	// 		document.dispatchEvent(
-	// 			new CustomEvent("canvas:redraw", {
-	// 				detail: {
-	// 					noChange: changeInLayerToggle || layerAdded
-	// 				}
-	// 			})
-	// 		);
-	// 	}
-	// );
-
 	return (
 		<main
 			id="main-content"
 			data-testid="main-content"
-			className="flex h-[calc(100vh-3rem)] bg-red-600"
+			className="flex h-[calc(100vh-3rem)]"
 		>
 			<LeftToolbar />
 

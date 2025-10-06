@@ -113,13 +113,28 @@ function Navbar(): ReactNode {
 		}
 	};
 
+	function getMiddleOfCanvas() {
+		if (!ref) {
+			throw new Error("Canvas ref does not exist.");
+		}
+
+		const { left, top, width, height } = ref.getBoundingClientRect();
+
+		return {
+			middleX: (left + width) / 2,
+			middleY: (top + height) / 2
+		};
+	}
+
 	function increaseZoom() {
-		performZoom(window.innerWidth / 2, window.innerHeight / 2, -100);
+		const { middleX, middleY } = getMiddleOfCanvas();
+		performZoom(middleX, middleY, -50);
 		redrawCanvas();
 	}
 
 	function decreaseZoom() {
-		performZoom(window.innerWidth / 2, window.innerHeight / 2, 0.5);
+		const { middleX, middleY } = getMiddleOfCanvas();
+		performZoom(middleX, middleY, 50);
 		redrawCanvas();
 	}
 
