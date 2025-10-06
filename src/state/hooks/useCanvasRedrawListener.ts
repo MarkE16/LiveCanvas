@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useRef } from "react";
+import { RefObject, useCallback, useEffect } from "react";
 import useStore from "./useStore";
 import useThrottle from "./useThrottle";
 import useDebounceCallback from "./useDebounceCallback";
@@ -20,13 +20,14 @@ const DEBOUNCE_TIME_MS = 500;
 function useCanvasRedrawListener(
 	canvasRef: RefObject<HTMLCanvasElement | null>,
 	layerId?: string,
-	debounce: boolean = false
+	debounce: boolean = false,
+	exporting: boolean = false
 ): void {
 	const drawCanvas = useStore((state) => state.drawCanvas);
 
 	const draw = useCallback(
 		(canvas: HTMLCanvasElement, layerId?: string) => {
-			drawCanvas(canvas, { layerId });
+			drawCanvas(canvas, { layerId, export: exporting });
 			// requestAnimationFrame(() => {
 			// 	draw(canvas, layerId);
 			// });

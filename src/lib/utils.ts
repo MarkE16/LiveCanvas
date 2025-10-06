@@ -222,6 +222,16 @@ function detectOperatingSystem(): OperatingSystem {
 	throw new Error(`Unsupported operating system detected: ${userAgent}`);
 }
 
+/**
+ *
+ * @param noChange Whether visually, nothing may have no changed.
+ */
+function redrawCanvas(noChange: boolean = false) {
+	document.dispatchEvent(
+		new CustomEvent("canvas:redraw", { detail: { noChange } })
+	);
+}
+
 export {
 	capitalize,
 	createLayer,
@@ -231,5 +241,6 @@ export {
 	isRectIntersecting,
 	debounce,
 	getCookie,
-	detectOperatingSystem
+	detectOperatingSystem,
+	redrawCanvas
 };

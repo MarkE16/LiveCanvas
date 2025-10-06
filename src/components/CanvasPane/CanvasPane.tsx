@@ -13,6 +13,7 @@ import ScaleIndicator from "@/components/ScaleIndicator/ScaleIndicator";
 // Types
 import type { ReactNode } from "react";
 import type { Coordinates } from "@/types";
+import { redrawCanvas } from "@/lib/utils";
 
 const MemoizedCanvas = memo(Canvas);
 const MemoizedDrawingToolbar = memo(DrawingToolbar);
@@ -118,15 +119,16 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			let dy = e.clientY - clientPosition.current.y;
 
 			if (isPanning && isGrabbing) {
-				const { left, top } = isCanvasOffscreen(canvas, dx, dy);
+				// TODO: Have to revisit the calculation to know how the canvas is considered off screen.
+				// As a temporary solution, a button in the left toolbar pane is added to reset the canvas view.
+				// const { left, top } = isCanvasOffscreen(canvas, dx, dy);
 
-				if (left) dx = 0;
-				if (top) dy = 0;
+				// if (left) dx = 0;
+				// if (top) dy = 0;
 
 				// Apply the changes.
 				changeX(dx);
 				changeY(dy);
-				document.dispatchEvent(new CustomEvent("canvas:redraw"));
 			} else if (isMoving) {
 				// Move the shapes for the current layer.
 
@@ -158,6 +160,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 				);
 			}
 			clientPosition.current = { x: e.clientX, y: e.clientY };
+			redrawCanvas();
 		}
 
 		function handleMouseUp(e: MouseEvent) {
@@ -207,7 +210,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 				}
 			}
 
-			document.dispatchEvent(new CustomEvent("canvas:redraw"));
+			redrawCanvas();
 		}
 
 		document.addEventListener("mousedown", handleMouseDown);

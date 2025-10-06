@@ -1,10 +1,9 @@
-import { useContext, useRef, useEffect } from "react";
-import { StoreContext } from "../../components/StoreContext/StoreContext";
+import { useRef } from "react";
+import useStoreEffect from "./useStoreEffect";
+import useStoreContext from "./useStoreContext";
 
 import type { SliceStores } from "../../types";
 import type { RefObject } from "react";
-import useStoreEffect from "./useStoreEffect";
-import useStoreContext from "./useStoreContext";
 
 /**
  * A custom hook that listens for changes to the store and returns the newest state.

@@ -1,7 +1,7 @@
 // Lib
 import ElementsStore from "@/state/stores/ElementsStore";
 import LayersStore from "@/state/stores/LayersStore";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import useStore from "@/state/hooks/useStore";
 import useStoreEffect from "@/state/hooks/useStoreEffect";
 
@@ -13,6 +13,7 @@ import CanvasPane from "@/components/CanvasPane/CanvasPane";
 import LeftToolbar from "@/components/LeftToolbar/LeftToolbar";
 import LayerPane from "@/components/LayerPane/LayerPane";
 import ReferenceWindow from "@/components/ReferenceWindow/ReferenceWindow";
+import { redrawCanvas } from "@/lib/utils";
 
 function Main(): ReactNode {
 	const { setElements, setLayers } = useStore((store) => ({
@@ -23,7 +24,6 @@ function Main(): ReactNode {
 		(store) => store.referenceWindowEnabled
 	);
 	const [loading, setLoading] = useState<boolean>(true);
-	const firstRender = useRef<boolean>(true);
 
 	useEffect(() => {
 		async function updateLayersAndElements() {
@@ -46,40 +46,38 @@ function Main(): ReactNode {
 				);
 			}
 			setElements(elements.map(([, element]) => element));
+			setLoading(false);
+			redrawCanvas();
 		}
 
 		updateLayersAndElements();
 	}, [setElements, setLayers]);
 
-	useStoreEffect(
-		(state) => ({ layers: state.layers, elements: state.elements }),
-		(current, previous) => {
-			const changeInLayerToggle =
-				current.layers.length === previous.layers.length &&
-				current.layers.some(
-					(layer, index) => layer.active !== previous.layers[index].active
-				);
-			const layerAdded = current.layers.length > previous.layers.length;
+	// useStoreEffect(
+	// 	(state) => ({ layers: state.layers, elements: state.elements }),
+	// 	(current, previous) => {
+	// 		const changeInLayerToggle =
+	// 			current.layers.length === previous.layers.length &&
+	// 			current.layers.some(
+	// 				(layer, index) => layer.active !== previous.layers[index].active
+	// 			);
+	// 		const layerAdded = current.layers.length > previous.layers.length;
 
-			document.dispatchEvent(
-				new CustomEvent("canvas:redraw", {
-					detail: {
-						noChange: changeInLayerToggle || layerAdded
-					}
-				})
-			);
-			if (firstRender.current) {
-				firstRender.current = false;
-				setLoading(false);
-			}
-		}
-	);
+	// 		document.dispatchEvent(
+	// 			new CustomEvent("canvas:redraw", {
+	// 				detail: {
+	// 					noChange: changeInLayerToggle || layerAdded
+	// 				}
+	// 			})
+	// 		);
+	// 	}
+	// );
 
 	return (
 		<main
 			id="main-content"
 			data-testid="main-content"
-			className="flex h-[calc(100vh-3rem)]"
+			className="flex h-[calc(100vh-3rem)] bg-red-600"
 		>
 			<LeftToolbar />
 

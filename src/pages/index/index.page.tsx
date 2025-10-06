@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar/Navbar";
 import Main from "@/components/Main/Main";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 import { StoreProvider } from "@/components/StoreContext/StoreContext";
+import { CanvasReferenceProvider } from "@/components/CanvasReferenceProvider/CanvasReferenceProvider";
 
 // The <head> tags
 // eslint-disable-next-line
@@ -47,13 +48,15 @@ function Page() {
 	}, []);
 
 	return (
-		<StoreProvider store={initializeStore(state)}>
+	<StoreProvider store={initializeStore(state)}>
+		<CanvasReferenceProvider>
 			<ErrorBoundary>
-				<Navbar />
+			<Navbar />
 
-				<Main />
+			<Main />
 			</ErrorBoundary>
-		</StoreProvider>
+		</CanvasReferenceProvider>
+	</StoreProvider>
 	);
 }
 

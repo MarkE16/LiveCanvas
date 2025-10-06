@@ -28,25 +28,25 @@ import {
 } from "@/components/ui/menubar";
 import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
 import ZoomIn from "../icons/ZoomIn/ZoomIn";
-import { detectOperatingSystem } from "@/lib/utils";
+import { detectOperatingSystem, redrawCanvas } from "@/lib/utils";
 import ZoomOut from "../icons/ZoomOut/ZoomOut";
+import useCanvasRef from "@/state/hooks/useCanvasRef";
 
 function Navbar(): ReactNode {
 	const {
 		prepareForExport,
 		prepareForSave,
 		toggleReferenceWindow,
-		increaseScale,
-		decreaseScale
+		performZoom
 	} = useStore(
 		useShallow((state) => ({
 			prepareForExport: state.prepareForExport,
 			prepareForSave: state.prepareForSave,
 			toggleReferenceWindow: state.toggleReferenceWindow,
-			increaseScale: state.increaseScale,
-			decreaseScale: state.decreaseScale
+			performZoom: state.performZoom
 		}))
 	);
+	const { ref } = useCanvasRef();
 	const downloadRef = useRef<HTMLAnchorElement>(null);
 	const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">(
 		"saved"
@@ -93,9 +93,12 @@ function Navbar(): ReactNode {
 
 	const handleExportFile = async () => {
 		if (!downloadRef.current) throw new Error("Download ref not found");
+		if (!ref) {
+			alert("Canvas ref not found.");
+		}
 
 		try {
-			const blob = await prepareForExport();
+			const blob = await prepareForExport(ref);
 
 			const url = URL.createObjectURL(blob);
 
@@ -109,6 +112,16 @@ function Navbar(): ReactNode {
 			alert("Error exporting file. Reason: " + (e as Error).message);
 		}
 	};
+
+	function increaseZoom() {
+		performZoom(window.innerWidth / 2, window.innerHeight / 2, -100);
+		redrawCanvas();
+	}
+
+	function decreaseZoom() {
+		performZoom(window.innerWidth / 2, window.innerHeight / 2, 0.5);
+		redrawCanvas();
+	}
 
 	const toggleFullScreen = () => {
 		const doc = window.document;
@@ -138,13 +151,13 @@ function Navbar(): ReactNode {
 		View: [
 			{
 				text: "Zoom In",
-				action: increaseScale,
+				action: increaseZoom,
 				icon: ZoomIn,
 				shortcut: "Plus"
 			},
 			{
 				text: "Zoom Out",
-				action: decreaseScale,
+				action: decreaseZoom,
 				icon: ZoomOut,
 				shortcut: "Minus"
 			},

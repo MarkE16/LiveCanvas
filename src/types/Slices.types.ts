@@ -58,15 +58,14 @@ export type CanvasStore = CanvasState & {
 	removeLayer: (payload: string) => void;
 	setLayers: (payload: Layer[]) => void;
 	getActiveLayer: () => Layer;
-	increaseScale: () => void;
-	decreaseScale: () => void;
+	setZoom: (zoom: number) => void;
 	performZoom: (clientX: number, clientY: number, factor: number) => void;
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
 	toggleReferenceWindow: () => void;
 	prepareForSave: () => SavedCanvasProperties;
-	prepareForExport: (quality?: number) => Promise<Blob>;
+	prepareForExport: (ref: HTMLCanvasElement, quality?: number) => Promise<Blob>;
 	drawCanvas: (canvas: HTMLCanvasElement, options?: DrawOptions) => void;
 	getPointerPosition: (
 		canvas: HTMLCanvasElement,

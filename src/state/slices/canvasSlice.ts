@@ -163,16 +163,10 @@ export const createCanvasSlice: StateCreator<
 		return layers[currentLayer];
 	}
 
-	function increaseScale() {
-		set((state) => ({
-			scale: Math.min(3, state.scale + 0.1)
-		}));
-	}
-
-	function decreaseScale() {
-		set((state) => ({
-			scale: Math.max(0.1, state.scale - 0.1)
-		}));
+	function setZoom(zoom: number) {
+		set({
+			scale: zoom
+		});
 	}
 
 	function performZoom(clientX: number, clientY: number, factor: number) {
@@ -290,9 +284,12 @@ export const createCanvasSlice: StateCreator<
 		return lines;
 	}
 
-	function prepareForExport(quality: number = 1): Promise<Blob> {
-		const substituteCanvas = document.createElement("canvas");
+	function prepareForExport(
+		ref: HTMLCanvasElement,
+		quality: number = 1
+	): Promise<Blob> {
 		const { width, height } = get();
+		const substituteCanvas = document.createElement("canvas");
 
 		substituteCanvas.width = width;
 		substituteCanvas.height = height;
@@ -353,22 +350,22 @@ export const createCanvasSlice: StateCreator<
 
 		const rect = canvas.getBoundingClientRect();
 
-		const canvasLeft = posX + dx;
-		const canvasRight = posX + dx + canvasWidth * scale;
-		const canvasTop = posY + dy;
-		const canvasBottom = posY + dy + canvasHeight * scale;
-		const viewportLeft = 0;
-		const viewportRight = rect.width;
-		const viewportTop = 0;
-		const viewportBottom = rect.height;
+		const viewportWidth = rect.width;
+		const viewportHeight = rect.height;
+
+		const newX = posX + dx;
+		const newY = posY + dy;
+
+		const leftX = newX + (viewportWidth / 2 - (canvasWidth * scale) / 2);
+		const topY = newY + (viewportHeight / 2 - (canvasHeight * scale) / 2);
+		const rightX = leftX + canvasWidth * scale;
+		const bottomY = topY + canvasHeight * scale;
+
+		const minVisibleArea = 20;
 
 		return {
-			left:
-				canvasRight < viewportLeft ||
-				canvasLeft + rect.width / 4 > viewportRight / scale,
-			top:
-				canvasBottom < viewportTop ||
-				canvasTop + rect.height / 4 > viewportBottom / scale
+			left: rightX < minVisibleArea || leftX > viewportWidth - minVisibleArea,
+			top: bottomY < minVisibleArea || topY > viewportHeight - minVisibleArea
 		};
 	}
 
@@ -465,48 +462,33 @@ export const createCanvasSlice: StateCreator<
 			ctx.save();
 			// Draw the container.
 			// First, skew the origin to the center of the canvas.
-			ctx.translate(canvas.width / 2, canvas.height / 2);
-			drawPaperCanvas(
-				ctx,
-				-canvasWidth / 2,
-				-canvasHeight / 2,
-				canvasWidth,
-				canvasHeight,
-				background
+			ctx.translate(
+				canvas.width / 2 - canvasWidth / 2,
+				canvas.height / 2 - canvasHeight / 2
 			);
+			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background);
 			// Clip to the canvas area so that drawings outside the canvas are not visible.
 			ctx.clip();
 
-			// Finally, reset the origin back to the top-left corner.
-			ctx.translate(-rect.width / 2, -rect.height / 2);
+			// Revert back to the top-left corner.
+			ctx.translate(
+				-(canvas.width / 2 - canvasWidth / 2),
+				-(canvas.height / 2 - canvasHeight / 2)
+			);
 		} else {
 			// We don't need to apply any transforms when exporting.
 			// Just draw the canvas at its natural size.
 			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
 		}
 
-		// const isPreviewCanvas = canvas.width < canvasWidth * dpi;
-
-		// if (isPreviewCanvas) {
-		// 	// If the canvas is a preview canvas, scale it down.
-		// 	const scaleX = canvas.width / (canvasWidth * dpi);
-		// 	const scaleY = canvas.height / (canvasHeight * dpi);
-		// 	// Save the current transform state.
-		// 	ctx.save();
-
-		// 	ctx.scale(scaleX, scaleY);
-		// }
-
 		for (const element of elements) {
-			const { x, y, width, height } = element;
+			let { x, y, width, height } = element;
 
 			ctx.fillStyle = element.color;
-			ctx.strokeStyle = element.color;
 			ctx.lineWidth = element.strokeWidth;
-			ctx.globalCompositeOperation =
-				element.type === "eraser" ? "destination-out" : "source-over";
 			ctx.lineCap = "round";
-			ctx.globalAlpha = element.opacity;
+			ctx.globalAlpha = element.type === "eraser" ? 1 : element.opacity;
+			ctx.strokeStyle = element.type === "eraser" ? background : element.color;
 
 			switch (element.type) {
 				case "brush":
@@ -577,15 +559,17 @@ export const createCanvasSlice: StateCreator<
 		// 	ctx.restore(); // Restore the previous transform state.
 		// }
 
-		ctx.restore();
+		if (!options?.export) {
+			ctx.restore();
+		}
 	}
 
 	return {
 		width: 400,
 		height: 400,
 		mode: "move",
-		// background: "#ffffff",
-		background: "transparent",
+		background: "#ffffff",
+		// background: "transparent",
 		shape: "rectangle",
 		shapeMode: "fill",
 		color: "#000000",
@@ -615,8 +599,7 @@ export const createCanvasSlice: StateCreator<
 		removeLayer,
 		setLayers,
 		getActiveLayer,
-		increaseScale,
-		decreaseScale,
+		setZoom,
 		performZoom,
 		setPosition,
 		changeX,
