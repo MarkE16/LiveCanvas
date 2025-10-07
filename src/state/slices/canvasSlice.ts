@@ -13,6 +13,7 @@ import type {
 	CanvasElement
 } from "@/types";
 import * as Utils from "@/lib/utils";
+import ImageElementStore from "../stores/ImageElementStore";
 
 export const createCanvasSlice: StateCreator<
 	SliceStores,
@@ -585,10 +586,29 @@ export const createCanvasSlice: StateCreator<
 					}
 					break;
 				}
+				case "image": {
+					const img = ImageElementStore.getImage(element.id);
+					if (!img) {
+						console.error(
+							"Tried to render an image element of id " +
+								element.id +
+								", but no image existed in the ImageElementStore."
+						);
+					} else {
+						ctx.drawImage(img, x, y);
+					}
+				}
 			}
 		}
 
 		ctx.restore();
+	}
+
+	function resetLayersAndElements() {
+		set({
+			layers: [{ name: "Layer 1", id: uuidv4(), active: true, hidden: false }],
+			elements: []
+		});
 	}
 
 	return {
@@ -636,6 +656,7 @@ export const createCanvasSlice: StateCreator<
 		toggleReferenceWindow,
 		getPointerPosition,
 		isCanvasOffscreen,
-		drawCanvas
+		drawCanvas,
+		resetLayersAndElements
 	};
 };

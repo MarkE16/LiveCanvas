@@ -84,6 +84,7 @@ export type CanvasStore = CanvasState & {
 		left: boolean;
 		top: boolean;
 	};
+	resetLayersAndElements: () => void;
 };
 
 export type HistoryStore = {

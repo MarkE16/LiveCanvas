@@ -174,7 +174,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
-				console.log("stroked!");
 
 				currentPath.current.push({
 					x: floorX,

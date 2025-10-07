@@ -5,16 +5,27 @@ import { useShallow } from "zustand/shallow";
 import useStore from "@/state/hooks/useStore";
 import LayersStore from "@/state/stores/LayersStore";
 import ElementsStore from "@/state/stores/ElementsStore";
+import { detectOperatingSystem, redrawCanvas } from "@/lib/utils";
+import useCanvasRef from "@/state/hooks/useCanvasRef";
 
 // Icons
 import Fullscreen from "@/components/icons/Fullscreen/Fullscreen";
-import Image from "@/components/icons/Image/Image";
+import { default as ImageIcon } from "@/components/icons/Image/Image";
 import Export from "@/components/icons/Export/Export";
 import FloppyDisk from "@/components/icons/FloppyDisk/FloppyDisk";
 import Close from "@/components/icons/Close/Close";
+import ZoomOut from "../icons/ZoomOut/ZoomOut";
+import ZoomIn from "../icons/ZoomIn/ZoomIn";
+import Rotate from "../icons/Rotate/Rotate";
+import FolderOpen from "../icons/FolderOpen/FolderOpen";
 
 // Types
-import type { ComponentProps, ReactElement, ReactNode } from "react";
+import type {
+	ChangeEvent,
+	ComponentProps,
+	ReactElement,
+	ReactNode
+} from "react";
 
 // Components
 import {
@@ -27,27 +38,35 @@ import {
 	MenubarShortcut
 } from "@/components/ui/menubar";
 import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
-import ZoomIn from "../icons/ZoomIn/ZoomIn";
-import { detectOperatingSystem, redrawCanvas } from "@/lib/utils";
-import ZoomOut from "../icons/ZoomOut/ZoomOut";
-import useCanvasRef from "@/state/hooks/useCanvasRef";
+import ImageElementStore from "@/state/stores/ImageElementStore";
 
 function Navbar(): ReactNode {
 	const {
 		prepareForExport,
 		prepareForSave,
 		toggleReferenceWindow,
-		performZoom
+		performZoom,
+		setPosition,
+		setZoom,
+		resetLayersAndElements,
+		createElement,
+		changeDimensions
 	} = useStore(
 		useShallow((state) => ({
 			prepareForExport: state.prepareForExport,
 			prepareForSave: state.prepareForSave,
 			toggleReferenceWindow: state.toggleReferenceWindow,
-			performZoom: state.performZoom
+			performZoom: state.performZoom,
+			setPosition: state.setPosition,
+			setZoom: state.setZoom,
+			resetLayersAndElements: state.resetLayersAndElements,
+			createElement: state.createElement,
+			changeDimensions: state.changeDimensions
 		}))
 	);
 	const { ref } = useCanvasRef();
 	const downloadRef = useRef<HTMLAnchorElement>(null);
+	const openFileRef = useRef<HTMLInputElement>(null);
 	const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">(
 		"saved"
 	);
@@ -95,7 +114,7 @@ function Navbar(): ReactNode {
 		if (!downloadRef.current) throw new Error("Download ref not found");
 		if (!ref) {
 			alert("Canvas ref not found.");
-      return;
+			return;
 		}
 
 		try {
@@ -150,8 +169,74 @@ function Navbar(): ReactNode {
 		}
 	};
 
+	function resetCanvasView() {
+		setPosition({ x: 0, y: 0 });
+		setZoom(1);
+		redrawCanvas();
+	}
+
+	const openFile = useCallback(() => {
+		if (!openFileRef.current) {
+			throw new Error("Download ref does not exist.");
+		}
+
+		openFileRef.current.click();
+	}, []);
+
+	async function handleOpeningFile(e: ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+
+		if (!file) {
+			alert("No file was inputted.");
+			return;
+		}
+
+		if (!ref) {
+			throw new Error("Canvas ref not found.");
+		}
+
+		const shouldLoad = window.confirm(
+			"Loading this file will erase all current data. Proceed?"
+		);
+		if (shouldLoad) {
+			// Erase everything...
+			await LayersStore.clearStore();
+			await ElementsStore.clearStore();
+			resetLayersAndElements(); // Reset the Zustand state.
+
+			// Upload the image.
+			const image = new Image();
+
+			image.onload = function () {
+				URL.revokeObjectURL(image.src);
+				const { width, height } = ref.getBoundingClientRect();
+
+				changeDimensions({
+					width: image.naturalWidth,
+					height: image.naturalHeight
+				});
+				const element = createElement("image", {
+					x: width / 2 - image.naturalWidth / 2,
+					y: height / 2 - image.naturalHeight / 2,
+					width: image.naturalWidth,
+					height: image.naturalHeight
+				});
+				ImageElementStore.putImage(element.id, image);
+				redrawCanvas();
+			};
+
+			image.src = URL.createObjectURL(file);
+		}
+	}
+
 	const menuOptions: MenuOptions = {
 		File: [
+			{
+				text: "Open File",
+				action: openFile,
+				icon: FolderOpen,
+				shortcut: "O"
+			},
 			{
 				text: "Save File",
 				action: handleSaveFile,
@@ -165,6 +250,16 @@ function Navbar(): ReactNode {
 			}
 		],
 		View: [
+			/**
+		 * TODO: This button is a temporary fallback for resetting the canvas for when it goes off screen. The better solution
+  		is to prevent the canvas from going off screen, but the math is currently unknown for how to do that at the moment. This
+   	is a temporary solution.
+		 */
+			{
+				text: "Reset Canvas View",
+				action: resetCanvasView,
+				icon: Rotate
+			},
 			{
 				text: "Zoom In",
 				action: increaseZoom,
@@ -180,7 +275,7 @@ function Navbar(): ReactNode {
 			{
 				text: "Reference Window",
 				action: toggleReferenceWindow,
-				icon: Image
+				icon: ImageIcon
 			},
 			{
 				text: "Toggle Full Screen",
@@ -195,6 +290,9 @@ function Navbar(): ReactNode {
 			if (e.key === "s" && e.ctrlKey) {
 				e.preventDefault();
 				handleSaveFile();
+			} else if (e.key === "o" && e.ctrlKey) {
+				e.preventDefault();
+				openFile();
 			}
 		};
 
@@ -203,7 +301,7 @@ function Navbar(): ReactNode {
 		return () => {
 			document.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [handleSaveFile]);
+	}, [handleSaveFile, openFile]);
 
 	return (
 		<header data-testid="nav-bar">
@@ -277,6 +375,12 @@ function Navbar(): ReactNode {
 				ref={downloadRef}
 				style={{ display: "none" }}
 				data-testid="export-link"
+			/>
+			<input
+				type="file"
+				ref={openFileRef}
+				onChange={handleOpeningFile}
+				style={{ display: "none" }}
 			/>
 		</header>
 	);
