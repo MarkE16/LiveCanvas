@@ -99,7 +99,8 @@ function Navbar(): ReactNode {
 						position: i
 					}))
 				),
-				ElementsStore.addElements(elements)
+				ElementsStore.addElements(elements),
+				ImageElementStore.saveImages()
 			);
 
 			await Promise.all(promises);

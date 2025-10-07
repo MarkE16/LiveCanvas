@@ -595,13 +595,13 @@ export const createCanvasSlice: StateCreator<
 								", but no image existed in the ImageElementStore."
 						);
 					} else {
-						ctx.drawImage(img, x, y);
+						ctx.drawImage(img, x, y, width, height);
 					}
 				}
 			}
 		}
 
-		ctx.restore();
+		ctx.restore();  
 	}
 
 	function resetLayersAndElements() {

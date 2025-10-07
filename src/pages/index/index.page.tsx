@@ -11,6 +11,7 @@ import Main from "@/components/Main/Main";
 import ErrorBoundary from "@/components/ErrorBoundary/ErrorBoundary";
 import { StoreProvider } from "@/components/StoreContext/StoreContext";
 import { CanvasReferenceProvider } from "@/components/CanvasReferenceProvider/CanvasReferenceProvider";
+import ImageElementStore from "@/state/stores/ImageElementStore";
 
 // The <head> tags
 // eslint-disable-next-line
@@ -45,6 +46,7 @@ function Page() {
 
 		LayersStore.openStore();
 		ElementsStore.openStore();
+    ImageElementStore.openStore();
 	}, []);
 
 	return (

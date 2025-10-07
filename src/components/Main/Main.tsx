@@ -13,6 +13,7 @@ import LeftToolbar from "@/components/LeftToolbar/LeftToolbar";
 import LayerPane from "@/components/LayerPane/LayerPane";
 import ReferenceWindow from "@/components/ReferenceWindow/ReferenceWindow";
 import { redrawCanvas } from "@/lib/utils";
+import ImageElementStore from "@/state/stores/ImageElementStore";
 
 function Main(): ReactNode {
 	const { setElements, setLayers } = useStore((store) => ({
@@ -28,6 +29,7 @@ function Main(): ReactNode {
 		async function updateLayersAndElements() {
 			const elements = await ElementsStore.getElements();
 			const layers = await LayersStore.getLayers();
+			await ImageElementStore.loadImages();
 
 			// There must always be at least one layer.
 			// If there are no layers, do not update,
