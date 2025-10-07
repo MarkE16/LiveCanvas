@@ -16,7 +16,7 @@ export type DrawOptions = Partial<{
 	layerId: string;
 
 	/* Whether to skip certain drawing options (such as positioning the canvas) */
-	export: boolean;
+	preview: boolean;
 }>;
 
 export type CanvasElementsStore = {
@@ -66,7 +66,11 @@ export type CanvasStore = CanvasState & {
 	toggleReferenceWindow: () => void;
 	prepareForSave: () => SavedCanvasProperties;
 	prepareForExport: (ref: HTMLCanvasElement, quality?: number) => Promise<Blob>;
-	drawCanvas: (canvas: HTMLCanvasElement, options?: DrawOptions) => void;
+	drawCanvas: (
+		baseCanvas: HTMLCanvasElement,
+		DOMCanvas: HTMLCanvasElement,
+		options?: DrawOptions
+	) => void;
 	getPointerPosition: (
 		canvas: HTMLCanvasElement,
 		clientX: number,

@@ -3,6 +3,7 @@ import useStore from "./useStore";
 import useThrottle from "./useThrottle";
 import useDebounceCallback from "./useDebounceCallback";
 import { CanvasRedrawEvent } from "@/types";
+import useCanvasRef from "./useCanvasRef";
 
 const DEBOUNCE_TIME_MS = 500;
 
@@ -16,23 +17,28 @@ const DEBOUNCE_TIME_MS = 500;
  * This is useful so that the canvas will not be redrawn until the event stops
  * being triggered for a certain amount of time. (E.g., won't update until there
  * is no update for half a second)
+ * @param preview A boolean indicating whether to draw the canvas as a final image (e.g, draw the image normally without transformations)
  */
 function useCanvasRedrawListener(
 	canvasRef: RefObject<HTMLCanvasElement | null>,
 	layerId?: string,
 	debounce: boolean = false,
-	exporting: boolean = false
+	preview: boolean = false
 ): void {
 	const drawCanvas = useStore((state) => state.drawCanvas);
+	const { ref } = useCanvasRef();
 
 	const draw = useCallback(
 		(canvas: HTMLCanvasElement, layerId?: string) => {
-			drawCanvas(canvas, { layerId, export: exporting });
+			if (!ref) {
+				throw new Error("Canvas ref does not exist.");
+			}
+			drawCanvas(canvas, ref, { layerId, preview });
 			// requestAnimationFrame(() => {
 			// 	draw(canvas, layerId);
 			// });
 		},
-		[drawCanvas, exporting]
+		[drawCanvas, preview, ref]
 	);
 
 	const handleCanvasRedraw = useThrottle((e: CanvasRedrawEvent) => {

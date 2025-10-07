@@ -11,11 +11,12 @@ type LayerPreviewProps = Readonly<{
 
 const PREVIEW_WIDTH = 36; // Width of the preview canvas
 const DEBOUNCE_REDRAW = true;
+const PREVIEW_DRAW = true;
 
 function LayerPreview({ id }: LayerPreviewProps): ReactNode {
 	const previewRef = useRef<HTMLCanvasElement>(null);
 
-	useCanvasRedrawListener(previewRef, id, DEBOUNCE_REDRAW, true);
+	useCanvasRedrawListener(previewRef, id, DEBOUNCE_REDRAW, PREVIEW_DRAW);
 
 	return (
 		<canvas

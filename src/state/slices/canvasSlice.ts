@@ -9,7 +9,8 @@ import type {
 	SavedCanvasProperties,
 	Shape,
 	SliceStores,
-	DrawOptions
+	DrawOptions,
+	CanvasElement
 } from "@/types";
 import * as Utils from "@/lib/utils";
 
@@ -301,7 +302,7 @@ export const createCanvasSlice: StateCreator<
 			);
 		}
 
-		drawCanvas(substituteCanvas, { export: true });
+		drawCanvas(substituteCanvas, ref, { preview: true });
 
 		return new Promise((resolve) => {
 			requestAnimationFrame(() => {
@@ -376,12 +377,12 @@ export const createCanvasSlice: StateCreator<
 		width: number,
 		height: number,
 		background: string,
-		exporting: boolean = false
+		preview: boolean = false
 	) {
 		ctx.beginPath();
 		ctx.rect(x, y, width, height);
 
-		if (background === "transparent" && !exporting) {
+		if (background === "transparent" && !preview) {
 			// If the background is transparent, fill with a checkerboard pattern.
 			const pattern = document.createElement("canvas");
 			const pctx = pattern.getContext("2d");
@@ -407,9 +408,20 @@ export const createCanvasSlice: StateCreator<
 		ctx.fill();
 	}
 
-	function drawCanvas(canvas: HTMLCanvasElement, options?: DrawOptions) {
-		let elements = get().elements;
+	/**
+	 *
+	 * @param baseCanvas An HTMLCanvasElement to apply the drawing operations on.
+	 * @param DOMCanvas The HTMLCanvasElement that is in the DOM. Use the `useCanvasRef` hook
+	 * to get access to the DOM node if you do not have easy access to it.
+	 * @param options Addtional drawing options.
+	 */
+	function drawCanvas(
+		baseCanvas: HTMLCanvasElement,
+		DOMCanvas: HTMLCanvasElement,
+		options?: DrawOptions
+	) {
 		const {
+			elements,
 			background,
 			layers,
 			width: canvasWidth,
@@ -422,7 +434,7 @@ export const createCanvasSlice: StateCreator<
 			throw new Error("No layers available to draw on the canvas.");
 		}
 
-		const ctx = canvas.getContext("2d");
+		const ctx = baseCanvas.getContext("2d");
 		if (!ctx) {
 			throw new Error("Failed to get 2D context from canvas when drawing.");
 		}
@@ -435,24 +447,26 @@ export const createCanvasSlice: StateCreator<
 			visibilityMap.set(layer.id, layer.hidden);
 			positionMap.set(layer.id, layers.length - 1 - i);
 		}
-		elements = elements.filter((element) => {
+		// Create a deep copy of the elements.
+		let copyElements = JSON.parse(JSON.stringify(elements)) as CanvasElement[];
+		copyElements = copyElements.filter((element) => {
 			if (options?.layerId) {
 				return element.layerId === options.layerId;
 			}
 			return !visibilityMap.get(element.layerId);
 		});
 
-		elements.sort((a, b) => {
+		copyElements.sort((a, b) => {
 			const aPosition = positionMap.get(a.layerId) ?? 0;
 			const bPosition = positionMap.get(b.layerId) ?? 0;
 			return aPosition - bPosition;
 		});
 
-		if (!options?.export) {
-			const rect = canvas.getBoundingClientRect();
+		if (!options?.preview) {
+			const rect = DOMCanvas.getBoundingClientRect();
 
-			canvas.width = rect.width;
-			canvas.height = rect.height;
+			baseCanvas.width = rect.width;
+			baseCanvas.height = rect.height;
 
 			ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset any existing transforms
 
@@ -460,35 +474,54 @@ export const createCanvasSlice: StateCreator<
 			ctx.setTransform(scale, 0, 0, scale, posX, posY);
 
 			ctx.save();
+
+			const canvasOriginX = DOMCanvas.width / 2 - canvasWidth / 2;
+			const canvasOriginY = DOMCanvas.height / 2 - canvasHeight / 2;
 			// Draw the container.
 			// First, skew the origin to the center of the canvas.
-			ctx.translate(
-				canvas.width / 2 - canvasWidth / 2,
-				canvas.height / 2 - canvasHeight / 2
-			);
+			ctx.translate(canvasOriginX, canvasOriginY);
 			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background);
 			// Clip to the canvas area so that drawings outside the canvas are not visible.
 			ctx.clip();
 
 			// Revert back to the top-left corner.
-			ctx.translate(
-				-(canvas.width / 2 - canvasWidth / 2),
-				-(canvas.height / 2 - canvasHeight / 2)
-			);
+			ctx.translate(-canvasOriginX, -canvasOriginY);
 		} else {
 			// We don't need to apply any transforms when exporting.
 			// Just draw the canvas at its natural size.
 			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
+
+			// Then, scale the canvas down so that all the elements fit inside of it.
+			ctx.save();
+
+			const scaleX = baseCanvas.width / canvasWidth;
+			const scaleY = baseCanvas.height / canvasHeight;
+
+			ctx.scale(scaleX, scaleY);
 		}
 
-		for (const element of elements) {
-			let { x, y, width, height } = element;
+		for (const element of copyElements) {
+			const { width, height } = element;
+			let { x, y } = element;
 
 			ctx.fillStyle = element.color;
 			ctx.lineWidth = element.strokeWidth;
 			ctx.lineCap = "round";
 			ctx.globalAlpha = element.type === "eraser" ? 1 : element.opacity;
 			ctx.strokeStyle = element.type === "eraser" ? background : element.color;
+
+			if (options?.preview) {
+				if (element.type === "brush" || element.type === "eraser") {
+					element.path = element.path.map((point) => ({
+						...point,
+						x: point.x - (DOMCanvas.width / 2 - canvasWidth / 2),
+						y: point.y - (DOMCanvas.height / 2 - canvasHeight / 2)
+					}));
+				} else {
+					x -= DOMCanvas.width / 2 - canvasWidth / 2;
+					y -= DOMCanvas.height / 2 - canvasHeight / 2;
+				}
+			}
 
 			switch (element.type) {
 				case "brush":
@@ -555,13 +588,7 @@ export const createCanvasSlice: StateCreator<
 			}
 		}
 
-		// if (isPreviewCanvas) {
-		// 	ctx.restore(); // Restore the previous transform state.
-		// }
-
-		if (!options?.export) {
-			ctx.restore();
-		}
+		ctx.restore();
 	}
 
 	return {

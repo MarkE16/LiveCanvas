@@ -95,6 +95,7 @@ function Navbar(): ReactNode {
 		if (!downloadRef.current) throw new Error("Download ref not found");
 		if (!ref) {
 			alert("Canvas ref not found.");
+      return;
 		}
 
 		try {
