@@ -10,7 +10,8 @@ import type {
 	Shape,
 	SliceStores,
 	DrawOptions,
-	CanvasElement
+	CanvasElement,
+	CanvasState
 } from "@/types";
 import * as Utils from "@/lib/utils";
 import ImageElementStore from "../stores/ImageElementStore";
@@ -232,9 +233,32 @@ export const createCanvasSlice: StateCreator<
 	 * layers and elements themselves.
 	 */
 	function prepareForSave(): SavedCanvasProperties {
-		const { layers, elements } = get();
+		const { layers, elements, width, height, background } = get();
+
+		window.localStorage.setItem(
+			"canvas-properties",
+			JSON.stringify({
+				width,
+				height,
+				background
+			})
+		);
 
 		return { layers, elements };
+	}
+
+	function loadCanvasProperties() {
+		const str = window.localStorage.getItem("canvas-properties");
+
+		if (!str) {
+			throw new Error("Cannot load 'canvas-properties'");
+		}
+
+		const { width, height, background } = JSON.parse(str) as Pick<
+			CanvasState,
+			"width" | "height" | "background"
+		>;
+		set({ width, height, background });
 	}
 
 	/**
@@ -601,7 +625,7 @@ export const createCanvasSlice: StateCreator<
 			}
 		}
 
-		ctx.restore();  
+		ctx.restore();
 	}
 
 	function resetLayersAndElements() {
@@ -652,6 +676,7 @@ export const createCanvasSlice: StateCreator<
 		changeX,
 		changeY,
 		prepareForSave,
+		loadCanvasProperties,
 		prepareForExport,
 		toggleReferenceWindow,
 		getPointerPosition,

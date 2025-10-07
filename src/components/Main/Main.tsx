@@ -3,6 +3,7 @@ import ElementsStore from "@/state/stores/ElementsStore";
 import LayersStore from "@/state/stores/LayersStore";
 import { useEffect, useState } from "react";
 import useStore from "@/state/hooks/useStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { ReactNode } from "react";
@@ -16,12 +17,13 @@ import { redrawCanvas } from "@/lib/utils";
 import ImageElementStore from "@/state/stores/ImageElementStore";
 
 function Main(): ReactNode {
-	const { setElements, setLayers } = useStore((store) => ({
-		setElements: store.setElements,
-		setLayers: store.setLayers
-	}));
-	const refereceWindowEnabled = useStore(
-		(store) => store.referenceWindowEnabled
+	const { setElements, setLayers, refereceWindowEnabled, loadCanvasProperties } = useStore(
+		useShallow((store) => ({
+			setElements: store.setElements,
+			setLayers: store.setLayers,
+			refereceWindowEnabled: store.referenceWindowEnabled,
+			loadCanvasProperties: store.loadCanvasProperties
+		}))
 	);
 	const [loading, setLoading] = useState<boolean>(true);
 
@@ -30,6 +32,7 @@ function Main(): ReactNode {
 			const elements = await ElementsStore.getElements();
 			const layers = await LayersStore.getLayers();
 			await ImageElementStore.loadImages();
+      loadCanvasProperties();
 
 			// There must always be at least one layer.
 			// If there are no layers, do not update,
@@ -52,7 +55,7 @@ function Main(): ReactNode {
 		}
 
 		updateLayersAndElements();
-	}, [setElements, setLayers]);
+	}, [setElements, setLayers, loadCanvasProperties]);
 
 	return (
 		<main

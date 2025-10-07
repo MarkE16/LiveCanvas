@@ -102,7 +102,7 @@ function Navbar(): ReactNode {
 				ElementsStore.addElements(elements),
 				ImageElementStore.saveImages()
 			);
-
+			
 			await Promise.all(promises);
 
 			setSaveStatus("saved");
@@ -203,6 +203,7 @@ function Navbar(): ReactNode {
 			// Erase everything...
 			await LayersStore.clearStore();
 			await ElementsStore.clearStore();
+      await ImageElementStore.clearStore(); 
 			resetLayersAndElements(); // Reset the Zustand state.
 
 			// Upload the image.

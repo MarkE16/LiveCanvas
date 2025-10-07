@@ -2,7 +2,7 @@ import BaseStore from "./BaseStore";
 
 type ImageEntry = { id: string; blob: Blob };
 
-/** A class for storing the images of any elements that are images. This class is to be used alongside the CanvasElementSlice in the Zustand store. */
+/** A class for storing the images of any canvas elements that are images. This class is to be used alongside the CanvasElementSlice in the Zustand store. */
 export default class ImageElementStore extends BaseStore {
 	protected static override storeName: string = "images";
 	public static images: Map<string, HTMLImageElement> = new Map();
@@ -80,5 +80,9 @@ export default class ImageElementStore extends BaseStore {
 
 	public static closeStore() {
 		this.close();
+	}
+
+	public static clearStore() {
+		return this.remove();
 	}
 }
