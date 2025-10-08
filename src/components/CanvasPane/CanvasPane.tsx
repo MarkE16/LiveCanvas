@@ -33,8 +33,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		createElement,
 		getActiveLayer,
 		performZoom,
-		pushHistory,
-		isCanvasOffscreen
+		pushHistory
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -45,8 +44,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			createElement: state.createElement,
 			getActiveLayer: state.getActiveLayer,
 			performZoom: state.performZoom,
-			pushHistory: state.pushHistory,
-			isCanvasOffscreen: state.isCanvasOffscreen
+			pushHistory: state.pushHistory
 		}))
 	);
 	const currentShape = useStoreSubscription((state) => state.shape);
@@ -249,7 +247,8 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 		currentShape,
 		currentColor,
 		pushHistory,
-		performZoom
+		performZoom,
+		scale
 	]);
 
 	return (

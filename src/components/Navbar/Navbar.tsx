@@ -102,7 +102,7 @@ function Navbar(): ReactNode {
 				ElementsStore.addElements(elements),
 				ImageElementStore.saveImages()
 			);
-			
+
 			await Promise.all(promises);
 
 			setSaveStatus("saved");
@@ -203,7 +203,8 @@ function Navbar(): ReactNode {
 			// Erase everything...
 			await LayersStore.clearStore();
 			await ElementsStore.clearStore();
-      await ImageElementStore.clearStore(); 
+			await ImageElementStore.clearStore();
+			window.localStorage.clear();
 			resetLayersAndElements(); // Reset the Zustand state.
 
 			// Upload the image.
@@ -307,7 +308,7 @@ function Navbar(): ReactNode {
 
 	return (
 		<header data-testid="nav-bar">
-			<nav className="flex items-center p-[0.2rem] min-h-[3rem] h-[3rem] border-b border-b-[#d1836a] w-full whitespace-nowrap">
+			<nav className="flex items-center p-[0.2rem] min-h-[3rem] h-[3rem] border-b border-b-accent w-full whitespace-nowrap">
 				<img
 					className="w-[3rem] h-[3rem] mr-2"
 					src={logo}

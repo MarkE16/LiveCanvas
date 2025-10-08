@@ -36,8 +36,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		createElement,
 		getActiveLayer,
 		pushHistory,
-		getPointerPosition,
-		drawCanvas
+		getPointerPosition
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -138,8 +137,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			throw new Error("Canvas Ref is not set. This is a bug.");
 		}
 
-		const onCanvas =
-			e.target === canvas || canvas.contains(e.target as Node);
+		const onCanvas = e.target === canvas || canvas.contains(e.target as Node);
 
 		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
 			return;
@@ -156,10 +154,11 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const floorX = Math.floor(x);
 		const floorY = Math.floor(y);
 
-		// ctx.globalCompositeOperation =
-		// 	mode === "eraser" ? "destination-out" : "source-over";
+		ctx.globalCompositeOperation =
+			mode === "eraser" ? "destination-out" : "source-over";
 		ctx.fillStyle = color.current;
-		ctx.strokeStyle = mode === "eraser" ? "rgba(0, 0,0, 0)" : color.current;
+		ctx.strokeStyle = color.current;
+		// ctx.globalAlpha = mode === "eraser" ? 0 : opacity.current;
 		ctx.lineWidth = strokeWidth.current * dpi;
 		const currentShapeMode = shapeMode.current;
 
@@ -167,7 +166,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			case "brush":
 			case "eraser": {
 				if (!onCanvas) return;
-				ctx.strokeStyle = color.current;
 				ctx.lineWidth = strokeWidth.current * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";

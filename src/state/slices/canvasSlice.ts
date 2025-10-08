@@ -251,7 +251,8 @@ export const createCanvasSlice: StateCreator<
 		const str = window.localStorage.getItem("canvas-properties");
 
 		if (!str) {
-			throw new Error("Cannot load 'canvas-properties'");
+			console.warn("Cannot load 'canvas-properties'");
+			return;
 		}
 
 		const { width, height, background } = JSON.parse(str) as Pick<
@@ -406,6 +407,7 @@ export const createCanvasSlice: StateCreator<
 	) {
 		ctx.beginPath();
 		ctx.rect(x, y, width, height);
+		ctx.globalCompositeOperation = "destination-over";
 
 		if (background === "transparent" && !preview) {
 			// If the background is transparent, fill with a checkerboard pattern.
@@ -431,6 +433,7 @@ export const createCanvasSlice: StateCreator<
 			ctx.fillStyle = background;
 		}
 		ctx.fill();
+		ctx.globalCompositeOperation = "source-over";
 	}
 
 	/**
@@ -505,7 +508,9 @@ export const createCanvasSlice: StateCreator<
 			// Draw the container.
 			// First, skew the origin to the center of the canvas.
 			ctx.translate(canvasOriginX, canvasOriginY);
-			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background);
+
+			ctx.beginPath();
+			ctx.rect(0, 0, canvasWidth, canvasHeight);
 			// Clip to the canvas area so that drawings outside the canvas are not visible.
 			ctx.clip();
 
@@ -513,10 +518,8 @@ export const createCanvasSlice: StateCreator<
 			ctx.translate(-canvasOriginX, -canvasOriginY);
 		} else {
 			// We don't need to apply any transforms when exporting.
-			// Just draw the canvas at its natural size.
-			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
 
-			// Then, scale the canvas down so that all the elements fit inside of it.
+			// Scale the canvas down so that all the elements fit inside of it.
 			ctx.save();
 
 			const scaleX = baseCanvas.width / canvasWidth;
@@ -532,8 +535,10 @@ export const createCanvasSlice: StateCreator<
 			ctx.fillStyle = element.color;
 			ctx.lineWidth = element.strokeWidth;
 			ctx.lineCap = "round";
-			ctx.globalAlpha = element.type === "eraser" ? 1 : element.opacity;
-			ctx.strokeStyle = element.type === "eraser" ? background : element.color;
+			ctx.globalAlpha = element.opacity;
+			ctx.strokeStyle = element.color;
+			ctx.globalCompositeOperation =
+				element.type === "eraser" ? "destination-out" : "source-over";
 
 			if (options?.preview) {
 				if (element.type === "brush" || element.type === "eraser") {
@@ -625,6 +630,18 @@ export const createCanvasSlice: StateCreator<
 			}
 		}
 
+		// Finally, draw the paper canvas (background)
+		if (!options?.preview) {
+			const canvasOriginX = DOMCanvas.width / 2 - canvasWidth / 2;
+			const canvasOriginY = DOMCanvas.height / 2 - canvasHeight / 2;
+			// Draw the paper background at the bottom
+			ctx.translate(canvasOriginX, canvasOriginY);
+			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background);
+			ctx.translate(-canvasOriginX, -canvasOriginY);
+		} else {
+			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
+		}
+
 		ctx.restore();
 	}
 
@@ -639,8 +656,8 @@ export const createCanvasSlice: StateCreator<
 		width: 400,
 		height: 400,
 		mode: "move",
-		background: "#ffffff",
-		// background: "transparent",
+		// background: "#00FFFF",
+		background: "transparent",
 		shape: "rectangle",
 		shapeMode: "fill",
 		color: "#000000",

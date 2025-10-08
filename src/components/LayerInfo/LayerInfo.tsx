@@ -123,7 +123,7 @@ function LayerInfo({
 				"flex items-center w-full max-w-full h-[2.6rem] py-[0.2rem] px-[0.5rem] whitespace-nowrap border border-[rgb(56,55,55)] last:rounded-b-[5px]",
 				"group",
 				{
-					"bg-[#d1836a]": active,
+					"bg-accent": active,
 					"bg-[rgb(36,36,36)]": !active
 				}
 			)}

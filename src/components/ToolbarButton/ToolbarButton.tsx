@@ -118,7 +118,7 @@ function ToolbarButton({
 					"disabled:text-[#3b3b3b] disabled:cursor-not-allowed disabled:hover:bg-transparent",
 					{
 						"bg-transparent hover:bg-[#3b3b3b]": !active,
-						"bg-[#d1836a] border-[#d1603a]": active
+						"bg-accent border-[#d1603a]": active
 					}
 				)}
 				data-modename={name}
