@@ -46,7 +46,7 @@ function Navbar(): ReactNode {
 		prepareForSave,
 		toggleReferenceWindow,
 		performZoom,
-		setPosition,
+		centerCanvas,
 		setZoom,
 		resetLayersAndElements,
 		createElement,
@@ -57,7 +57,7 @@ function Navbar(): ReactNode {
 			prepareForSave: state.prepareForSave,
 			toggleReferenceWindow: state.toggleReferenceWindow,
 			performZoom: state.performZoom,
-			setPosition: state.setPosition,
+			centerCanvas: state.centerCanvas,
 			setZoom: state.setZoom,
 			resetLayersAndElements: state.resetLayersAndElements,
 			createElement: state.createElement,
@@ -171,7 +171,10 @@ function Navbar(): ReactNode {
 	};
 
 	function resetCanvasView() {
-		setPosition({ x: 0, y: 0 });
+		if (!ref) {
+			throw new Error("Canvas ref does not exist.");
+		}
+		centerCanvas(ref);
 		setZoom(1);
 		redrawCanvas();
 	}

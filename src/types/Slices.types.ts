@@ -85,6 +85,7 @@ export type CanvasStore = CanvasState & {
 		left: boolean;
 		top: boolean;
 	};
+	centerCanvas: (ref: HTMLCanvasElement) => void;
 	resetLayersAndElements: () => void;
 };
 

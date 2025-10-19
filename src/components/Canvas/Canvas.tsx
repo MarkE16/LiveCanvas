@@ -36,7 +36,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		createElement,
 		getActiveLayer,
 		pushHistory,
-		getPointerPosition
+		getPointerPosition,
+		centerCanvas
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -51,7 +52,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			getActiveLayer: state.getActiveLayer,
 			pushHistory: state.pushHistory,
 			getPointerPosition: state.getPointerPosition,
-			drawCanvas: state.drawCanvas
+			drawCanvas: state.drawCanvas,
+			centerCanvas: state.centerCanvas
 		}))
 	);
 	const { setRef } = useCanvasRef();
@@ -314,11 +316,21 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		return () => document.removeEventListener("mousemove", onMouseMove);
 	}, [onMouseMove, setRef]);
 
+	// Initially center the canvas.
+	useEffect(() => {
+		const ref = canvasRef.current;
+		if (!ref) return;
+
+		centerCanvas(ref);
+	}, [centerCanvas]);
+
 	return (
 		<canvas
 			data-testid="canvas-layer"
 			id="canvas"
 			data-mode={mode}
+			data-canvas-width={width} // CSS pixels
+			data-canvas-height={height} // CSS pixels
 			className="absolute w-full h-full cursor-inherit z-0 data-[mode=move]:cursor-grab data-[mode=pan]:cursor-grab data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 			ref={canvasRef}
 			onMouseDown={onMouseDown}

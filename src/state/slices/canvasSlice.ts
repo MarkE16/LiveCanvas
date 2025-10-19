@@ -396,6 +396,23 @@ export const createCanvasSlice: StateCreator<
 		};
 	}
 
+	function centerCanvas(ref: HTMLCanvasElement) {
+		const { width: canvasWidth, height: canvasHeight } = get();
+		const rect = ref.getBoundingClientRect();
+
+		const viewportWidth = rect.width;
+		const viewportHeight = rect.height;
+
+		const posX = viewportWidth / 2 - canvasWidth / 2;
+		const posY = viewportHeight / 2 - canvasHeight / 2;
+		set({
+			position: {
+				x: posX,
+				y: posY
+			}
+		});
+	}
+
 	function drawPaperCanvas(
 		ctx: CanvasRenderingContext2D,
 		x: number,
@@ -505,22 +522,11 @@ export const createCanvasSlice: StateCreator<
 
 			ctx.save();
 
-			const canvasOriginX = DOMCanvas.width / 2 - canvasWidth / 2;
-			const canvasOriginY = DOMCanvas.height / 2 - canvasHeight / 2;
-			// Draw the container.
-			// First, skew the origin to the center of the canvas.
-			ctx.translate(canvasOriginX, canvasOriginY);
-
 			ctx.beginPath();
 			ctx.rect(0, 0, canvasWidth, canvasHeight);
 			// Clip to the canvas area so that drawings outside the canvas are not visible.
 			ctx.clip();
-
-			// Revert back to the top-left corner.
-			ctx.translate(-canvasOriginX, -canvasOriginY);
 		} else {
-			// We don't need to apply any transforms when exporting.
-
 			// Scale the canvas down so that all the elements fit inside of it.
 			ctx.save();
 
@@ -541,19 +547,6 @@ export const createCanvasSlice: StateCreator<
 			ctx.strokeStyle = element.color;
 			ctx.globalCompositeOperation =
 				element.type === "eraser" ? "destination-out" : "source-over";
-
-			if (options?.preview) {
-				if (element.type === "brush" || element.type === "eraser") {
-					element.path = element.path.map((point) => ({
-						...point,
-						x: point.x - (DOMCanvas.width / 2 - canvasWidth / 2),
-						y: point.y - (DOMCanvas.height / 2 - canvasHeight / 2)
-					}));
-				} else {
-					x -= DOMCanvas.width / 2 - canvasWidth / 2;
-					y -= DOMCanvas.height / 2 - canvasHeight / 2;
-				}
-			}
 
 			switch (element.type) {
 				case "brush":
@@ -633,16 +626,15 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		// Finally, draw the paper canvas (background)
-		if (!options?.preview) {
-			const canvasOriginX = DOMCanvas.width / 2 - canvasWidth / 2;
-			const canvasOriginY = DOMCanvas.height / 2 - canvasHeight / 2;
-			// Draw the paper background at the bottom
-			ctx.translate(canvasOriginX, canvasOriginY);
-			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background);
-			ctx.translate(-canvasOriginX, -canvasOriginY);
-		} else {
-			drawPaperCanvas(ctx, 0, 0, canvasWidth, canvasHeight, background, true);
-		}
+		drawPaperCanvas(
+			ctx,
+			0,
+			0,
+			canvasWidth,
+			canvasHeight,
+			background,
+			options?.preview
+		);
 
 		ctx.restore();
 	}
@@ -700,6 +692,7 @@ export const createCanvasSlice: StateCreator<
 		toggleReferenceWindow,
 		getPointerPosition,
 		isCanvasOffscreen,
+		centerCanvas,
 		drawCanvas,
 		resetLayersAndElements
 	};
