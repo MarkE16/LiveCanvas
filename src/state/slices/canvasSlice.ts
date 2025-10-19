@@ -507,8 +507,6 @@ export const createCanvasSlice: StateCreator<
 			return aPosition - bPosition;
 		});
 
-		ctx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
-
 		if (!options?.preview) {
 			const rect = DOMCanvas.getBoundingClientRect();
 
@@ -537,8 +535,7 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		for (const element of copyElements) {
-			const { width, height } = element;
-			let { x, y } = element;
+			const { width, height, x, y } = element;
 
 			ctx.fillStyle = element.color;
 			ctx.lineWidth = element.strokeWidth;
