@@ -1,5 +1,5 @@
 // Lib
-import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
+import logo from "@/assets/icons/IdeaDrawnNewLogo.png";
 import { useRef, useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import useStore from "@/state/hooks/useStore";

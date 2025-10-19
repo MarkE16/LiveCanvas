@@ -89,7 +89,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			throw new Error("Couldn't get the 2D context of the canvas.");
 		}
 
-		ctx.globalAlpha = opacity.current;
+		ctx.globalAlpha = mode === "eraser" ? 1 : opacity.current;
 
 		// Clip the drawing to the bounds of the canvas
 		ctx.save();
@@ -157,7 +157,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			mode === "eraser" ? "destination-out" : "source-over";
 		ctx.fillStyle = color.current;
 		ctx.strokeStyle = color.current;
-		// ctx.globalAlpha = mode === "eraser" ? 0 : opacity.current;
 		ctx.lineWidth = strokeWidth.current * dpi;
 		const currentShapeMode = shapeMode.current;
 

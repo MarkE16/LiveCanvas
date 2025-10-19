@@ -115,6 +115,7 @@ function DrawingToolbar(): ReactNode {
 		<Fragment key="settings_Strength">
 			<span className="text-sm">Stroke Width</span>
 			<input
+				className="mx-2"
 				name={`${mode}_strength`.toUpperCase()}
 				type="range"
 				min={strengthSettings.min}
@@ -137,6 +138,7 @@ function DrawingToolbar(): ReactNode {
 		<Fragment key="settings_Brush">
 			<Brush />
 			<input
+				className="mx-2"
 				type="range"
 				id="brush-size"
 				min={0.01}
