@@ -60,6 +60,7 @@ export type ResizePosition = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 export type CanvasElementType =
 	| Shape
 	| "text"
+	| "image"
 	| Extract<Mode, "brush" | "eraser">;
 
 export type FontProperties = {

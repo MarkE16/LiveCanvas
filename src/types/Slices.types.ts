@@ -11,6 +11,14 @@ import type {
 	CanvasElementType
 } from "../types";
 
+export type DrawOptions = Partial<{
+	/* The specific layer to draw. */
+	layerId: string;
+
+	/* Whether to skip certain drawing options (such as positioning the canvas) */
+	preview: boolean;
+}>;
+
 export type CanvasElementsStore = {
 	elements: CanvasElement[];
 	copiedElements: CanvasElement[];
@@ -50,15 +58,35 @@ export type CanvasStore = CanvasState & {
 	removeLayer: (payload: string) => void;
 	setLayers: (payload: Layer[]) => void;
 	getActiveLayer: () => Layer;
-	increaseScale: () => void;
-	decreaseScale: () => void;
+	setZoom: (zoom: number) => void;
+	performZoom: (clientX: number, clientY: number, factor: number) => void;
 	setPosition: (payload: Partial<Coordinates>) => void;
 	changeX: (payload: number) => void;
 	changeY: (payload: number) => void;
 	toggleReferenceWindow: () => void;
 	prepareForSave: () => SavedCanvasProperties;
-	prepareForExport: (quality?: number) => Promise<Blob>;
-	drawCanvas: (canvas: HTMLCanvasElement, layerId?: string) => void;
+	loadCanvasProperties: () => void;
+	prepareForExport: (ref: HTMLCanvasElement, quality?: number) => Promise<Blob>;
+	drawCanvas: (
+		baseCanvas: HTMLCanvasElement,
+		DOMCanvas: HTMLCanvasElement,
+		options?: DrawOptions
+	) => void;
+	getPointerPosition: (
+		canvas: HTMLCanvasElement,
+		clientX: number,
+		clientY: number
+	) => Coordinates;
+	isCanvasOffscreen: (
+		canvas: HTMLCanvasElement,
+		dx: number,
+		dy: number
+	) => {
+		left: boolean;
+		top: boolean;
+	};
+	centerCanvas: (ref: HTMLCanvasElement) => void;
+	resetLayersAndElements: () => void;
 };
 
 export type HistoryStore = {
@@ -67,6 +95,7 @@ export type HistoryStore = {
 	pushHistory: (action: HistoryAction) => void;
 	undo: () => void;
 	redo: () => void;
+	clearHistory: () => void;
 };
 
 export type SliceStores = CanvasStore & CanvasElementsStore & HistoryStore;

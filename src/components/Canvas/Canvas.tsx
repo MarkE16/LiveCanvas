@@ -4,13 +4,14 @@ import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
-import * as Utils from "@/lib/utils";
 
 // Types
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { type Coordinates, CanvasElementPath } from "@/types";
 import useThrottle from "@/state/hooks/useThrottle";
 import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
+import useCanvasRef from "@/state/hooks/useCanvasRef";
+import { redrawCanvas } from "@/lib/utils";
 
 // Styles using Tailwind
 
@@ -26,35 +27,36 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 ) {
 	const {
 		mode,
-		background,
 		shape,
 		width,
 		height,
 		dpi,
-		scale,
-		position,
 		changeMode,
 		changeColor,
 		createElement,
 		getActiveLayer,
-		pushHistory
+		pushHistory,
+		getPointerPosition,
+		centerCanvas
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
-			background: state.background,
 			shape: state.shape,
 			width: state.width,
 			height: state.height,
 			dpi: state.dpi,
-			scale: state.scale,
 			position: state.position,
 			changeMode: state.changeMode,
 			changeColor: state.changeColor,
 			createElement: state.createElement,
 			getActiveLayer: state.getActiveLayer,
-			pushHistory: state.pushHistory
+			pushHistory: state.pushHistory,
+			getPointerPosition: state.getPointerPosition,
+			drawCanvas: state.drawCanvas,
+			centerCanvas: state.centerCanvas
 		}))
 	);
+	const { setRef } = useCanvasRef();
 	const color = useStoreSubscription((state) => state.color);
 	const strokeWidth = useStoreSubscription((state) => state.strokeWidth);
 	const shapeMode = useStoreSubscription((state) => state.shapeMode);
@@ -89,47 +91,38 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		ctx.globalAlpha = opacity.current;
 
+		// Clip the drawing to the bounds of the canvas
+		ctx.save();
+		ctx.rect(0, 0, width, height);
+		ctx.clip();
+
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
+		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
+		const floorX = Math.floor(x);
+		const floorY = Math.floor(y);
 
 		if (!isDrawing.current) {
-			initialPosition.current = { x, y };
+			initialPosition.current = { x: floorX, y: floorY };
 		}
 		const activeLayer = getActiveLayer();
 		isDrawing.current = !activeLayer.hidden;
 
 		if (mode === "brush" || mode === "eraser") {
 			currentPath2D.current = new Path2D();
-			currentPath2D.current.moveTo(x, y);
+			currentPath2D.current.moveTo(floorX, floorY);
 			// Save the current path.
-			currentPath.current.push({ x, y, startingPoint: true });
+			currentPath.current.push({ x: floorX, y: floorY, startingPoint: true });
 		} else if (mode === "eye_drop" && !isGrabbing) {
-			// `.getImageData()` retreives the x and y coordinates of the pixel
-			// differently if the canvas is scaled. So, we need to multiply the
-			// x and y coordinates by the DPI to get the correct pixel.
-			const pixel = ctx.getImageData(
-				Math.floor(x * dpi),
-				Math.floor(y * dpi),
-				1,
-				1
-			).data;
+			// `getPointerPosition` gives us the position in world coordinates,
+			// but we need the position in canvas coordinates for `getImageData`.
+			const rect = canvas.getBoundingClientRect();
+			const canvasX = Math.floor(e.clientX - rect.left);
+			const canvasY = Math.floor(e.clientY - rect.top);
+			const pixel = ctx.getImageData(canvasX, canvasY, 1, 1).data;
 
 			const colorStr = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
-			let color;
 
-			if (colorStr === "rgb(0, 0, 0)") {
-				// If the color is transparent, we want to assume
-				// that the user wanted to select the background color
-				// which visually is white. For the color to be
-				// transparent is correct, but from a UX perspective,
-				// it's not what the user would expect. So,
-				// we'll set the color to white.
-				color = parseColor("rgb(255, 255, 255)");
-			} else {
-				color = parseColor(colorStr);
-			}
-
-			changeColor(color.toString("hex"));
+			changeColor(parseColor(colorStr).toString("hex"));
 			changeMode("move");
 		}
 	};
@@ -138,56 +131,58 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		// If the left mouse button is not pressed, then we should not draw.
 		// If the layer is hidden, we should not draw.
 		// If the user is grabbing the canvas (for moving), we should not draw.
-		const activeLayer = canvasRef.current;
-		if (!activeLayer) {
+		const canvas = canvasRef.current;
+		if (!canvas) {
 			throw new Error("Canvas Ref is not set. This is a bug.");
 		}
 
-		const onCanvas =
-			e.target === activeLayer || activeLayer.contains(e.target as Node);
+		const onCanvas = e.target === canvas || canvas.contains(e.target as Node);
 
 		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
 			return;
 		}
-		if (mode === "shapes") {
+		if (mode === "shapes" || !currentPath2D.current) {
 			currentPath2D.current = new Path2D();
-			document.dispatchEvent(new CustomEvent("canvas:redraw"));
 		}
-		const ctx = activeLayer.getContext("2d");
+		const ctx = canvas.getContext("2d");
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
 		// Calculate the position of the mouse relative to the canvas.
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, activeLayer);
+		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
+		const floorX = Math.floor(x);
+		const floorY = Math.floor(y);
 
 		ctx.globalCompositeOperation =
 			mode === "eraser" ? "destination-out" : "source-over";
 		ctx.fillStyle = color.current;
 		ctx.strokeStyle = color.current;
+		// ctx.globalAlpha = mode === "eraser" ? 0 : opacity.current;
 		ctx.lineWidth = strokeWidth.current * dpi;
 		const currentShapeMode = shapeMode.current;
-
-		if (!currentPath2D.current) {
-			currentPath2D.current = new Path2D();
-		}
 
 		switch (mode) {
 			case "brush":
 			case "eraser": {
 				if (!onCanvas) return;
-				ctx.strokeStyle = color.current;
 				ctx.lineWidth = strokeWidth.current * dpi;
 				ctx.lineCap = "round";
 				ctx.lineJoin = "round";
 
-				currentPath2D.current.lineTo(x, y);
+				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
 
-				currentPath.current.push({ x, y, startingPoint: false });
+				currentPath.current.push({
+					x: floorX,
+					y: floorY,
+					startingPoint: false
+				});
+				// drawCanvas(activeLayer);
 				break;
 			}
 
 			case "shapes": {
+				redrawCanvas();
 				if (shape === "circle") {
 					const width = x - initialPosition.current.x;
 					const height = y - initialPosition.current.y;
@@ -262,7 +257,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
 
-		const { x, y } = Utils.getCanvasPosition(e.clientX, e.clientY, canvas);
+		ctx.restore();
+
+		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
 		const { x: initX, y: initY } = initialPosition.current;
 
 		let elementType;
@@ -297,6 +294,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			properties
 		});
 		currentPath.current = [];
+		redrawCanvas();
 	};
 
 	const onMouseEnter = (e: ReactMouseEvent<HTMLCanvasElement>) => {
@@ -311,29 +309,30 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 	useEffect(() => {
 		document.addEventListener("mousemove", onMouseMove);
+		setRef(canvasRef.current);
 		return () => document.removeEventListener("mousemove", onMouseMove);
-	}, [onMouseMove]);
+	}, [onMouseMove, setRef]);
 
-	const transform = `translate(${position.x}px, ${position.y}px) scale(${scale})`;
+	// Initially center the canvas.
+	useEffect(() => {
+		const ref = canvasRef.current;
+		if (!ref) return;
+
+		centerCanvas(ref);
+	}, [centerCanvas]);
 
 	return (
 		<canvas
 			data-testid="canvas-layer"
-			className="absolute cursor-inherit z-0"
-			style={{
-				backgroundColor: background,
-				width: `${width}px`,
-				height: `${height}px`,
-				transform
-			}}
+			id="canvas"
+			data-mode={mode}
+			data-canvas-width={width} // CSS pixels
+			data-canvas-height={height} // CSS pixels
+			className="absolute w-full h-full cursor-inherit z-0 data-[mode=move]:cursor-grab data-[mode=pan]:cursor-grab data-[mode=selection]:cursor-default data-[mode=draw]:cursor-none data-[mode=erase]:cursor-none data-[mode=zoom_in]:cursor-zoom-in data-[mode=zoom_out]:cursor-zoom-out data-[mode=text]:cursor-text data-[mode=eye_drop]:cursor-crosshair"
 			ref={canvasRef}
-			width={width * dpi}
-			height={height * dpi}
 			onMouseDown={onMouseDown}
 			onMouseUp={onMouseUp}
 			onMouseEnter={onMouseEnter}
-			data-scale={scale}
-			data-dpi={dpi}
 		/>
 	);
 });

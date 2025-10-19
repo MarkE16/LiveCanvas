@@ -1,9 +1,9 @@
 // Lib
 import ElementsStore from "@/state/stores/ElementsStore";
 import LayersStore from "@/state/stores/LayersStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useStore from "@/state/hooks/useStore";
-import useStoreEffect from "@/state/hooks/useStoreEffect";
+import { useShallow } from "zustand/react/shallow";
 
 // Types
 import type { ReactNode } from "react";
@@ -13,20 +13,31 @@ import CanvasPane from "@/components/CanvasPane/CanvasPane";
 import LeftToolbar from "@/components/LeftToolbar/LeftToolbar";
 import LayerPane from "@/components/LayerPane/LayerPane";
 import ReferenceWindow from "@/components/ReferenceWindow/ReferenceWindow";
+import { redrawCanvas } from "@/lib/utils";
+import ImageElementStore from "@/state/stores/ImageElementStore";
 
 function Main(): ReactNode {
-	const { setElements, setLayers } = useStore((store) => ({
-		setElements: store.setElements,
-		setLayers: store.setLayers
-	}));
-	const refereceWindowEnabled = useStore(
-		(store) => store.referenceWindowEnabled
+	const {
+		setElements,
+		setLayers,
+		refereceWindowEnabled,
+		loadCanvasProperties
+	} = useStore(
+		useShallow((store) => ({
+			setElements: store.setElements,
+			setLayers: store.setLayers,
+			refereceWindowEnabled: store.referenceWindowEnabled,
+			loadCanvasProperties: store.loadCanvasProperties
+		}))
 	);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		async function updateLayersAndElements() {
 			const elements = await ElementsStore.getElements();
 			const layers = await LayersStore.getLayers();
+			await ImageElementStore.loadImages();
+			loadCanvasProperties();
 
 			// There must always be at least one layer.
 			// If there are no layers, do not update,
@@ -43,36 +54,13 @@ function Main(): ReactNode {
 						}))
 				);
 			}
-			setElements(
-				elements.map(([, element]) => ({
-					...element,
-					focused: false
-				}))
-			);
+			setElements(elements.map(([, element]) => element));
+			setLoading(false);
+			redrawCanvas();
 		}
 
 		updateLayersAndElements();
-	}, [setElements, setLayers]);
-
-	useStoreEffect(
-		(state) => ({ layers: state.layers, elements: state.elements }),
-		(current, previous) => {
-			const changeInLayerToggle =
-				current.layers.length === previous.layers.length &&
-				current.layers.some(
-					(layer, index) => layer.active !== previous.layers[index].active
-				);
-			const layerAdded = current.layers.length > previous.layers.length;
-
-			document.dispatchEvent(
-				new CustomEvent("canvas:redraw", {
-					detail: {
-						noChange: changeInLayerToggle || layerAdded
-					}
-				})
-			);
-		}
-	);
+	}, [setElements, setLayers, loadCanvasProperties]);
 
 	return (
 		<main
@@ -82,7 +70,7 @@ function Main(): ReactNode {
 		>
 			<LeftToolbar />
 
-			<CanvasPane />
+			<CanvasPane loading={loading} />
 
 			{/* Reference window */}
 			{refereceWindowEnabled && <ReferenceWindow />}

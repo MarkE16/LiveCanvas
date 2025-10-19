@@ -32,8 +32,6 @@ const exampleStore: SliceStores = {
 	changeMode: expect.any(Function),
 	changeColor: expect.any(Function),
 	setLayers: expect.any(Function),
-	increaseScale: expect.any(Function),
-	decreaseScale: expect.any(Function),
 	setPosition: expect.any(Function),
 	changeX: expect.any(Function),
 	changeY: expect.any(Function),
@@ -276,40 +274,6 @@ describe("useStore functionality", () => {
 
 		it("should return the initial scale", () => {
 			expect(result.result.current.scale).toBe(exampleStore.scale);
-		});
-
-		it("should increase the scale by 0.1", () => {
-			act(() => {
-				result.result.current.increaseScale();
-			});
-			expect(result.result.current.scale).toBe(1.1);
-		});
-
-		it("should decrease the scale by 0.1", () => {
-			act(() => {
-				result.result.current.decreaseScale();
-			});
-			expect(result.result.current.scale).toBe(0.9);
-		});
-
-		it("should not allow scale to be less than 0.1", () => {
-			// Decrease scale 10 times
-			for (let i = 0; i < 10; i++) {
-				act(() => {
-					result.result.current.decreaseScale();
-				});
-			}
-			expect(result.result.current.scale).toBe(0.1);
-		});
-
-		it("should not allow scale to be greater than 3", () => {
-			// Increase scale 20 times
-			for (let i = 0; i < 20; i++) {
-				act(() => {
-					result.result.current.increaseScale();
-				});
-			}
-			expect(result.result.current.scale).toBe(3);
 		});
 
 		it("should return the initial position", () => {
