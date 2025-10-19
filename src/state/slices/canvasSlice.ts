@@ -425,6 +425,7 @@ export const createCanvasSlice: StateCreator<
 		ctx.beginPath();
 		ctx.rect(x, y, width, height);
 		ctx.globalCompositeOperation = "destination-over";
+		ctx.globalAlpha = 1;
 
 		if (background === "transparent" && !preview) {
 			// If the background is transparent, fill with a checkerboard pattern.
@@ -649,8 +650,7 @@ export const createCanvasSlice: StateCreator<
 		width: 400,
 		height: 400,
 		mode: "move",
-		// background: "#00FFFF",
-		background: "transparent",
+		background: "#ffffff",
 		shape: "rectangle",
 		shapeMode: "fill",
 		color: "#000000",

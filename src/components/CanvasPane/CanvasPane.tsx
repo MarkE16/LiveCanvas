@@ -190,8 +190,13 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			if (!canvasSpace) return;
 
 			if (e instanceof WheelEvent) {
-				console.log(e.deltaY);
-				performZoom(e.clientX, e.clientY, e.deltaY / 10);
+				if (e.ctrlKey) {
+					// Ctrl key means we are zooming.
+					performZoom(e.clientX, e.clientY, e.deltaY / 10);
+				} else if (e.shiftKey) {
+					// Shift key means we are panning horizontally.
+					changeX(-e.deltaY);
+				}
 				// Handle the click event
 			} else if (e instanceof MouseEvent) {
 				if (!isClickingOnSpace(e)) return;

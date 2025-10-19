@@ -44,7 +44,7 @@ export const createCanvasElementsSlice: StateCreator<
 			...properties, // Override the default properties with the provided properties, if any.
 			drawType: shapeMode,
 			strokeWidth,
-			opacity
+			opacity: type === "eraser" ? 1 : opacity
 		};
 
 		set((state) => ({
