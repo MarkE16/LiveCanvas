@@ -9,7 +9,7 @@ export const passToClient = [
 
 import { PageShell } from "./PageShell";
 import { escapeInject } from "vite-plugin-ssr/server";
-import logo from "@/assets/icons/IdeaDrawnNewLogo_transparent.png";
+import logo from "@/assets/icons/IdeaDrawnNewLogo.png";
 import type { PageContextServer } from "./types";
 import { renderToStream } from "react-streaming/server";
 import { initializeStore } from "@/state/store";
