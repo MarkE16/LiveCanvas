@@ -13,6 +13,7 @@ export const createHistorySlice: StateCreator<
 		action: HistoryAction,
 		actionPerformed: "undo" | "redo" = "undo"
 	) {
+		const { scale } = get();
 		const { changeElementProperties, createElement, deleteElement } = get();
 		switch (action.type) {
 			case "add_element": {
@@ -41,15 +42,15 @@ export const createHistorySlice: StateCreator<
 									...state,
 									path: state.path.map((point) => ({
 										...point,
-										x: point.x - dx,
-										y: point.y - dy
+										x: point.x - dx / scale,
+										y: point.y - dy / scale
 									}))
 								};
 							}
 							return {
 								...state,
-								x: state.x - dx,
-								y: state.y - dy
+								x: state.x - dx / scale,
+								y: state.y - dy / scale
 							};
 						}
 
@@ -59,15 +60,15 @@ export const createHistorySlice: StateCreator<
 								...state,
 								path: state.path.map((point) => ({
 									...point,
-									x: point.x + dx,
-									y: point.y + dy
+									x: point.x + dx / scale,
+									y: point.y + dy / scale
 								}))
 							};
 						}
 						return {
 							...state,
-							x: state.x + dx,
-							y: state.y + dy
+							x: state.x + dx / scale,
+							y: state.y + dy / scale
 						};
 					},
 					(element) => element.layerId === layerId
