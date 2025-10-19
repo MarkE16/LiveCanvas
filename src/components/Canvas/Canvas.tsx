@@ -93,13 +93,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		// Clip the drawing to the bounds of the canvas
 		ctx.save();
-		ctx.translate(canvas.width / 2 - width / 2, canvas.height / 2 - height / 2);
 		ctx.rect(0, 0, width, height);
 		ctx.clip();
-		ctx.translate(
-			-canvas.width / 2 + width / 2,
-			-canvas.height / 2 + height / 2
-		);
 
 		// Calculate the position of the mouse relative to the canvas.
 		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
@@ -118,10 +113,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			// Save the current path.
 			currentPath.current.push({ x: floorX, y: floorY, startingPoint: true });
 		} else if (mode === "eye_drop" && !isGrabbing) {
-			// `.getImageData()` retreives the x and y coordinates of the pixel
-			// differently if the canvas is scaled. So, we need to multiply the
-			// x and y coordinates by the DPI to get the correct pixel.
-			const pixel = ctx.getImageData(floorX * dpi, floorY * dpi, 1, 1).data;
+			// `getPointerPosition` gives us the position in world coordinates,
+			// but we need the position in canvas coordinates for `getImageData`.
+			const rect = canvas.getBoundingClientRect();
+			const canvasX = Math.floor(e.clientX - rect.left);
+			const canvasY = Math.floor(e.clientY - rect.top);
+			const pixel = ctx.getImageData(canvasX, canvasY, 1, 1).data;
 
 			const colorStr = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
 

@@ -50,7 +50,8 @@ function Navbar(): ReactNode {
 		setZoom,
 		resetLayersAndElements,
 		createElement,
-		changeDimensions
+		changeDimensions,
+		clearHistory
 	} = useStore(
 		useShallow((state) => ({
 			prepareForExport: state.prepareForExport,
@@ -61,7 +62,8 @@ function Navbar(): ReactNode {
 			setZoom: state.setZoom,
 			resetLayersAndElements: state.resetLayersAndElements,
 			createElement: state.createElement,
-			changeDimensions: state.changeDimensions
+			changeDimensions: state.changeDimensions,
+			clearHistory: state.clearHistory
 		}))
 	);
 	const { ref } = useCanvasRef();
@@ -225,8 +227,9 @@ function Navbar(): ReactNode {
 					height: image.naturalHeight
 				});
 				ImageElementStore.putImage(element.id, image);
-        centerCanvas(ref);
+				centerCanvas(ref);
 				redrawCanvas();
+				clearHistory();
 			};
 
 			image.src = URL.createObjectURL(file);

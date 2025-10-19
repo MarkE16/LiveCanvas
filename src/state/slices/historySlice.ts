@@ -99,10 +99,10 @@ export const createHistorySlice: StateCreator<
 
 		applyChanges(lastAction, "undo");
 
-		set(() => ({
+		set({
 			undoStack: undoStack.slice(1),
 			redoStack: [lastAction, ...redoStack]
-		}));
+		});
 	}
 
 	function redo() {
@@ -113,10 +113,17 @@ export const createHistorySlice: StateCreator<
 
 		applyChanges(lastAction, "redo");
 
-		set(() => ({
+		set({
 			undoStack: [lastAction, ...undoStack],
 			redoStack: redoStack.slice(1)
-		}));
+		});
+	}
+
+	function clearHistory() {
+		set({
+			undoStack: [],
+			redoStack: []
+		});
 	}
 
 	return {
@@ -124,6 +131,7 @@ export const createHistorySlice: StateCreator<
 		redoStack: [],
 		pushHistory,
 		undo,
-		redo
+		redo,
+		clearHistory
 	};
 };

@@ -95,6 +95,7 @@ export type HistoryStore = {
 	pushHistory: (action: HistoryAction) => void;
 	undo: () => void;
 	redo: () => void;
+	clearHistory: () => void;
 };
 
 export type SliceStores = CanvasStore & CanvasElementsStore & HistoryStore;

@@ -507,6 +507,8 @@ export const createCanvasSlice: StateCreator<
 			return aPosition - bPosition;
 		});
 
+		ctx.clearRect(0, 0, baseCanvas.width, baseCanvas.height);
+
 		if (!options?.preview) {
 			const rect = DOMCanvas.getBoundingClientRect();
 
