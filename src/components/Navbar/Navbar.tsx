@@ -215,19 +215,17 @@ function Navbar(): ReactNode {
 
 			image.onload = function () {
 				URL.revokeObjectURL(image.src);
-				const { width, height } = ref.getBoundingClientRect();
 
 				changeDimensions({
 					width: image.naturalWidth,
 					height: image.naturalHeight
 				});
 				const element = createElement("image", {
-					x: width / 2 - image.naturalWidth / 2,
-					y: height / 2 - image.naturalHeight / 2,
 					width: image.naturalWidth,
 					height: image.naturalHeight
 				});
 				ImageElementStore.putImage(element.id, image);
+        centerCanvas(ref);
 				redrawCanvas();
 			};
 
