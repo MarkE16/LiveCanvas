@@ -15,7 +15,7 @@ import type { RefObject } from "react";
 function useStoreSubscription<T>(
 	selector: (state: SliceStores) => T
 ): RefObject<T> {
-  const store = useStoreContext();
+	const store = useStoreContext();
 
 	const state = useRef(selector(store.getState()));
 

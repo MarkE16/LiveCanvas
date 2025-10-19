@@ -46,19 +46,19 @@ function Page() {
 
 		LayersStore.openStore();
 		ElementsStore.openStore();
-    ImageElementStore.openStore();
+		ImageElementStore.openStore();
 	}, []);
 
 	return (
-	<StoreProvider store={initializeStore(state)}>
-		<CanvasReferenceProvider>
-			<ErrorBoundary>
-			<Navbar />
+		<StoreProvider store={initializeStore(state)}>
+			<CanvasReferenceProvider>
+				<ErrorBoundary>
+					<Navbar />
 
-			<Main />
-			</ErrorBoundary>
-		</CanvasReferenceProvider>
-	</StoreProvider>
+					<Main />
+				</ErrorBoundary>
+			</CanvasReferenceProvider>
+		</StoreProvider>
 	);
 }
 

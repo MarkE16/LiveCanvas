@@ -16,7 +16,7 @@ function useStoreEffect<T>(
 	selector: (state: SliceStores) => T,
 	effect: (curr: T, prev: T) => void
 ) {
-  const store = useStoreContext();
+	const store = useStoreContext();
 
 	useEffect(() => {
 		const unsubscribe = store.subscribe(selector, effect, {

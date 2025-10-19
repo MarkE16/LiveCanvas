@@ -30,6 +30,6 @@ export default function useStore<T>(
 	selector: (state: SliceStores) => T,
 	equalityFn?: (a: T, b: T) => boolean
 ): T {
-  const store = useStoreContext();
+	const store = useStoreContext();
 	return useStoreWithEqualityFn(store, selector, equalityFn);
 }

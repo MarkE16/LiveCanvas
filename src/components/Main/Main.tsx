@@ -17,7 +17,12 @@ import { redrawCanvas } from "@/lib/utils";
 import ImageElementStore from "@/state/stores/ImageElementStore";
 
 function Main(): ReactNode {
-	const { setElements, setLayers, refereceWindowEnabled, loadCanvasProperties } = useStore(
+	const {
+		setElements,
+		setLayers,
+		refereceWindowEnabled,
+		loadCanvasProperties
+	} = useStore(
 		useShallow((store) => ({
 			setElements: store.setElements,
 			setLayers: store.setLayers,
@@ -32,7 +37,7 @@ function Main(): ReactNode {
 			const elements = await ElementsStore.getElements();
 			const layers = await LayersStore.getLayers();
 			await ImageElementStore.loadImages();
-      loadCanvasProperties();
+			loadCanvasProperties();
 
 			// There must always be at least one layer.
 			// If there are no layers, do not update,
