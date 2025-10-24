@@ -86,6 +86,12 @@ export type CanvasStore = CanvasState & {
 		top: boolean;
 	};
 	centerCanvas: (ref: HTMLCanvasElement) => void;
+	drawPaperCanvas: (
+		ctx: CanvasRenderingContext2D,
+		x: number,
+		y: number,
+		preview?: boolean
+	) => void;
 	resetLayersAndElements: () => void;
 };
 

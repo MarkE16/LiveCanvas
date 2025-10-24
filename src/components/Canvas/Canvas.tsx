@@ -30,7 +30,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		shape,
 		width,
 		height,
-		dpi,
+		drawPaperCanvas,
 		changeMode,
 		changeColor,
 		createElement,
@@ -52,7 +52,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			getActiveLayer: state.getActiveLayer,
 			pushHistory: state.pushHistory,
 			getPointerPosition: state.getPointerPosition,
-			drawCanvas: state.drawCanvas,
+			drawPaperCanvas: state.drawPaperCanvas,
 			centerCanvas: state.centerCanvas
 		}))
 	);
@@ -153,30 +153,13 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const floorX = Math.floor(x);
 		const floorY = Math.floor(y);
 
-		ctx.fillStyle = color.current;
-		ctx.lineWidth = strokeWidth.current;
-		ctx.lineCap = "round";
-		ctx.globalAlpha = opacity.current;
-		ctx.strokeStyle = color.current;
-		ctx.globalCompositeOperation =
-			mode === "eraser" ? "destination-out" : "source-over";
-
 		const currentShapeMode = shapeMode.current;
 
 		switch (mode) {
 			case "brush":
 			case "eraser": {
 				if (!onCanvas) return;
-				// redrawCanvas();
-
-				// for (let i = 0; i < currentPath.current.length; i++) {
-				// 	const point = currentPath.current[i];
-				// 	if (point.startingPoint) {
-				// 		currentPath2D.current.moveTo(point.x, point.y);
-				// 	} else {
-				// 		currentPath2D.current.lineTo(point.x, point.y);
-				// 	}
-				// }
+				redrawCanvas();
 
 				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
@@ -186,6 +169,8 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 					y: floorY,
 					startingPoint: false
 				});
+
+				drawPaperCanvas(ctx, 0, 0);
 				break;
 			}
 

@@ -417,11 +417,9 @@ export const createCanvasSlice: StateCreator<
 		ctx: CanvasRenderingContext2D,
 		x: number,
 		y: number,
-		width: number,
-		height: number,
-		background: string,
 		preview: boolean = false
 	) {
+		const { width, height, background } = get();
 		ctx.beginPath();
 		ctx.rect(x, y, width, height);
 		ctx.globalCompositeOperation = "destination-over";
@@ -467,6 +465,7 @@ export const createCanvasSlice: StateCreator<
 		options?: DrawOptions
 	) {
 		const {
+			mode,
 			elements,
 			background,
 			layers,
@@ -633,9 +632,6 @@ export const createCanvasSlice: StateCreator<
 			ctx,
 			0,
 			0,
-			canvasWidth,
-			canvasHeight,
-			background,
 			options?.preview
 		);
 
@@ -649,6 +645,8 @@ export const createCanvasSlice: StateCreator<
 			ctx.strokeStyle = color;
 			ctx.fillStyle = color;
 			ctx.lineWidth = strokeWidth;
+			ctx.globalCompositeOperation =
+				mode === "eraser" ? "destination-out" : "source-over";
 		}
 	}
 
@@ -705,6 +703,7 @@ export const createCanvasSlice: StateCreator<
 		getPointerPosition,
 		isCanvasOffscreen,
 		centerCanvas,
+		drawPaperCanvas,
 		drawCanvas,
 		resetLayersAndElements
 	};
