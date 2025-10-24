@@ -43,7 +43,7 @@ export const createCanvasElementsSlice: StateCreator<
 			layerId: layer.id,
 			...properties, // Override the default properties with the provided properties, if any.
 			drawType: shapeMode,
-			strokeWidth,
+			strokeWidth: Math.max(1, strokeWidth),
 			opacity: type === "eraser" ? 1 : opacity
 		};
 

@@ -153,20 +153,30 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const floorX = Math.floor(x);
 		const floorY = Math.floor(y);
 
+		ctx.fillStyle = color.current;
+		ctx.lineWidth = strokeWidth.current;
+		ctx.lineCap = "round";
+		ctx.globalAlpha = opacity.current;
+		ctx.strokeStyle = color.current;
 		ctx.globalCompositeOperation =
 			mode === "eraser" ? "destination-out" : "source-over";
-		ctx.fillStyle = color.current;
-		ctx.strokeStyle = color.current;
-		ctx.lineWidth = strokeWidth.current * dpi;
+
 		const currentShapeMode = shapeMode.current;
 
 		switch (mode) {
 			case "brush":
 			case "eraser": {
 				if (!onCanvas) return;
-				ctx.lineWidth = strokeWidth.current * dpi;
-				ctx.lineCap = "round";
-				ctx.lineJoin = "round";
+				// redrawCanvas();
+
+				// for (let i = 0; i < currentPath.current.length; i++) {
+				// 	const point = currentPath.current[i];
+				// 	if (point.startingPoint) {
+				// 		currentPath2D.current.moveTo(point.x, point.y);
+				// 	} else {
+				// 		currentPath2D.current.lineTo(point.x, point.y);
+				// 	}
+				// }
 
 				currentPath2D.current.lineTo(floorX, floorY);
 				ctx.stroke(currentPath2D.current);
@@ -176,7 +186,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 					y: floorY,
 					startingPoint: false
 				});
-				// drawCanvas(activeLayer);
 				break;
 			}
 

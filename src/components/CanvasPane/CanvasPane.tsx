@@ -192,6 +192,7 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 			if (e instanceof WheelEvent) {
 				if (e.ctrlKey) {
 					// Ctrl key means we are zooming.
+					e.preventDefault();
 					performZoom(e.clientX, e.clientY, e.deltaY / 10);
 				} else if (e.shiftKey) {
 					// Shift key means we are panning horizontally.
@@ -258,14 +259,12 @@ function CanvasPane({ loading }: CanvasPaneProps): ReactNode {
 
 	return (
 		<div
+			ref={canvasSpaceRef}
 			className="flex relative justify-center items-center flex-[3] w-full overflow-hidden [&:not(:hover)>#canvas-pointer-marker]:opacity-0 [&:not(:hover)>#canvas-pointer-marker]:transition-opacity [&:not(:hover)>#canvas-pointer-marker]:duration-200 [&:hover>#canvas-pointer-marker]:absolute [&:hover>#canvas-pointer-marker]:border-[3px] [&:hover>#canvas-pointer-marker]:border-black [&:hover>#canvas-pointer-marker]:outline [&:hover>#canvas-pointer-marker]:outline-[1px] [&:hover>#canvas-pointer-marker]:outline-white [&:hover>#canvas-pointer-marker]:outline-offset-[-3px] [&:hover>#canvas-pointer-marker]:pointer-events-none"
 			data-testid="canvas-pane"
 		>
 			{(mode === "brush" || mode == "eraser") && (
-				<CanvasPointerMarker
-					canvasSpaceReference={canvasSpaceRef}
-					shiftKey={shiftKey}
-				/>
+				<CanvasPointerMarker canvasSpaceReference={canvasSpaceRef} />
 			)}
 			<MemoizedDrawingToolbar />
 

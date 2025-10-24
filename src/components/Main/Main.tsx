@@ -66,7 +66,7 @@ function Main(): ReactNode {
 		<main
 			id="main-content"
 			data-testid="main-content"
-			className="flex h-[calc(100vh-3rem)]"
+			className="flex h-[calc(100vh-3rem)] bg-red-600"
 		>
 			<LeftToolbar />
 

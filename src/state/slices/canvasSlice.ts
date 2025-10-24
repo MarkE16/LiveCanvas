@@ -473,7 +473,10 @@ export const createCanvasSlice: StateCreator<
 			width: canvasWidth,
 			height: canvasHeight,
 			position: { x: posX, y: posY },
-			scale
+			scale,
+			opacity,
+			strokeWidth,
+			color
 		} = get();
 
 		if (layers.length === 0) {
@@ -637,6 +640,16 @@ export const createCanvasSlice: StateCreator<
 		);
 
 		ctx.restore();
+
+		// After drawing everything, reset the styles back to the current settings
+		// if not in preview mode. This is for the main canvas where the user draws,
+		// and we want to keep style settings persistent.
+		if (!options?.preview) {
+			ctx.globalAlpha = opacity;
+			ctx.strokeStyle = color;
+			ctx.fillStyle = color;
+			ctx.lineWidth = strokeWidth;
+		}
 	}
 
 	function resetLayersAndElements() {
