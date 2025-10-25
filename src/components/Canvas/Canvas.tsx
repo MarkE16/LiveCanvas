@@ -175,7 +175,16 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		switch (mode) {
 			case "brush":
 			case "eraser": {
-				currentPath2D.current.lineTo(floorX, floorY);
+			const lastPoint = currentPath.current[currentPath.current.length - 1];
+				const midPointX = lastPoint.x + (floorX - lastPoint.x) / 2;
+				const midPointY = lastPoint.y + (floorY - lastPoint.y) / 2;
+				
+        currentPath2D.current.quadraticCurveTo(
+          lastPoint.x,
+          lastPoint.y,
+          midPointX,
+          midPointY
+        );
 				ctx.stroke(currentPath2D.current);
 
 				currentPath.current.push({

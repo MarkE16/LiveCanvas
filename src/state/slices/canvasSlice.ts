@@ -537,11 +537,16 @@ export const createCanvasSlice: StateCreator<
 				case "brush":
 				case "eraser": {
 					ctx.beginPath();
-					for (const point of element.path) {
+					for (let i = 0; i < element.path.length; i++) {
+						const point = element.path[i];
 						if (point.startingPoint) {
 							ctx.moveTo(point.x, point.y);
 						} else {
-							ctx.lineTo(point.x, point.y);
+							const lastPoint = element.path[i - 1];
+							// Add a quadratic curve for smoother lines
+							const midX = (lastPoint.x + point.x) / 2;
+							const midY = (lastPoint.y + point.y) / 2;
+							ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midX, midY);
 						}
 					}
 					ctx.stroke();
