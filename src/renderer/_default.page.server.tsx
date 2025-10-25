@@ -12,7 +12,7 @@ import { escapeInject } from "vite-plugin-ssr/server";
 import logo from "@/assets/icons/IdeaDrawnNewLogo.png";
 import type { PageContextServer } from "./types";
 import { renderToStream } from "react-streaming/server";
-import { initializeStore } from "@/state/store";
+import { initializeEditorStore } from "@/state/store";
 import type { SliceStores } from "@/types";
 import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
 
@@ -22,7 +22,7 @@ async function render(pageContext: PageContextServer) {
 	if (!Page)
 		throw new Error("My render() hook expects pageContext.Page to be defined");
 
-	const store = initializeStore();
+	const store = initializeEditorStore();
 	const preloadedState = store.getState();
 	const stateWithoutFunctions: Partial<SliceStores> = Object.fromEntries(
 		Object.entries(preloadedState).filter(

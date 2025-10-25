@@ -10,8 +10,7 @@ import type {
 	Shape,
 	SliceStores,
 	DrawOptions,
-	CanvasElement,
-	CanvasState
+	CanvasElement
 } from "@/types";
 import * as Utils from "@/lib/utils";
 import ImageElementStore from "../stores/ImageElementStore";
@@ -247,21 +246,6 @@ export const createCanvasSlice: StateCreator<
 		return { layers, elements };
 	}
 
-	function loadCanvasProperties() {
-		const str = window.localStorage.getItem("canvas-properties");
-
-		if (!str) {
-			console.warn("Cannot load 'canvas-properties'");
-			return;
-		}
-
-		const { width, height, background } = JSON.parse(str) as Pick<
-			CanvasState,
-			"width" | "height" | "background"
-		>;
-		set({ width, height, background });
-	}
-
 	/**
 	 * A helper function that returns an array of lines of the given text that fit within the given width.
 	 * @param text The text to split into lines.
@@ -417,11 +401,9 @@ export const createCanvasSlice: StateCreator<
 		ctx: CanvasRenderingContext2D,
 		x: number,
 		y: number,
-		width: number,
-		height: number,
-		background: string,
 		preview: boolean = false
 	) {
+		const { width, height, background } = get();
 		ctx.beginPath();
 		ctx.rect(x, y, width, height);
 		ctx.globalCompositeOperation = "destination-over";
@@ -467,13 +449,16 @@ export const createCanvasSlice: StateCreator<
 		options?: DrawOptions
 	) {
 		const {
+			mode,
 			elements,
-			background,
 			layers,
 			width: canvasWidth,
 			height: canvasHeight,
 			position: { x: posX, y: posY },
-			scale
+			scale,
+			opacity,
+			strokeWidth,
+			color
 		} = get();
 
 		if (layers.length === 0) {
@@ -552,11 +537,16 @@ export const createCanvasSlice: StateCreator<
 				case "brush":
 				case "eraser": {
 					ctx.beginPath();
-					for (const point of element.path) {
+					for (let i = 0; i < element.path.length; i++) {
+						const point = element.path[i];
 						if (point.startingPoint) {
 							ctx.moveTo(point.x, point.y);
 						} else {
-							ctx.lineTo(point.x, point.y);
+							const lastPoint = element.path[i - 1];
+							// Add a quadratic curve for smoother lines
+							const midX = (lastPoint.x + point.x) / 2;
+							const midY = (lastPoint.y + point.y) / 2;
+							ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midX, midY);
 						}
 					}
 					ctx.stroke();
@@ -626,17 +616,22 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		// Finally, draw the paper canvas (background)
-		drawPaperCanvas(
-			ctx,
-			0,
-			0,
-			canvasWidth,
-			canvasHeight,
-			background,
-			options?.preview
-		);
+		drawPaperCanvas(ctx, 0, 0, options?.preview);
 
 		ctx.restore();
+
+		// After drawing everything, reset the styles back to the current settings
+		// if not in preview mode. This is for the main canvas where the user draws,
+		// and we want to keep style settings persistent.
+		if (!options?.preview) {
+			ctx.globalAlpha = opacity;
+			ctx.strokeStyle = color;
+			ctx.fillStyle = color;
+			ctx.lineWidth = strokeWidth;
+			ctx.globalCompositeOperation =
+				mode === "eraser" ? "destination-out" : "source-over";
+			ctx.lineCap = "round";
+		}
 	}
 
 	function resetLayersAndElements() {
@@ -686,12 +681,12 @@ export const createCanvasSlice: StateCreator<
 		changeX,
 		changeY,
 		prepareForSave,
-		loadCanvasProperties,
 		prepareForExport,
 		toggleReferenceWindow,
 		getPointerPosition,
 		isCanvasOffscreen,
 		centerCanvas,
+		drawPaperCanvas,
 		drawCanvas,
 		resetLayersAndElements
 	};

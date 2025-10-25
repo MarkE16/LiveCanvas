@@ -1,28 +1,40 @@
 // Lib
-import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import {
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef
+} from "react";
 import { parseColor } from "react-aria-components";
 import { useShallow } from "zustand/react/shallow";
 import useStoreSubscription from "@/state/hooks/useStoreSubscription";
 import useStore from "@/state/hooks/useStore";
-
-// Types
-import type { MouseEvent as ReactMouseEvent } from "react";
-import { type Coordinates, CanvasElementPath } from "@/types";
 import useThrottle from "@/state/hooks/useThrottle";
 import useCanvasRedrawListener from "@/state/hooks/useCanvasRedrawListener";
 import useCanvasRef from "@/state/hooks/useCanvasRef";
 import { redrawCanvas } from "@/lib/utils";
+import ElementsStore from "@/state/stores/ElementsStore";
+import LayersStore from "@/state/stores/LayersStore";
+import ImageElementStore from "@/state/stores/ImageElementStore";
 
-// Styles using Tailwind
+// Types
+import type {
+	Dispatch,
+	MouseEvent as ReactMouseEvent,
+	SetStateAction
+} from "react";
+import { type Coordinates, CanvasElementPath } from "@/types";
+import useStoreContext from "@/state/hooks/useStoreContext";
 
 type CanvasProps = {
-	isGrabbing: boolean;
+	setLoading: Dispatch<SetStateAction<boolean>>;
 };
 
 const THROTTLE_DELAY_MS = 10; // milliseconds
 
 const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
-	{ isGrabbing },
+	{ setLoading },
 	ref
 ) {
 	const {
@@ -30,14 +42,16 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		shape,
 		width,
 		height,
-		dpi,
+		drawPaperCanvas,
 		changeMode,
 		changeColor,
 		createElement,
 		getActiveLayer,
 		pushHistory,
 		getPointerPosition,
-		centerCanvas
+		centerCanvas,
+		setElements,
+		setLayers
 	} = useStore(
 		useShallow((state) => ({
 			mode: state.mode,
@@ -52,15 +66,16 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			getActiveLayer: state.getActiveLayer,
 			pushHistory: state.pushHistory,
 			getPointerPosition: state.getPointerPosition,
-			drawCanvas: state.drawCanvas,
-			centerCanvas: state.centerCanvas
+			drawPaperCanvas: state.drawPaperCanvas,
+			centerCanvas: state.centerCanvas,
+			setElements: state.setElements,
+			setLayers: state.setLayers
 		}))
 	);
+	const store = useStoreContext();
 	const { setRef } = useCanvasRef();
 	const color = useStoreSubscription((state) => state.color);
-	const strokeWidth = useStoreSubscription((state) => state.strokeWidth);
 	const shapeMode = useStoreSubscription((state) => state.shapeMode);
-	const opacity = useStoreSubscription((state) => state.opacity);
 
 	const isDrawing = useRef<boolean>(false);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -79,7 +94,11 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		const canvas = e.currentTarget;
 
-		if (!canvas) throw new Error("No active layer found. This is a bug.");
+		const onCanvas = e.target === canvas || canvas.contains(e.target as Node);
+
+		if (!onCanvas) {
+			return;
+		}
 
 		const ctx = canvas.getContext("2d", {
 			willReadFrequently: true
@@ -88,13 +107,6 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		if (!ctx) {
 			throw new Error("Couldn't get the 2D context of the canvas.");
 		}
-
-		ctx.globalAlpha = mode === "eraser" ? 1 : opacity.current;
-
-		// Clip the drawing to the bounds of the canvas
-		ctx.save();
-		ctx.rect(0, 0, width, height);
-		ctx.clip();
 
 		// Calculate the position of the mouse relative to the canvas.
 		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
@@ -112,7 +124,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 			currentPath2D.current.moveTo(floorX, floorY);
 			// Save the current path.
 			currentPath.current.push({ x: floorX, y: floorY, startingPoint: true });
-		} else if (mode === "eye_drop" && !isGrabbing) {
+		} else if (mode === "eye_drop") {
 			// `getPointerPosition` gives us the position in world coordinates,
 			// but we need the position in canvas coordinates for `getImageData`.
 			const rect = canvas.getBoundingClientRect();
@@ -138,7 +150,7 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 		const onCanvas = e.target === canvas || canvas.contains(e.target as Node);
 
-		if (e.buttons !== 1 || !isDrawing.current || isGrabbing) {
+		if (e.buttons !== 1 || !isDrawing.current || !onCanvas) {
 			return;
 		}
 		if (mode === "shapes" || !currentPath2D.current) {
@@ -153,22 +165,26 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const floorX = Math.floor(x);
 		const floorY = Math.floor(y);
 
-		ctx.globalCompositeOperation =
-			mode === "eraser" ? "destination-out" : "source-over";
-		ctx.fillStyle = color.current;
-		ctx.strokeStyle = color.current;
-		ctx.lineWidth = strokeWidth.current * dpi;
 		const currentShapeMode = shapeMode.current;
+
+		redrawCanvas();
+		ctx.save();
+		ctx.rect(0, 0, width, height);
+		ctx.clip();
 
 		switch (mode) {
 			case "brush":
 			case "eraser": {
-				if (!onCanvas) return;
-				ctx.lineWidth = strokeWidth.current * dpi;
-				ctx.lineCap = "round";
-				ctx.lineJoin = "round";
-
-				currentPath2D.current.lineTo(floorX, floorY);
+			const lastPoint = currentPath.current[currentPath.current.length - 1];
+				const midPointX = lastPoint.x + (floorX - lastPoint.x) / 2;
+				const midPointY = lastPoint.y + (floorY - lastPoint.y) / 2;
+				
+        currentPath2D.current.quadraticCurveTo(
+          lastPoint.x,
+          lastPoint.y,
+          midPointX,
+          midPointY
+        );
 				ctx.stroke(currentPath2D.current);
 
 				currentPath.current.push({
@@ -176,12 +192,12 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 					y: floorY,
 					startingPoint: false
 				});
-				// drawCanvas(activeLayer);
+
+				drawPaperCanvas(ctx, 0, 0);
 				break;
 			}
 
 			case "shapes": {
-				redrawCanvas();
 				if (shape === "circle") {
 					const width = x - initialPosition.current.x;
 					const height = y - initialPosition.current.y;
@@ -240,23 +256,27 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 				break;
 			}
 		}
+		ctx.restore();
 	}, THROTTLE_DELAY_MS);
 
 	// Handler for when the mouse is moved on the canvas.
 	// This should handle a majority of the drawing process.
 
 	const onMouseUp = (e: ReactMouseEvent<HTMLCanvasElement>) => {
-		if (isGrabbing) return;
 		isDrawing.current = false;
 
 		const activeLayer = getActiveLayer();
 		const canvas = e.currentTarget;
 
+		const onCanvas = e.target === canvas || canvas.contains(e.target as Node);
+
+		if (!onCanvas || activeLayer.hidden) {
+			return;
+		}
+
 		const ctx = canvas.getContext("2d");
 
 		if (!ctx) throw new Error("Couldn't get the 2D context of the canvas.");
-
-		ctx.restore();
 
 		const { x, y } = getPointerPosition(canvas, e.clientX, e.clientY);
 		const { x: initX, y: initY } = initialPosition.current;
@@ -304,7 +324,9 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 
 	useImperativeHandle(ref, () => canvasRef.current!, []);
 
-	useCanvasRedrawListener(canvasRef);
+	const debounceRedraw = useMemo(() => false, []);
+
+	useCanvasRedrawListener(canvasRef, undefined, debounceRedraw);
 
 	useEffect(() => {
 		document.addEventListener("mousemove", onMouseMove);
@@ -317,8 +339,45 @@ const Canvas = forwardRef<HTMLCanvasElement, CanvasProps>(function Canvas(
 		const ref = canvasRef.current;
 		if (!ref) return;
 
-		centerCanvas(ref);
-	}, [centerCanvas]);
+		const persistStoreName = store.persist.getOptions().name;
+
+		if (!persistStoreName) return;
+
+		const savedStateExists = localStorage.getItem(persistStoreName) !== null;
+
+		if (!savedStateExists) {
+			centerCanvas(ref);
+		}
+	}, [centerCanvas, store]);
+
+	useEffect(() => {
+		async function updateLayersAndElements() {
+			const elements = await ElementsStore.getElements();
+			const layers = await LayersStore.getLayers();
+			await ImageElementStore.loadImages();
+
+			// There must always be at least one layer.
+			// If there are no layers, do not update,
+			// and instead use the default layer state.
+			if (layers.length > 0) {
+				setLayers(
+					layers
+						.sort((a, b) => a[1].position - b[1].position)
+						.map(([id, { name }], i) => ({
+							name,
+							id,
+							active: i === 0,
+							hidden: false
+						}))
+				);
+			}
+			setElements(elements.map(([, element]) => element));
+			setLoading(false);
+			redrawCanvas();
+		}
+
+		updateLayersAndElements();
+	}, [setElements, setLayers, setLoading]);
 
 	return (
 		<canvas
