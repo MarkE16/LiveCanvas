@@ -2,14 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import useStore from "@/state/hooks/useStore";
 import { useShallow } from "zustand/react/shallow";
-import * as Utils from "@/lib/utils";
+
 
 // Types
 import type { ReactNode, RefObject } from "react";
 import type { Coordinates } from "@/types";
 
 type CanvasPointerMarker = {
-	canvasSpaceReference: RefObject<HTMLDivElement | null>;
+	canvasSpaceReference: RefObject<HTMLCanvasElement | null>;
 };
 
 function CanvasPointerMarker({

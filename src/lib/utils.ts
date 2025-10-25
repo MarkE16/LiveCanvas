@@ -224,7 +224,7 @@ function detectOperatingSystem(): OperatingSystem {
 
 /**
  *
- * @param noChange Whether visually, nothing may have no changed.
+ * @param noChange Whether visually, nothing may have not changed.
  */
 function redrawCanvas(noChange: boolean = false) {
 	document.dispatchEvent(

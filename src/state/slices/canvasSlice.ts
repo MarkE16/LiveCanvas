@@ -10,8 +10,7 @@ import type {
 	Shape,
 	SliceStores,
 	DrawOptions,
-	CanvasElement,
-	CanvasState
+	CanvasElement
 } from "@/types";
 import * as Utils from "@/lib/utils";
 import ImageElementStore from "../stores/ImageElementStore";
@@ -247,21 +246,6 @@ export const createCanvasSlice: StateCreator<
 		return { layers, elements };
 	}
 
-	function loadCanvasProperties() {
-		const str = window.localStorage.getItem("canvas-properties");
-
-		if (!str) {
-			console.warn("Cannot load 'canvas-properties'");
-			return;
-		}
-
-		const { width, height, background } = JSON.parse(str) as Pick<
-			CanvasState,
-			"width" | "height" | "background"
-		>;
-		set({ width, height, background });
-	}
-
 	/**
 	 * A helper function that returns an array of lines of the given text that fit within the given width.
 	 * @param text The text to split into lines.
@@ -467,7 +451,6 @@ export const createCanvasSlice: StateCreator<
 		const {
 			mode,
 			elements,
-			background,
 			layers,
 			width: canvasWidth,
 			height: canvasHeight,
@@ -628,12 +611,7 @@ export const createCanvasSlice: StateCreator<
 		}
 
 		// Finally, draw the paper canvas (background)
-		drawPaperCanvas(
-			ctx,
-			0,
-			0,
-			options?.preview
-		);
+		drawPaperCanvas(ctx, 0, 0, options?.preview);
 
 		ctx.restore();
 
@@ -647,6 +625,7 @@ export const createCanvasSlice: StateCreator<
 			ctx.lineWidth = strokeWidth;
 			ctx.globalCompositeOperation =
 				mode === "eraser" ? "destination-out" : "source-over";
+			ctx.lineCap = "round";
 		}
 	}
 
@@ -697,7 +676,6 @@ export const createCanvasSlice: StateCreator<
 		changeX,
 		changeY,
 		prepareForSave,
-		loadCanvasProperties,
 		prepareForExport,
 		toggleReferenceWindow,
 		getPointerPosition,

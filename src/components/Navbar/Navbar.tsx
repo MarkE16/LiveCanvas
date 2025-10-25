@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/menubar";
 import NavbarFileSaveStatus from "../NavbarFileSaveStatus/NavbarFileSaveStatus";
 import ImageElementStore from "@/state/stores/ImageElementStore";
+import useStoreContext from "@/state/hooks/useStoreContext";
 
 function Navbar(): ReactNode {
 	const {
@@ -67,6 +68,7 @@ function Navbar(): ReactNode {
 		}))
 	);
 	const { ref } = useCanvasRef();
+  const store = useStoreContext();
 	const downloadRef = useRef<HTMLAnchorElement>(null);
 	const openFileRef = useRef<HTMLInputElement>(null);
 	const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">(
@@ -209,7 +211,7 @@ function Navbar(): ReactNode {
 			await LayersStore.clearStore();
 			await ElementsStore.clearStore();
 			await ImageElementStore.clearStore();
-			window.localStorage.clear();
+      store.persist.clearStorage();
 			resetLayersAndElements(); // Reset the Zustand state.
 
 			// Upload the image.
